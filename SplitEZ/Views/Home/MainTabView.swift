@@ -36,5 +36,13 @@ struct MainTabView: View {
                 .tag(4)
         }
         .tint(SplitEZTheme.primary)
+        .onChange(of: selectedTab) { _, tab in
+            let screens = ["home", "groups", "trips", "finances", "settings"]
+            Task { await AnalyticsTracker.shared.trackScreen(screens[tab]) }
+        }
+        .task {
+            await AnalyticsTracker.shared.startSession()
+            await AnalyticsTracker.shared.trackScreen("home")
+        }
     }
 }
