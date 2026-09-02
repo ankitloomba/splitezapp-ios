@@ -56,14 +56,14 @@ struct AdBannerView: View {
         // TODO: Replace with GADBannerView UIViewRepresentable
         // For now, a placeholder that shows the ad slot position
         Rectangle()
-            .fill(Color(.tertiarySystemBackground))
+            .fill(SplitEZTheme.secondaryBackground)
             .frame(height: 50)
             .overlay(
                 Text("Ad")
                     .font(.caption2)
                     .foregroundColor(.secondary)
             )
-            .cornerRadius(8)
+            .cornerRadius(12)
     }
 }
 

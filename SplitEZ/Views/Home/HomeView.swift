@@ -183,13 +183,13 @@ struct DashboardElementCard: View {
     private var backgroundColor: Color {
         if let config = element.config,
            let bgValue = config["backgroundColor"]?.value as? String {
-            return Color(hex: bgValue) ?? Color(.secondarySystemBackground)
+            return Color(hex: bgValue)
         }
         switch element.type {
         case "announcement": return SplitEZTheme.primary.opacity(0.1)
         case "tip": return Color.yellow.opacity(0.1)
         case "spotlight": return SplitEZTheme.accent.opacity(0.1)
-        default: return Color(.secondarySystemBackground)
+        default: return SplitEZTheme.secondaryBackground
         }
     }
 }
