@@ -323,6 +323,19 @@ struct DashboardElement: Codable, Identifiable {
     let status: String
 }
 
+// MARK: - Ad Placements
+struct AdPlacement: Codable, Identifiable {
+    let name: String
+    let adType: String       // banner | interstitial | native | rewarded
+    let position: String
+    let adUnitIos: String?
+    let adUnitAndroid: String?
+    let frequency: Int?
+    let adFreeSkip: Bool?
+
+    var id: String { name }
+}
+
 // MARK: - Generic
 struct SuccessResponse: Codable {
     let success: Bool

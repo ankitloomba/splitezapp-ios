@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Lightweight analytics tracker that batches events and sends them to the backend.
 actor AnalyticsTracker {
@@ -10,10 +13,42 @@ actor AnalyticsTracker {
     private let platform = "ios"
     private let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
 
+    // MARK: - Install tracking
+
+    /// Persistent install ID stored in Keychain (survives app reinstalls).
+    private var installId: String {
+        let key = "splitez_install_id"
+        if let existing = KeychainHelper.get(key) { return existing }
+        let newId = UUID().uuidString
+        KeychainHelper.set(newId, for: key)
+        return newId
+    }
+
+    /// Register this device install with the backend. Call once per app launch.
+    func registerInstall() async {
+        var payload: [String: Any] = [
+            "installId": installId,
+            "platform": platform,
+            "appVersion": appVersion,
+        ]
+        #if canImport(UIKit)
+        let device = await UIDevice.current
+        payload["osVersion"] = await device.systemVersion
+        payload["deviceModel"] = await device.model
+        #endif
+
+        do {
+            let _: SuccessResponse = try await api.post("/analytics/installs", body: AnyCodable(payload), auth: false)
+        } catch {
+            // Non-critical — silently ignore
+        }
+    }
+
     /// Call when the app launches or user logs in to start a new analytics session.
     func startSession() {
         sessionId = UUID().uuidString
         track(event: "app_open")
+        Task { await registerInstall() }
     }
 
     /// Track a screen view.

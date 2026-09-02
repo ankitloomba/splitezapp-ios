@@ -52,6 +52,9 @@ struct HomeView: View {
                         }
                     }
 
+                    // Ad banner
+                    AdBannerSlot(placementName: "home_banner")
+
                     // Balances summary
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Balances")
@@ -107,6 +110,8 @@ struct HomeView: View {
         banners = await p
         dashboardElements = await d
         isLoading = false
+        // Load ad placements for this screen
+        await AdManager.shared.loadPlacements(screen: "home")
     }
 }
 
