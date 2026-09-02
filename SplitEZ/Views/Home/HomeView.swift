@@ -5,6 +5,7 @@ struct HomeView: View {
     @State private var balances: [Balance] = []
     @State private var recentActivity: [Activity] = []
     @State private var banners: [PromotionalBanner] = []
+    @State private var dashboardElements: [DashboardElement] = []
     @State private var isLoading = true
 
     private let api = APIClient.shared
@@ -31,6 +32,12 @@ struct HomeView: View {
                             }
                         }
                         .padding(.horizontal)
+                    }
+
+                    // Dashboard Elements
+                    ForEach(dashboardElements) { element in
+                        DashboardElementCard(element: element)
+                            .padding(.horizontal)
                     }
 
                     // Banners
@@ -94,9 +101,11 @@ struct HomeView: View {
         async let b: [Balance] = (try? api.get("/balances")) ?? []
         async let a: PaginatedResponse<Activity> = (try? api.get("/activity/feed", query: ["limit": "10"])) ?? PaginatedResponse(items: [], nextCursor: nil)
         async let p: [PromotionalBanner] = (try? api.get("/promos", query: ["screen": "home"])) ?? []
+        async let d: [DashboardElement] = (try? api.get("/dashboard/elements", query: ["screen": "home"])) ?? []
         balances = await b
         recentActivity = await a.items
         banners = await p
+        dashboardElements = await d
         isLoading = false
     }
 }
@@ -131,6 +140,52 @@ struct BannerCard: View {
             )
         )
         .cornerRadius(12)
+    }
+}
+
+struct DashboardElementCard: View {
+    let element: DashboardElement
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let title = element.title {
+                Text(title)
+                    .font(element.type == "greeting" ? .title2.bold() : .headline)
+            }
+            if let subtitle = element.subtitle {
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            if let body = element.body {
+                Text(body)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            if let cta = element.cta {
+                Text(cta)
+                    .font(.subheadline.bold())
+                    .foregroundColor(SplitEZTheme.primary)
+                    .padding(.top, 2)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(backgroundColor)
+        .cornerRadius(12)
+    }
+
+    private var backgroundColor: Color {
+        if let config = element.config,
+           let bgValue = config["backgroundColor"]?.value as? String {
+            return Color(hex: bgValue) ?? Color(.secondarySystemBackground)
+        }
+        switch element.type {
+        case "announcement": return SplitEZTheme.primary.opacity(0.1)
+        case "tip": return Color.yellow.opacity(0.1)
+        case "spotlight": return SplitEZTheme.accent.opacity(0.1)
+        default: return Color(.secondarySystemBackground)
+        }
     }
 }
 

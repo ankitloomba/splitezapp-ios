@@ -305,6 +305,24 @@ struct PromotionalBanner: Codable, Identifiable {
     let priority: Int
 }
 
+// MARK: - Dashboard Elements
+struct DashboardElement: Codable, Identifiable {
+    let id: String
+    let type: String        // greeting | banner | card | announcement | tip | spotlight
+    let title: String?
+    let subtitle: String?
+    let body: String?
+    let image: String?
+    let cta: String?
+    let destination: String?
+    let targetScreen: String
+    let position: Int
+    let config: [String: AnyCodable]?
+    let startDate: String?
+    let endDate: String?
+    let status: String
+}
+
 // MARK: - Generic
 struct SuccessResponse: Codable {
     let success: Bool
