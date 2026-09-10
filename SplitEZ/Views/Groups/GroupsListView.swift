@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct GroupsListView: View {
-    @State private var groups: [Group] = []
+    @State private var groups: [ExpenseGroup] = []
     @State private var isLoading = true
     @State private var showCreate = false
     private let api = APIClient.shared
@@ -55,7 +55,7 @@ struct GroupsListView: View {
 }
 
 struct GroupDetailView: View {
-    let group: Group
+    let group: ExpenseGroup
     @State private var expenses: [Expense] = []
     @State private var balances: [Balance] = []
     private let api = APIClient.shared
@@ -115,7 +115,7 @@ struct CreateGroupView: View {
                     Button("Create") {
                         Task {
                             isLoading = true
-                            let _: Group? = try? await api.post("/groups", body: CreateGroupRequest(
+                            let _: ExpenseGroup? = try? await api.post("/groups", body: CreateGroupRequest(
                                 name: name,
                                 description: description.isEmpty ? nil : description
                             ))

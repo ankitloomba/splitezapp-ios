@@ -64,7 +64,7 @@ struct AdBannerView: View {
 /// Convenience view that checks AdManager and shows/hides an ad banner.
 struct AdBannerSlot: View {
     let placementName: String
-    private var adManager = AdManager.shared
+    var adManager = AdManager.shared
 
     var body: some View {
         if let adUnit = adManager.adUnit(for: placementName) {

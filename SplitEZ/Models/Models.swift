@@ -79,7 +79,7 @@ struct UpdateUserRequest: Codable {
 }
 
 // MARK: - Groups
-struct Group: Codable, Identifiable {
+struct ExpenseGroup: Codable, Identifiable {
     let id: String
     let name: String
     let image: String?
