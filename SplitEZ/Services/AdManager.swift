@@ -1,13 +1,15 @@
 import SwiftUI
+import Observation
 
 /// Manages server-driven ad placements. Fetches ad config from backend
 /// so ads can be controlled without app updates.
+@Observable
 @MainActor
-class AdManager: ObservableObject {
+final class AdManager {
     static let shared = AdManager()
 
-    @Published var placements: [String: AdPlacement] = [:]
-    @Published var isAdFree = false  // Set true for premium users
+    var placements: [String: AdPlacement] = [:]
+    var isAdFree = false  // Set true for premium users
 
     private let api = APIClient.shared
 
@@ -16,8 +18,7 @@ class AdManager: ObservableObject {
         do {
             let items: [AdPlacement] = try await api.get(
                 "/ads/placements",
-                query: ["screen": screen, "platform": "ios"],
-                auth: false
+                query: ["screen": screen, "platform": "ios"]
             )
             for item in items {
                 placements[item.name] = item
@@ -44,17 +45,10 @@ class AdManager: ObservableObject {
 
 /// Placeholder banner ad view. Replace the body with actual Google Mobile Ads
 /// SDK (GADBannerView via UIViewRepresentable) once the SDK is integrated.
-///
-/// Integration steps:
-/// 1. Add GoogleMobileAds to Package.swift or Podfile
-/// 2. Initialize GADMobileAds in SplitEZApp.init()
-/// 3. Replace this placeholder with a GADBannerView wrapper
 struct AdBannerView: View {
     let adUnitId: String
 
     var body: some View {
-        // TODO: Replace with GADBannerView UIViewRepresentable
-        // For now, a placeholder that shows the ad slot position
         Rectangle()
             .fill(SplitEZTheme.secondaryBackground)
             .frame(height: 50)
@@ -70,7 +64,7 @@ struct AdBannerView: View {
 /// Convenience view that checks AdManager and shows/hides an ad banner.
 struct AdBannerSlot: View {
     let placementName: String
-    @ObservedObject private var adManager = AdManager.shared
+    private var adManager = AdManager.shared
 
     var body: some View {
         if let adUnit = adManager.adUnit(for: placementName) {
