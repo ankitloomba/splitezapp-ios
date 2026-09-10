@@ -10,93 +10,174 @@ struct HomeView: View {
 
     private let api = APIClient.shared
 
+    @State private var activeFilter = "All"
+    private let filters = ["All", "Owed", "You owe", "Settled"]
+
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
-                    // Greeting
-                    if let user = auth.currentUser {
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text("Hi, \(user.firstName)!")
-                                    .font(.title2.bold())
-                                Text("Here's your summary")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            NavigationLink(destination: NotificationsListView()) {
-                                Image(systemName: "bell.fill")
-                                    .font(.title3)
-                                    .foregroundColor(SplitEZTheme.primary)
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-
-                    // Dashboard Elements
-                    ForEach(dashboardElements) { element in
-                        DashboardElementCard(element: element)
-                            .padding(.horizontal)
-                    }
-
-                    // Banners
-                    if !banners.isEmpty {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
-                                ForEach(banners) { banner in
-                                    BannerCard(banner: banner)
+                VStack(spacing: 0) {
+                    // Dark header with balance
+                    ZStack {
+                        SplitEZTheme.darkBg.ignoresSafeArea(edges: .top)
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                // Logo
+                                HStack(spacing: 6) {
+                                    Image(systemName: "circle.lefthalf.filled")
+                                        .font(.title3)
+                                        .foregroundColor(SplitEZTheme.primaryLight)
+                                    Text("Split")
+                                        .font(.system(size: 18, weight: .heavy))
+                                        .foregroundColor(.white)
+                                    + Text("EZ")
+                                        .font(.system(size: 18, weight: .heavy))
+                                        .foregroundColor(SplitEZTheme.primaryLight)
+                                }
+                                Spacer()
+                                HStack(spacing: 14) {
+                                    NavigationLink(destination: NotificationsListView()) {
+                                        Image(systemName: "magnifyingglass")
+                                            .foregroundColor(SplitEZTheme.primaryLight)
+                                    }
+                                    NavigationLink(destination: NotificationsListView()) {
+                                        Image(systemName: "gearshape")
+                                            .foregroundColor(SplitEZTheme.primaryLight)
+                                    }
                                 }
                             }
-                            .padding(.horizontal)
+                            .padding(.bottom, 16)
+
+                            Text("Overall, you are owed")
+                                .font(.caption)
+                                .foregroundColor(SplitEZTheme.muted)
+
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                Text(totalOwed)
+                                    .font(.system(size: 36, weight: .heavy))
+                                    .foregroundColor(SplitEZTheme.positive)
+                                    .monospacedDigit()
+                                Text("INR ▾")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundColor(SplitEZTheme.muted)
+                            }
                         }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 12)
+                        .padding(.bottom, 24)
                     }
 
-                    // Ad banner
-                    AdBannerSlot(placementName: "home_banner")
+                    // White card area
+                    VStack(spacing: 0) {
+                        // Filter pills
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 7) {
+                                ForEach(filters, id: \.self) { filter in
+                                    Text(filter)
+                                        .font(.caption.weight(.semibold))
+                                        .padding(.horizontal, 13)
+                                        .padding(.vertical, 7)
+                                        .background(
+                                            Capsule().fill(
+                                                filter == activeFilter
+                                                    ? SplitEZTheme.primary
+                                                    : SplitEZTheme.pillInactive
+                                            )
+                                        )
+                                        .foregroundColor(
+                                            filter == activeFilter ? .white : SplitEZTheme.textSecondary
+                                        )
+                                        .onTapGesture { activeFilter = filter }
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
+                        }
 
-                    // Balances summary
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Balances")
-                            .font(.headline)
-                            .padding(.horizontal)
+                        // Dashboard Elements
+                        ForEach(dashboardElements) { element in
+                            DashboardElementCard(element: element)
+                                .padding(.horizontal, 20)
+                                .padding(.bottom, 8)
+                        }
 
+                        // Banners
+                        if !banners.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 12) {
+                                    ForEach(banners) { banner in
+                                        BannerCard(banner: banner)
+                                    }
+                                }
+                                .padding(.horizontal, 20)
+                            }
+                            .padding(.bottom, 12)
+                        }
+
+                        // Ad banner
+                        AdBannerSlot(placementName: "home_banner")
+
+                        // Groups & trips header
+                        HStack {
+                            Text("Groups & trips")
+                                .font(.subheadline.weight(.bold))
+                            Spacer()
+                            Text("See all")
+                                .font(.caption.weight(.semibold))
+                                .foregroundColor(SplitEZTheme.primary)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+
+                        // Balances
                         if balances.isEmpty {
                             Text("No outstanding balances")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
-                                .padding(.horizontal)
+                                .padding(20)
                         } else {
                             ForEach(balances, id: \.userId) { balance in
                                 BalanceRow(balance: balance)
+                                Divider().padding(.leading, 70)
                             }
                         }
-                    }
 
-                    // Recent activity
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Recent Activity")
-                            .font(.headline)
-                            .padding(.horizontal)
+                        // Recent activity
+                        HStack {
+                            Text("Recent Activity")
+                                .font(.subheadline.weight(.bold))
+                            Spacer()
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+                        .padding(.bottom, 8)
 
                         if recentActivity.isEmpty {
                             Text("No recent activity")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
-                                .padding(.horizontal)
+                                .padding(.horizontal, 20)
                         } else {
                             ForEach(recentActivity) { activity in
                                 ActivityRow(activity: activity)
                             }
                         }
                     }
+                    .background(Color(.systemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .offset(y: -20)
                 }
-                .padding(.vertical)
             }
-            .navigationTitle("SplitEZ")
+            .background(SplitEZTheme.darkBg)
+            .navigationBarHidden(true)
             .refreshable { await loadData() }
             .task { await loadData() }
         }
+    }
+
+    private var totalOwed: String {
+        let total = balances.filter { $0.amount > 0 }.reduce(0.0) { $0 + $1.amount }
+        return formatAmount(total)
     }
 
     private func loadData() async {

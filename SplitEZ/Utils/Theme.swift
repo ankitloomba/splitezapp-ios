@@ -1,14 +1,27 @@
 import SwiftUI
 
 enum SplitEZTheme {
-    static let primary = Color(red: 0.22, green: 0.56, blue: 0.96) // #3890F5
-    static let accent = Color(red: 0.13, green: 0.83, blue: 0.65)  // #22D4A6
-    static let destructive = Color(red: 0.92, green: 0.34, blue: 0.34)
-    static let positive = Color(red: 0.18, green: 0.78, blue: 0.44)
-    static let negative = Color(red: 0.92, green: 0.34, blue: 0.34)
+    // Core palette — aligned with design spec
+    static let primary = Color(hex: "4338CA")       // Indigo
+    static let primaryLight = Color(hex: "C7D2FE")  // Light indigo
+    static let accent = Color(hex: "EEF0FF")        // Tinted surface
+    static let darkBg = Color(hex: "10142A")         // Deep navy header
+    static let destructive = Color(hex: "DC2626")    // Red
+    static let positive = Color(hex: "4ADE80")       // Green
+    static let negative = Color(hex: "DC2626")       // Red
+    static let muted = Color(hex: "8792A8")          // Inactive/secondary
 
+    // Surfaces
     static let cardBackground = Color(.systemBackground)
-    static let secondaryBackground = Color(.secondarySystemBackground)
+    static let secondaryBackground = Color(hex: "F1F5F9")
+    static let pillActive = Color(hex: "4338CA")
+    static let pillInactive = Color(hex: "F1F5F9")
+    static let divider = Color(hex: "EEF0F4")
+
+    // Text
+    static let textSecondary = Color(hex: "64748B")
+    static let textOnDark = Color.white
+    static let balanceGreen = Color(hex: "16A34A")
 }
 
 struct AvatarView: View {
