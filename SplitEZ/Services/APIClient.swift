@@ -68,6 +68,7 @@ actor APIClient {
     }
 
     var isLoggedIn: Bool { accessToken != nil }
+    var authToken: String? { accessToken }
 
     func setTokens(_ tokens: AuthTokens) {
         accessToken = tokens.accessToken

@@ -38,6 +38,24 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("Data") {
+                    NavigationLink {
+                        NotificationsListView()
+                    } label: {
+                        Label("Notifications", systemImage: "bell.fill")
+                    }
+                    NavigationLink {
+                        ExportView()
+                    } label: {
+                        Label("Export Data", systemImage: "square.and.arrow.up")
+                    }
+                    NavigationLink {
+                        ImportView()
+                    } label: {
+                        Label("Import Expenses", systemImage: "square.and.arrow.down")
+                    }
+                }
+
                 Section("Preferences") {
                     HStack {
                         Text("Currency")
