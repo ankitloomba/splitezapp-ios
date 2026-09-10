@@ -141,14 +141,14 @@ struct ImportView: View {
         importing = true
         defer { importing = false }
 
-        guard let baseURL = api.buildURL("/imports/expenses") else {
+        guard let baseURL = await api.buildURL("/imports/expenses") else {
             result = ImportResult(success: false, message: "Invalid URL")
             return
         }
 
         var request = URLRequest(url: baseURL)
         request.httpMethod = "POST"
-        if let token = api.authToken {
+        if let token = await api.authToken {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 

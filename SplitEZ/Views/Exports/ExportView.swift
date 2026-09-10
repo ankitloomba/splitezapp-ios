@@ -94,7 +94,7 @@ struct ExportView: View {
         exporting = true
         defer { exporting = false }
         // Opens the download URL — in a real app, use URLSession to download + share sheet
-        if let url = api.buildURL("/exports/expenses?format=\(format)") {
+        if let url = await api.buildURL("/exports/expenses?format=\(format)") {
             await MainActor.run {
                 UIApplication.shared.open(url)
                 message = "\(format.uppercased()) download started"
