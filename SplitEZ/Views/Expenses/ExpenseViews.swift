@@ -34,11 +34,12 @@ struct CreateExpenseView: View {
     @State private var description = ""
     @State private var amountText = ""
     @State private var splitMethod = "EQUAL"
-    @State private var category = ""
+    @State private var selectedCategory: Category?
     @State private var note = ""
     @State private var selectedMembers: Set<String> = []
     @State private var isLoading = false
     @State private var error: String?
+    @State private var categories: [Category] = []
 
     private let api = APIClient.shared
 
@@ -54,7 +55,15 @@ struct CreateExpenseView: View {
                         Text("Exact").tag("EXACT")
                         Text("Percentage").tag("PERCENTAGE")
                     }
-                    TextField("Category (optional)", text: $category)
+                    Picker("Category", selection: $selectedCategory) {
+                        Text("None").tag(Optional<Category>.none)
+                        ForEach(categories) { cat in
+                            HStack {
+                                Text(cat.icon ?? "📦")
+                                Text(cat.name)
+                            }.tag(Optional(cat))
+                        }
+                    }
                     TextField("Note (optional)", text: $note)
                 }
 
@@ -100,6 +109,11 @@ struct CreateExpenseView: View {
         .onAppear {
             selectedMembers = Set(members.map(\.id))
         }
+        .task {
+            do {
+                categories = try await api.get("/categories")
+            } catch { /* use empty list */ }
+        }
     }
 
     private func save() async {
@@ -116,7 +130,7 @@ struct CreateExpenseView: View {
             description: description,
             amount: amount,
             splitMethod: splitMethod,
-            category: category.isEmpty ? nil : category,
+            category: selectedCategory?.name,
             note: note.isEmpty ? nil : note,
             groupId: groupId,
             tripId: tripId,

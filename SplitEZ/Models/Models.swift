@@ -286,7 +286,7 @@ struct FinancialSummary: Codable {
 }
 
 // MARK: - Categories
-struct Category: Codable, Identifiable {
+struct Category: Codable, Identifiable, Hashable {
     let id: String
     let name: String
     let icon: String?
