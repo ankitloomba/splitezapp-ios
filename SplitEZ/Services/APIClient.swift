@@ -36,6 +36,21 @@ actor APIClient {
         return e
     }()
 
+    /// Build a full URL for opening in browser (e.g. export downloads).
+    func buildURL(_ path: String, query: [String: String]? = nil) -> URL? {
+        var components = URLComponents(string: "\(baseURL)/v1\(path)")
+        if let query {
+            components?.queryItems = query.map { URLQueryItem(name: $0.key, value: $0.value) }
+        }
+        // Append auth token so the browser can download
+        if let token = accessToken {
+            var items = components?.queryItems ?? []
+            items.append(URLQueryItem(name: "token", value: token))
+            components?.queryItems = items
+        }
+        return components?.url
+    }
+
     // MARK: - Token management
     private var accessToken: String? {
         get { KeychainHelper.get("accessToken") }

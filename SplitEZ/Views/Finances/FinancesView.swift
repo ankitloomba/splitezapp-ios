@@ -68,10 +68,24 @@ struct FinancesView: View {
             }
             .navigationTitle("My Finances")
             .toolbar {
-                Button {
-                    if selectedTab == 0 { showAddIncome = true }
-                    else { showAddExpense = true }
-                } label: { Image(systemName: "plus") }
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        if selectedTab == 0 { showAddIncome = true }
+                        else { showAddExpense = true }
+                    } label: { Image(systemName: "plus") }
+                }
+                ToolbarItem(placement: .secondaryAction) {
+                    Menu {
+                        Button { exportReport(format: "csv") } label: {
+                            Label("Export CSV", systemImage: "tablecells")
+                        }
+                        Button { exportReport(format: "pdf") } label: {
+                            Label("Export PDF", systemImage: "doc.richtext")
+                        }
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                }
             }
             .sheet(isPresented: $showAddIncome) {
                 AddIncomeView { await loadData() }
@@ -82,6 +96,13 @@ struct FinancesView: View {
             .refreshable { await loadData() }
             .task { await loadData() }
         }
+    }
+
+    private func exportReport(format: String) {
+        guard let url = api.buildURL("/exports/expenses/\(format)") else { return }
+        #if canImport(UIKit)
+        UIApplication.shared.open(url)
+        #endif
     }
 
     private func loadData() async {
