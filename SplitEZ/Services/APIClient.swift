@@ -25,7 +25,8 @@ enum APIError: Error, LocalizedError {
 actor APIClient {
     static let shared = APIClient()
 
-    private let baseURL = "https://splitez-backend-production.up.railway.app/api/v1"
+    let apiBaseURL = "https://splitez-backend-production.up.railway.app/api/v1"
+    private var baseURL: String { apiBaseURL }
     private let session = URLSession.shared
     private let decoder: JSONDecoder = {
         let d = JSONDecoder()

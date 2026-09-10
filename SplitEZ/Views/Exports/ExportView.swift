@@ -93,12 +93,34 @@ struct ExportView: View {
     private func exportFile(format: String) async {
         exporting = true
         defer { exporting = false }
-        // Opens the download URL — in a real app, use URLSession to download + share sheet
-        if let url = await api.buildURL("/exports/expenses?format=\(format)") {
-            await MainActor.run {
-                UIApplication.shared.open(url)
-                message = "\(format.uppercased()) download started"
+
+        guard let url = await api.buildURL("/exports/expenses", query: ["format": format]) else {
+            message = "Could not build export URL"
+            return
+        }
+
+        do {
+            let (data, response) = try await URLSession.shared.data(from: url)
+            guard let http = response as? HTTPURLResponse, http.statusCode < 300 else {
+                message = "Export failed — server error"
+                return
             }
+
+            // Write to a temp file and present share sheet
+            let fileName = "splitez_expenses.\(format)"
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+            try data.write(to: tempURL)
+
+            await MainActor.run {
+                let activityVC = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
+                if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let root = scene.windows.first?.rootViewController {
+                    root.present(activityVC, animated: true)
+                }
+                message = "\(format.uppercased()) exported successfully"
+            }
+        } catch {
+            message = "Export failed: \(error.localizedDescription)"
         }
     }
 }
