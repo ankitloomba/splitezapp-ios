@@ -25,7 +25,7 @@ enum APIError: Error, LocalizedError {
 actor APIClient {
     static let shared = APIClient()
 
-    private let baseURL = "https://splitez-backend-production.up.railway.app/api"
+    private let baseURL = "https://splitez-backend-production.up.railway.app/api/v1"
     private let session = URLSession.shared
     private let decoder: JSONDecoder = {
         let d = JSONDecoder()
@@ -38,7 +38,7 @@ actor APIClient {
 
     /// Build a full URL for opening in browser (e.g. export downloads).
     func buildURL(_ path: String, query: [String: String]? = nil) -> URL? {
-        var components = URLComponents(string: "\(baseURL)/v1\(path)")
+        var components = URLComponents(string: "\(baseURL)\(path)")
         if let query {
             components?.queryItems = query.map { URLQueryItem(name: $0.key, value: $0.value) }
         }
