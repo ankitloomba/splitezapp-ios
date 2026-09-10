@@ -56,13 +56,20 @@ struct TripsListView: View {
 struct TripDetailView: View {
     let trip: Trip
     @State private var expenses: [Expense] = []
+    @State private var showAddExpense = false
     private let api = APIClient.shared
 
     var body: some View {
         List {
             Section("Details") {
                 if let dest = trip.destination { Label(dest, systemImage: "mappin") }
-                if let start = trip.startDate { Label(String(start.prefix(10)), systemImage: "calendar") }
+                if let start = trip.startDate {
+                    Label(String(start.prefix(10)), systemImage: "calendar")
+                }
+                if let end = trip.endDate {
+                    Label("Until \(String(end.prefix(10)))", systemImage: "calendar.badge.clock")
+                }
+                Label("\(trip.members?.count ?? 0) members", systemImage: "person.2")
             }
             Section("Members") {
                 ForEach(trip.members ?? [], id: \.id) { member in
@@ -72,16 +79,36 @@ struct TripDetailView: View {
                     }
                 }
             }
-            Section("Expenses") {
+            Section("Expenses (\(expenses.count))") {
+                if expenses.isEmpty {
+                    Text("No expenses yet")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                }
                 ForEach(expenses) { expense in
                     ExpenseRow(expense: expense)
                 }
             }
         }
         .navigationTitle(trip.name)
-        .task {
-            expenses = (try? await api.get("/expenses", query: ["tripId": trip.id])) ?? []
+        .toolbar {
+            Button { showAddExpense = true } label: {
+                Image(systemName: "plus")
+            }
         }
+        .sheet(isPresented: $showAddExpense) {
+            CreateExpenseView(
+                groupId: nil,
+                tripId: trip.id,
+                members: trip.members ?? [],
+                onCreated: { await loadExpenses() }
+            )
+        }
+        .task { await loadExpenses() }
+    }
+
+    private func loadExpenses() async {
+        expenses = (try? await api.get("/expenses", query: ["tripId": trip.id])) ?? []
     }
 }
 
@@ -89,15 +116,32 @@ struct CreateTripView: View {
     @Environment(\.dismiss) var dismiss
     @State private var name = ""
     @State private var destination = ""
+    @State private var startDate = Date()
+    @State private var endDate = Date().addingTimeInterval(86400 * 3)
+    @State private var showDates = false
     @State private var isLoading = false
     let onCreated: () async -> Void
     private let api = APIClient.shared
+    private let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
 
     var body: some View {
         NavigationStack {
             Form {
-                TextField("Trip Name", text: $name)
-                TextField("Destination (optional)", text: $destination)
+                Section("Trip Info") {
+                    TextField("Trip Name", text: $name)
+                    TextField("Destination (optional)", text: $destination)
+                }
+                Section("Dates") {
+                    Toggle("Set dates", isOn: $showDates)
+                    if showDates {
+                        DatePicker("Start", selection: $startDate, displayedComponents: .date)
+                        DatePicker("End", selection: $endDate, in: startDate..., displayedComponents: .date)
+                    }
+                }
             }
             .navigationTitle("New Trip")
             .toolbar {
@@ -110,7 +154,9 @@ struct CreateTripView: View {
                             isLoading = true
                             let _: Trip? = try? await api.post("/trips", body: CreateTripRequest(
                                 name: name,
-                                destination: destination.isEmpty ? nil : destination
+                                destination: destination.isEmpty ? nil : destination,
+                                startDate: showDates ? dateFormatter.string(from: startDate) : nil,
+                                endDate: showDates ? dateFormatter.string(from: endDate) : nil
                             ))
                             await onCreated()
                             isLoading = false
