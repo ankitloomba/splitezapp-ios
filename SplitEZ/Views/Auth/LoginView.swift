@@ -134,6 +134,10 @@ struct RegisterView: View {
                     .textContentType(.newPassword)
                     .textFieldStyle(.roundedBorder)
 
+                if !password.isEmpty {
+                    PasswordStrengthView(password: password)
+                }
+
                 if let error {
                     Text(error)
                         .font(.caption)
@@ -231,6 +235,99 @@ struct ForgotPasswordView: View {
                     Button("Cancel") { dismiss() }
                 }
             }
+        }
+    }
+}
+
+// MARK: - Password Strength
+
+private enum PasswordStrength: String {
+    case weak = "Weak"
+    case fair = "Fair"
+    case good = "Good"
+    case strong = "Strong"
+
+    var color: Color {
+        switch self {
+        case .weak: return SplitEZTheme.destructive
+        case .fair: return Color.orange
+        case .good: return SplitEZTheme.primary
+        case .strong: return SplitEZTheme.positive
+        }
+    }
+
+    var fraction: CGFloat {
+        switch self {
+        case .weak: return 0.25
+        case .fair: return 0.5
+        case .good: return 0.75
+        case .strong: return 1.0
+        }
+    }
+}
+
+private func evaluatePassword(_ password: String) -> PasswordStrength {
+    var score = 0
+    if password.count >= 8 { score += 1 }
+    if password.count >= 12 { score += 1 }
+    if password.range(of: "[A-Z]", options: .regularExpression) != nil { score += 1 }
+    if password.range(of: "[a-z]", options: .regularExpression) != nil { score += 1 }
+    if password.range(of: "[0-9]", options: .regularExpression) != nil { score += 1 }
+    if password.range(of: "[^A-Za-z0-9]", options: .regularExpression) != nil { score += 1 }
+
+    switch score {
+    case 0...2: return .weak
+    case 3: return .fair
+    case 4...5: return .good
+    default: return .strong
+    }
+}
+
+private struct PasswordStrengthView: View {
+    let password: String
+
+    private var strength: PasswordStrength { evaluatePassword(password) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color(.systemGray5))
+                        .frame(height: 6)
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(strength.color)
+                        .frame(width: geo.size.width * strength.fraction, height: 6)
+                        .animation(.easeInOut(duration: 0.3), value: strength.fraction)
+                }
+            }
+            .frame(height: 6)
+
+            HStack {
+                Text(strength.rawValue)
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(strength.color)
+                Spacer()
+            }
+
+            VStack(alignment: .leading, spacing: 3) {
+                ruleRow("At least 8 characters", met: password.count >= 8)
+                ruleRow("Uppercase letter", met: password.range(of: "[A-Z]", options: .regularExpression) != nil)
+                ruleRow("Lowercase letter", met: password.range(of: "[a-z]", options: .regularExpression) != nil)
+                ruleRow("Number", met: password.range(of: "[0-9]", options: .regularExpression) != nil)
+                ruleRow("Special character", met: password.range(of: "[^A-Za-z0-9]", options: .regularExpression) != nil)
+            }
+        }
+    }
+
+    private func ruleRow(_ text: String, met: Bool) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: met ? "checkmark.circle.fill" : "circle")
+                .font(.caption2)
+                .foregroundColor(met ? SplitEZTheme.positive : Color(.systemGray3))
+            Text(text)
+                .font(.caption2)
+                .foregroundColor(met ? .primary : .secondary)
         }
     }
 }
