@@ -1,9 +1,89 @@
 import SwiftUI
 
+// MARK: - Split Circle Logo (Brand Primary Mark)
+// Light indigo (#818CF8) always left, deep indigo (#4338CA) always right
+
+struct SplitEZLogo: View {
+    var size: CGFloat = 64
+
+    var body: some View {
+        Canvas { context, canvasSize in
+            let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
+            let radius = min(canvasSize.width, canvasSize.height) / 2
+
+            // Left half — light indigo
+            var leftPath = Path()
+            leftPath.move(to: center)
+            leftPath.addArc(center: center, radius: radius,
+                           startAngle: .degrees(90), endAngle: .degrees(270),
+                           clockwise: false)
+            leftPath.closeSubpath()
+            context.fill(leftPath, with: .color(SplitEZTheme.primaryLight))
+
+            // Right half — deep indigo
+            var rightPath = Path()
+            rightPath.move(to: center)
+            rightPath.addArc(center: center, radius: radius,
+                            startAngle: .degrees(270), endAngle: .degrees(90),
+                            clockwise: false)
+            rightPath.closeSubpath()
+            context.fill(rightPath, with: .color(SplitEZTheme.primary))
+
+            // Diagonal divider — slightly rotated
+            let dividerWidth: CGFloat = radius * 0.06
+            var divider = Path()
+            divider.addRoundedRect(in: CGRect(
+                x: center.x - dividerWidth / 2,
+                y: 0,
+                width: dividerWidth,
+                height: canvasSize.height
+            ), cornerSize: .zero)
+
+            let transform = CGAffineTransform(translationX: center.x, y: center.y)
+                .rotated(by: .pi * -0.08)
+                .translatedBy(x: -center.x, y: -center.y)
+            let rotatedDivider = divider.applying(transform)
+
+            // Clip divider to circle
+            var clipCircle = Path()
+            clipCircle.addEllipse(in: CGRect(x: 0, y: 0, width: canvasSize.width, height: canvasSize.height))
+
+            context.clip(to: clipCircle)
+            context.fill(rotatedDivider, with: .color(Color(hex: "10142A")))
+        }
+        .frame(width: size, height: size)
+    }
+}
+
+struct SplitEZLogoSmall: View {
+    var body: some View {
+        SplitEZLogo(size: 28)
+    }
+}
+
+// MARK: - Rounded Corner Helper
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat
+    var corners: UIRectCorner
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
+    }
+}
+
+// MARK: - Login Screen
+
 struct LoginView: View {
     @EnvironmentObject var auth: AuthService
     @State private var email = ""
     @State private var password = ""
+    @State private var showPassword = false
     @State private var isLoading = false
     @State private var error: String?
     @State private var showRegister = false
@@ -11,83 +91,171 @@ struct LoginView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    Spacer().frame(height: 40)
+            GeometryReader { geo in
+                ZStack(alignment: .top) {
+                    SplitEZTheme.darkBg.ignoresSafeArea()
 
-                    // Logo
-                    VStack(spacing: 8) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 18)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [SplitEZTheme.primary, SplitEZTheme.accent],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .frame(width: 72, height: 72)
-                            Text("S₹")
+                    VStack(spacing: 0) {
+                        // Dark header
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 8) {
+                                SplitEZLogoSmall()
+                                Text("SplitEZ")
+                                    .font(.subheadline.bold())
+                                    .foregroundColor(.white)
+                            }
+                            .padding(.top, 8)
+
+                            Text("Welcome back")
                                 .font(.system(size: 28, weight: .bold))
                                 .foregroundColor(.white)
+                            Text("Sign in to manage your shared expenses")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.6))
                         }
-                        Text("SplitEZ")
-                            .font(.largeTitle.bold())
-                        Text("Split expenses with ease")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 28)
+                        .padding(.bottom, 32)
 
-                    Spacer().frame(height: 20)
+                        // White card area
+                        ScrollView {
+                            VStack(spacing: 20) {
+                                Spacer().frame(height: 8)
 
-                    // Form
-                    VStack(spacing: 16) {
-                        TextField("Email", text: $email)
-                            .textContentType(.emailAddress)
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
-                            .textFieldStyle(.roundedBorder)
+                                // Email
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("EMAIL")
+                                        .font(.caption.weight(.bold))
+                                        .foregroundColor(SplitEZTheme.primary)
+                                        .tracking(1)
+                                    TextField("you@email.com", text: $email)
+                                        .textContentType(.emailAddress)
+                                        .keyboardType(.emailAddress)
+                                        .autocapitalization(.none)
+                                        .padding(14)
+                                        .background(Color(.systemGray6))
+                                        .cornerRadius(10)
+                                }
 
-                        SecureField("Password", text: $password)
-                            .textContentType(.password)
-                            .textFieldStyle(.roundedBorder)
+                                // Password
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("PASSWORD")
+                                        .font(.caption.weight(.bold))
+                                        .foregroundColor(SplitEZTheme.primary)
+                                        .tracking(1)
+                                    HStack {
+                                        if showPassword {
+                                            TextField("••••••••", text: $password)
+                                        } else {
+                                            SecureField("••••••••", text: $password)
+                                        }
+                                        Button { showPassword.toggle() } label: {
+                                            Image(systemName: showPassword ? "eye.slash" : "eye")
+                                                .foregroundColor(.gray)
+                                        }
+                                    }
+                                    .textContentType(.password)
+                                    .padding(14)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(10)
 
-                        if let error {
-                            Text(error)
-                                .font(.caption)
-                                .foregroundColor(.red)
-                        }
+                                    HStack {
+                                        Spacer()
+                                        Button("Forgot password?") {
+                                            showForgotPassword = true
+                                        }
+                                        .font(.caption)
+                                        .foregroundColor(SplitEZTheme.primary)
+                                    }
+                                }
 
-                        Button {
-                            Task { await login() }
-                        } label: {
-                            if isLoading {
-                                ProgressView()
-                                    .frame(maxWidth: .infinity)
-                            } else {
-                                Text("Log In")
-                                    .frame(maxWidth: .infinity)
+                                if let error {
+                                    Text(error)
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                }
+
+                                Spacer().frame(height: 4)
+
+                                // Sign In button (pill)
+                                Button {
+                                    Task { await login() }
+                                } label: {
+                                    if isLoading {
+                                        ProgressView().tint(.white)
+                                            .frame(maxWidth: .infinity, minHeight: 22)
+                                    } else {
+                                        Text("Sign In")
+                                            .font(.headline)
+                                            .foregroundColor(.white)
+                                            .frame(maxWidth: .infinity, minHeight: 22)
+                                    }
+                                }
+                                .padding(.vertical, 14)
+                                .background(SplitEZTheme.primary)
+                                .clipShape(Capsule())
+                                .disabled(email.isEmpty || password.isEmpty || isLoading)
+                                .opacity(email.isEmpty || password.isEmpty ? 0.5 : 1)
+
+                                // OR divider
+                                HStack {
+                                    Rectangle().fill(Color(.systemGray4)).frame(height: 1)
+                                    Text("OR").font(.caption2).foregroundColor(.secondary)
+                                    Rectangle().fill(Color(.systemGray4)).frame(height: 1)
+                                }
+
+                                // Social buttons
+                                HStack(spacing: 12) {
+                                    Button { } label: {
+                                        HStack(spacing: 8) {
+                                            Text("G").font(.title3.bold()).foregroundColor(.red)
+                                            Text("Google").foregroundColor(.primary)
+                                        }
+                                        .frame(maxWidth: .infinity, minHeight: 44)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .stroke(Color(.systemGray4), lineWidth: 1)
+                                        )
+                                    }
+
+                                    Button { } label: {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "apple.logo").foregroundColor(.primary)
+                                            Text("Apple").foregroundColor(.primary)
+                                        }
+                                        .frame(maxWidth: .infinity, minHeight: 44)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .stroke(Color(.systemGray4), lineWidth: 1)
+                                        )
+                                    }
+                                }
+                                .buttonStyle(.plain)
+
+                                Spacer()
+
+                                // Sign up link
+                                HStack(spacing: 4) {
+                                    Text("Don't have an account?")
+                                        .foregroundColor(.secondary)
+                                    Button("Sign Up") { showRegister = true }
+                                        .fontWeight(.bold)
+                                        .foregroundColor(SplitEZTheme.primary)
+                                }
+                                .font(.subheadline)
+                                .padding(.bottom, 16)
                             }
+                            .padding(.horizontal, 28)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(SplitEZTheme.primary)
-                        .disabled(email.isEmpty || password.isEmpty || isLoading)
-
-                        Button("Forgot Password?") {
-                            showForgotPassword = true
-                        }
-                        .font(.footnote)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(
+                            Color(.systemBackground)
+                                .clipShape(RoundedCorner(radius: 28, corners: [.topLeft, .topRight]))
+                        )
                     }
-                    .padding(.horizontal, 32)
-
-                    Divider().padding(.horizontal, 32)
-
-                    Button("Create Account") {
-                        showRegister = true
-                    }
-                    .font(.headline)
                 }
             }
+            .navigationBarHidden(true)
             .navigationDestination(isPresented: $showRegister) {
                 RegisterView()
             }
@@ -109,67 +277,224 @@ struct LoginView: View {
     }
 }
 
+// MARK: - Register Screen
+
 struct RegisterView: View {
     @EnvironmentObject var auth: AuthService
     @Environment(\.dismiss) var dismiss
+    @State private var fullName = ""
     @State private var email = ""
+    @State private var phone = ""
     @State private var password = ""
-    @State private var firstName = ""
-    @State private var lastName = ""
+    @State private var showPassword = false
+    @State private var agreedToTerms = false
     @State private var isLoading = false
     @State private var error: String?
     @State private var showVerifyAlert = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                Text("Create Account")
-                    .font(.title.bold())
-                    .padding(.top, 20)
+        GeometryReader { geo in
+            ZStack(alignment: .top) {
+                SplitEZTheme.darkBg.ignoresSafeArea()
 
-                TextField("First Name", text: $firstName)
-                    .textContentType(.givenName)
-                    .textFieldStyle(.roundedBorder)
+                VStack(spacing: 0) {
+                    // Header
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Button { dismiss() } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "chevron.left")
+                                    Text("Back")
+                                }
+                                .foregroundColor(.white)
+                            }
+                            Spacer()
+                            SplitEZLogoSmall()
+                        }
+                        .padding(.top, 8)
 
-                TextField("Last Name (optional)", text: $lastName)
-                    .textContentType(.familyName)
-                    .textFieldStyle(.roundedBorder)
-
-                TextField("Email", text: $email)
-                    .textContentType(.emailAddress)
-                    .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
-                    .textFieldStyle(.roundedBorder)
-
-                SecureField("Password (min 8 characters)", text: $password)
-                    .textContentType(.newPassword)
-                    .textFieldStyle(.roundedBorder)
-
-                if !password.isEmpty {
-                    PasswordStrengthView(password: password)
-                }
-
-                if let error {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                }
-
-                Button {
-                    Task { await register() }
-                } label: {
-                    if isLoading {
-                        ProgressView().frame(maxWidth: .infinity)
-                    } else {
-                        Text("Sign Up").frame(maxWidth: .infinity)
+                        Text("Create account")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.white)
+                        Text("Start splitting expenses in seconds")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.6))
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 28)
+                    .padding(.bottom, 32)
+
+                    // White card
+                    ScrollView {
+                        VStack(spacing: 18) {
+                            Spacer().frame(height: 4)
+
+                            // Full Name
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("FULL NAME")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundColor(SplitEZTheme.primary)
+                                    .tracking(1)
+                                TextField("Enter your name", text: $fullName)
+                                    .textContentType(.name)
+                                    .padding(14)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(10)
+                            }
+
+                            // Email
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("EMAIL")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundColor(SplitEZTheme.primary)
+                                    .tracking(1)
+                                TextField("you@email.com", text: $email)
+                                    .textContentType(.emailAddress)
+                                    .keyboardType(.emailAddress)
+                                    .autocapitalization(.none)
+                                    .padding(14)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(10)
+                            }
+
+                            // Phone
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("PHONE")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundColor(SplitEZTheme.primary)
+                                    .tracking(1)
+                                HStack(spacing: 8) {
+                                    HStack(spacing: 4) {
+                                        Text("🇮🇳")
+                                        Text("+91").foregroundColor(.primary)
+                                    }
+                                    .padding(14)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(10)
+
+                                    TextField("Phone number", text: $phone)
+                                        .keyboardType(.phonePad)
+                                        .padding(14)
+                                        .background(Color(.systemGray6))
+                                        .cornerRadius(10)
+                                }
+                            }
+
+                            // Password
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("PASSWORD")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundColor(SplitEZTheme.primary)
+                                    .tracking(1)
+                                HStack {
+                                    if showPassword {
+                                        TextField("Create a password", text: $password)
+                                    } else {
+                                        SecureField("Create a password", text: $password)
+                                    }
+                                    Button { showPassword.toggle() } label: {
+                                        Image(systemName: showPassword ? "eye.slash" : "eye")
+                                            .foregroundColor(.gray)
+                                    }
+                                }
+                                .textContentType(.newPassword)
+                                .padding(14)
+                                .background(Color(.systemGray6))
+                                .cornerRadius(10)
+
+                                if !password.isEmpty {
+                                    PasswordStrengthView(password: password)
+                                }
+                            }
+
+                            if let error {
+                                Text(error)
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                            }
+
+                            // Terms
+                            HStack(alignment: .top, spacing: 10) {
+                                Button { agreedToTerms.toggle() } label: {
+                                    Image(systemName: agreedToTerms ? "checkmark.circle.fill" : "circle")
+                                        .foregroundColor(agreedToTerms ? SplitEZTheme.primary : .gray)
+                                }
+                                (Text("I agree to the ")
+                                 + Text("Terms of Service").foregroundColor(SplitEZTheme.primary)
+                                 + Text(" and ")
+                                 + Text("Privacy Policy").foregroundColor(SplitEZTheme.primary))
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+
+                            // Create Account button (pill)
+                            Button {
+                                Task { await register() }
+                            } label: {
+                                if isLoading {
+                                    ProgressView().tint(.white)
+                                        .frame(maxWidth: .infinity, minHeight: 22)
+                                } else {
+                                    Text("Create Account")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                        .frame(maxWidth: .infinity, minHeight: 22)
+                                }
+                            }
+                            .padding(.vertical, 14)
+                            .background(SplitEZTheme.primary)
+                            .clipShape(Capsule())
+                            .disabled(fullName.isEmpty || email.isEmpty || password.count < 8 || !agreedToTerms || isLoading)
+                            .opacity(fullName.isEmpty || email.isEmpty || password.count < 8 || !agreedToTerms ? 0.5 : 1)
+
+                            // OR divider
+                            HStack {
+                                Rectangle().fill(Color(.systemGray4)).frame(height: 1)
+                                Text("OR").font(.caption2).foregroundColor(.secondary)
+                                Rectangle().fill(Color(.systemGray4)).frame(height: 1)
+                            }
+
+                            // Social buttons
+                            HStack(spacing: 12) {
+                                Button { } label: {
+                                    HStack(spacing: 8) {
+                                        Text("G").font(.title3.bold()).foregroundColor(.red)
+                                        Text("Google").foregroundColor(.primary)
+                                    }
+                                    .frame(maxWidth: .infinity, minHeight: 44)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color(.systemGray4), lineWidth: 1)
+                                    )
+                                }
+
+                                Button { } label: {
+                                    HStack(spacing: 8) {
+                                        Image(systemName: "apple.logo").foregroundColor(.primary)
+                                        Text("Apple").foregroundColor(.primary)
+                                    }
+                                    .frame(maxWidth: .infinity, minHeight: 44)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color(.systemGray4), lineWidth: 1)
+                                    )
+                                }
+                            }
+                            .buttonStyle(.plain)
+
+                            Spacer().frame(height: 20)
+                        }
+                        .padding(.horizontal, 28)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(
+                        Color(.systemBackground)
+                            .clipShape(RoundedCorner(radius: 28, corners: [.topLeft, .topRight]))
+                    )
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(SplitEZTheme.primary)
-                .disabled(firstName.isEmpty || email.isEmpty || password.count < 8 || isLoading)
             }
-            .padding(.horizontal, 32)
         }
+        .navigationBarHidden(true)
         .alert("Check Your Email", isPresented: $showVerifyAlert) {
             Button("OK") { dismiss() }
         } message: {
@@ -180,12 +505,15 @@ struct RegisterView: View {
     private func register() async {
         isLoading = true
         error = nil
+        let parts = fullName.split(separator: " ", maxSplits: 1)
+        let firstName = String(parts.first ?? "")
+        let lastName = parts.count > 1 ? String(parts[1]) : nil
         do {
             try await auth.register(
                 email: email,
                 password: password,
                 firstName: firstName,
-                lastName: lastName.isEmpty ? nil : lastName
+                lastName: lastName
             )
         } catch {
             self.error = error.localizedDescription
@@ -193,6 +521,8 @@ struct RegisterView: View {
         isLoading = false
     }
 }
+
+// MARK: - Forgot Password
 
 struct ForgotPasswordView: View {
     @Environment(\.dismiss) var dismiss
@@ -215,7 +545,9 @@ struct ForgotPasswordView: View {
                     .textContentType(.emailAddress)
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
-                    .textFieldStyle(.roundedBorder)
+                    .padding(14)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
 
                 Button {
                     Task {
@@ -225,12 +557,14 @@ struct ForgotPasswordView: View {
                         sent = true
                     }
                 } label: {
-                    if isLoading { ProgressView().frame(maxWidth: .infinity) }
-                    else { Text("Send Reset Link").frame(maxWidth: .infinity) }
+                    if isLoading { ProgressView().tint(.white).frame(maxWidth: .infinity) }
+                    else { Text("Send Reset Link").font(.headline).foregroundColor(.white).frame(maxWidth: .infinity) }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(SplitEZTheme.primary)
+                .padding(.vertical, 14)
+                .background(SplitEZTheme.primary)
+                .clipShape(Capsule())
                 .disabled(email.isEmpty || isLoading)
+                .opacity(email.isEmpty ? 0.5 : 1)
 
                 if sent {
                     Text("If an account exists with that email, you'll receive a reset link.")
@@ -300,45 +634,23 @@ private struct PasswordStrengthView: View {
     private var strength: PasswordStrength { evaluatePassword(password) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 4) {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 3)
                         .fill(Color(.systemGray5))
-                        .frame(height: 6)
+                        .frame(height: 4)
                     RoundedRectangle(cornerRadius: 3)
                         .fill(strength.color)
-                        .frame(width: geo.size.width * strength.fraction, height: 6)
+                        .frame(width: geo.size.width * strength.fraction, height: 4)
                         .animation(.easeInOut(duration: 0.3), value: strength.fraction)
                 }
             }
-            .frame(height: 6)
+            .frame(height: 4)
 
-            HStack {
-                Text(strength.rawValue)
-                    .font(.caption.weight(.semibold))
-                    .foregroundColor(strength.color)
-                Spacer()
-            }
-
-            VStack(alignment: .leading, spacing: 3) {
-                ruleRow("At least 8 characters", met: password.count >= 8)
-                ruleRow("Uppercase letter", met: password.range(of: "[A-Z]", options: .regularExpression) != nil)
-                ruleRow("Lowercase letter", met: password.range(of: "[a-z]", options: .regularExpression) != nil)
-                ruleRow("Number", met: password.range(of: "[0-9]", options: .regularExpression) != nil)
-                ruleRow("Special character", met: password.range(of: "[^A-Za-z0-9]", options: .regularExpression) != nil)
-            }
-        }
-    }
-
-    private func ruleRow(_ text: String, met: Bool) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: met ? "checkmark.circle.fill" : "circle")
+            Text("Use 8+ characters with a mix of letters & numbers")
                 .font(.caption2)
-                .foregroundColor(met ? SplitEZTheme.positive : Color(.systemGray3))
-            Text(text)
-                .font(.caption2)
-                .foregroundColor(met ? .primary : .secondary)
+                .foregroundColor(SplitEZTheme.primary)
         }
     }
 }

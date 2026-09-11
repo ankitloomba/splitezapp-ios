@@ -1,11 +1,12 @@
 import SwiftUI
 
 enum SplitEZTheme {
-    // Core palette — aligned with artifact design
-    static let primary = Color(hex: "3890F5")        // Blue
-    static let primaryLight = Color(hex: "5BA8F7")   // Light blue
-    static let accent = Color(hex: "22D4A6")         // Teal
-    static let darkBg = Color(hex: "1A2233")         // Dark surface (cards in dark mode)
+    // Core palette — matches brand guidelines
+    static let primary = Color(hex: "4338CA")        // Deep indigo
+    static let primaryLight = Color(hex: "818CF8")   // Light indigo
+    static let accent = Color(hex: "818CF8")         // Light indigo (logo left)
+    static let darkBg = Color(hex: "10142A")         // Deep navy (header/splash bg)
+    static let darkBgLighter = Color(hex: "1A1E3A")  // Slightly lighter navy
     static let destructive = Color(hex: "EB5757")    // Red
     static let positive = Color(hex: "2EC770")       // Green
     static let negative = Color(hex: "EB5757")       // Red
@@ -15,7 +16,7 @@ enum SplitEZTheme {
     static let cardBackground = Color(.systemBackground)
     static let secondaryBackground = Color(hex: "F5F7FA")
     static let surfaceAlt = Color(hex: "EDF1F7")
-    static let pillActive = Color(hex: "3890F5")
+    static let pillActive = Color(hex: "4F46E5")
     static let pillInactive = Color(hex: "E8EDF4")
     static let divider = Color(hex: "D8E0EB")
 
