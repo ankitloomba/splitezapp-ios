@@ -17,83 +17,61 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    // Dark header with balance
-                    ZStack {
-                        SplitEZTheme.darkBg.ignoresSafeArea(edges: .top)
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                // Logo
-                                HStack(spacing: 6) {
-                                    Image(systemName: "circle.lefthalf.filled")
-                                        .font(.title3)
-                                        .foregroundColor(SplitEZTheme.primaryLight)
-                                    Text("Split")
-                                        .font(.system(size: 18, weight: .heavy))
-                                        .foregroundColor(.white)
-                                    + Text("EZ")
-                                        .font(.system(size: 18, weight: .heavy))
-                                        .foregroundColor(SplitEZTheme.primaryLight)
-                                }
-                                Spacer()
-                                HStack(spacing: 14) {
-                                    NavigationLink(destination: NotificationsListView()) {
-                                        Image(systemName: "magnifyingglass")
-                                            .foregroundColor(SplitEZTheme.primaryLight)
-                                    }
-                                    NavigationLink(destination: NotificationsListView()) {
-                                        Image(systemName: "gearshape")
-                                            .foregroundColor(SplitEZTheme.primaryLight)
-                                    }
-                                }
+                    // Light header with balance
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text("Home")
+                                .font(.system(size: 20, weight: .bold))
+                            Spacer()
+                            NavigationLink(destination: NotificationsListView()) {
+                                Image(systemName: "bell")
+                                    .foregroundColor(SplitEZTheme.primary)
                             }
-                            .padding(.bottom, 16)
+                        }
+                        .padding(.bottom, 8)
 
-                            Text("Overall, you are owed")
+                        // Balance card
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Net Balance")
                                 .font(.caption)
-                                .foregroundColor(SplitEZTheme.muted)
-
-                            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                                Text(totalOwed)
-                                    .font(.system(size: 36, weight: .heavy))
-                                    .foregroundColor(SplitEZTheme.positive)
-                                    .monospacedDigit()
-                                Text("INR ▾")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundColor(SplitEZTheme.muted)
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 12)
-                        .padding(.bottom, 24)
-                    }
-
-                    // White card area
-                    VStack(spacing: 0) {
-                        // Filter pills
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 7) {
-                                ForEach(filters, id: \.self) { filter in
-                                    Text(filter)
-                                        .font(.caption.weight(.semibold))
-                                        .padding(.horizontal, 13)
-                                        .padding(.vertical, 7)
-                                        .background(
-                                            Capsule().fill(
-                                                filter == activeFilter
-                                                    ? SplitEZTheme.primary
-                                                    : SplitEZTheme.pillInactive
-                                            )
-                                        )
-                                        .foregroundColor(
-                                            filter == activeFilter ? .white : SplitEZTheme.textSecondary
-                                        )
-                                        .onTapGesture { activeFilter = filter }
+                                .foregroundColor(SplitEZTheme.textSecondary)
+                            Text(totalOwed)
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(SplitEZTheme.positive)
+                                .monospacedDigit()
+                            HStack(spacing: 16) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("You owe")
+                                        .font(.caption2)
+                                        .foregroundColor(SplitEZTheme.textSecondary)
+                                    Text(totalYouOwe)
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundColor(SplitEZTheme.negative)
+                                }
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Owed to you")
+                                        .font(.caption2)
+                                        .foregroundColor(SplitEZTheme.textSecondary)
+                                    Text(totalOwed)
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundColor(SplitEZTheme.positive)
                                 }
                             }
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 14)
                         }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(.systemBackground))
+                                .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
+                        )
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+                    .padding(.bottom, 16)
 
+                    // Content area
+                    VStack(spacing: 0) {
                         // Dashboard Elements
                         ForEach(dashboardElements) { element in
                             DashboardElementCard(element: element)
@@ -117,40 +95,14 @@ struct HomeView: View {
                         // Ad banner
                         AdBannerSlot(placementName: "home_banner")
 
-                        // Groups & trips header
-                        HStack {
-                            Text("Groups & trips")
-                                .font(.subheadline.weight(.bold))
-                            Spacer()
-                            Text("See all")
-                                .font(.caption.weight(.semibold))
-                                .foregroundColor(SplitEZTheme.primary)
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-
-                        // Balances
-                        if balances.isEmpty {
-                            Text("No outstanding balances")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .padding(20)
-                        } else {
-                            ForEach(balances, id: \.userId) { balance in
-                                BalanceRow(balance: balance)
-                                Divider().padding(.leading, 70)
-                            }
-                        }
-
-                        // Recent activity
+                        // Recent Activity
                         HStack {
                             Text("Recent Activity")
                                 .font(.subheadline.weight(.bold))
                             Spacer()
                         }
                         .padding(.horizontal, 20)
-                        .padding(.top, 16)
-                        .padding(.bottom, 8)
+                        .padding(.vertical, 10)
 
                         if recentActivity.isEmpty {
                             Text("No recent activity")
@@ -162,13 +114,35 @@ struct HomeView: View {
                                 ActivityRow(activity: activity)
                             }
                         }
+
+                        // Balances
+                        HStack {
+                            Text("Balances")
+                                .font(.subheadline.weight(.bold))
+                            Spacer()
+                            Text("See all")
+                                .font(.caption.weight(.semibold))
+                                .foregroundColor(SplitEZTheme.primary)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+                        .padding(.bottom, 8)
+
+                        if balances.isEmpty {
+                            Text("No outstanding balances")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                                .padding(20)
+                        } else {
+                            ForEach(balances, id: \.userId) { balance in
+                                BalanceRow(balance: balance)
+                                Divider().padding(.leading, 70)
+                            }
+                        }
                     }
-                    .background(Color(.systemBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                    .offset(y: -20)
                 }
             }
-            .background(SplitEZTheme.darkBg)
+            .background(SplitEZTheme.secondaryBackground)
             .navigationBarHidden(true)
             .refreshable { await loadData() }
             .task { await loadData() }
@@ -177,6 +151,11 @@ struct HomeView: View {
 
     private var totalOwed: String {
         let total = balances.filter { $0.amount > 0 }.reduce(0.0) { $0 + $1.amount }
+        return formatAmount(total)
+    }
+
+    private var totalYouOwe: String {
+        let total = balances.filter { $0.amount < 0 }.reduce(0.0) { $0 + abs($1.amount) }
         return formatAmount(total)
     }
 

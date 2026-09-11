@@ -1,27 +1,30 @@
 import SwiftUI
 
 enum SplitEZTheme {
-    // Core palette — aligned with design spec
-    static let primary = Color(hex: "4338CA")       // Indigo
-    static let primaryLight = Color(hex: "C7D2FE")  // Light indigo
-    static let accent = Color(hex: "EEF0FF")        // Tinted surface
-    static let darkBg = Color(hex: "10142A")         // Deep navy header
-    static let destructive = Color(hex: "DC2626")    // Red
-    static let positive = Color(hex: "4ADE80")       // Green
-    static let negative = Color(hex: "DC2626")       // Red
-    static let muted = Color(hex: "8792A8")          // Inactive/secondary
+    // Core palette — aligned with artifact design
+    static let primary = Color(hex: "3890F5")        // Blue
+    static let primaryLight = Color(hex: "5BA8F7")   // Light blue
+    static let accent = Color(hex: "22D4A6")         // Teal
+    static let darkBg = Color(hex: "1A2233")         // Dark surface (cards in dark mode)
+    static let destructive = Color(hex: "EB5757")    // Red
+    static let positive = Color(hex: "2EC770")       // Green
+    static let negative = Color(hex: "EB5757")       // Red
+    static let muted = Color(hex: "5A6B82")          // Inactive/secondary
 
     // Surfaces
     static let cardBackground = Color(.systemBackground)
-    static let secondaryBackground = Color(hex: "F1F5F9")
-    static let pillActive = Color(hex: "4338CA")
-    static let pillInactive = Color(hex: "F1F5F9")
-    static let divider = Color(hex: "EEF0F4")
+    static let secondaryBackground = Color(hex: "F5F7FA")
+    static let surfaceAlt = Color(hex: "EDF1F7")
+    static let pillActive = Color(hex: "3890F5")
+    static let pillInactive = Color(hex: "E8EDF4")
+    static let divider = Color(hex: "D8E0EB")
 
     // Text
-    static let textSecondary = Color(hex: "64748B")
+    static let textPrimary = Color(hex: "1A2233")
+    static let textSecondary = Color(hex: "5A6B82")
+    static let textTertiary = Color(hex: "8D9BB0")
     static let textOnDark = Color.white
-    static let balanceGreen = Color(hex: "16A34A")
+    static let balanceGreen = Color(hex: "2EC770")
 }
 
 struct AvatarView: View {
