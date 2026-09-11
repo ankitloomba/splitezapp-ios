@@ -76,10 +76,10 @@ struct FinancesView: View {
                 }
                 ToolbarItem(placement: .secondaryAction) {
                     Menu {
-                        Button { exportReport(format: "csv") } label: {
+                        Button { Task { await exportReport(format: "csv") } } label: {
                             Label("Export CSV", systemImage: "tablecells")
                         }
-                        Button { exportReport(format: "pdf") } label: {
+                        Button { Task { await exportReport(format: "pdf") } } label: {
                             Label("Export PDF", systemImage: "doc.richtext")
                         }
                     } label: {
@@ -98,8 +98,8 @@ struct FinancesView: View {
         }
     }
 
-    private func exportReport(format: String) {
-        guard let url = api.buildURL("/exports/expenses/\(format)") else { return }
+    private func exportReport(format: String) async {
+        guard let url = await api.buildURL("/exports/expenses/\(format)") else { return }
         #if canImport(UIKit)
         UIApplication.shared.open(url)
         #endif

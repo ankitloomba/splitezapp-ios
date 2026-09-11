@@ -150,12 +150,12 @@ struct HomeView: View {
     }
 
     private var totalOwed: String {
-        let total = balances.filter { $0.amount > 0 }.reduce(0.0) { $0 + $1.amount }
+        let total = balances.filter { $0.amount > 0 }.reduce(0) { $0 + $1.amount }
         return formatAmount(total)
     }
 
     private var totalYouOwe: String {
-        let total = balances.filter { $0.amount < 0 }.reduce(0.0) { $0 + abs($1.amount) }
+        let total = balances.filter { $0.amount < 0 }.reduce(0) { $0 + abs($1.amount) }
         return formatAmount(total)
     }
 
