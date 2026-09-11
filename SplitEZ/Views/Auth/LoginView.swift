@@ -17,9 +17,20 @@ struct LoginView: View {
 
                     // Logo
                     VStack(spacing: 8) {
-                        Image(systemName: "dollarsign.circle.fill")
-                            .font(.system(size: 64))
-                            .foregroundColor(SplitEZTheme.primary)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [SplitEZTheme.primary, SplitEZTheme.accent],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 72, height: 72)
+                            Text("S₹")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.white)
+                        }
                         Text("SplitEZ")
                             .font(.largeTitle.bold())
                         Text("Split expenses with ease")
