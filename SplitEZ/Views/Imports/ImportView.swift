@@ -141,7 +141,7 @@ struct ImportView: View {
         importing = true
         defer { importing = false }
 
-        let urlString = await api.apiBaseURL + "/imports/expenses"
+        let urlString = api.apiBaseURL + "/imports/expenses"
         guard let url = URL(string: urlString) else {
             result = ImportResult(success: false, message: "Invalid URL")
             return

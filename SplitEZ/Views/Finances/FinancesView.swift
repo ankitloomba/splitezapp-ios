@@ -101,7 +101,7 @@ struct FinancesView: View {
     private func exportReport(format: String) async {
         guard let url = await api.buildURL("/exports/expenses/\(format)") else { return }
         #if canImport(UIKit)
-        UIApplication.shared.open(url)
+        await UIApplication.shared.open(url)
         #endif
     }
 
