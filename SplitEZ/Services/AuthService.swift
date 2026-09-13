@@ -21,12 +21,23 @@ class AuthService: ObservableObject {
         }
     }
 
-    func register(email: String, password: String, firstName: String, lastName: String?) async throws {
+    /// Returns `true` if email verification is needed (user should check inbox)
+    @discardableResult
+    func register(email: String, password: String, firstName: String, lastName: String?) async throws -> Bool {
         let req = RegisterRequest(email: email, password: password, firstName: firstName, lastName: lastName, phone: nil)
-        let tokens: AuthTokens = try await api.post("/auth/register", body: req, auth: false)
-        await api.setTokens(tokens)
-        currentUser = try await api.get("/users/me")
-        isLoggedIn = true
+        let resp: RegisterResponse = try await api.post("/auth/register", body: req, auth: false)
+
+        if let access = resp.accessToken, let refresh = resp.refreshToken {
+            // Auto-verified — log in immediately
+            let tokens = AuthTokens(accessToken: access, refreshToken: refresh, user: resp.user)
+            await api.setTokens(tokens)
+            currentUser = try await api.get("/users/me")
+            isLoggedIn = true
+            return false
+        }
+
+        // Needs email verification
+        return true
     }
 
     func login(email: String, password: String) async throws {

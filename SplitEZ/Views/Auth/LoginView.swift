@@ -510,12 +510,15 @@ struct RegisterView: View {
         let firstName = String(parts.first ?? "")
         let lastName = parts.count > 1 ? String(parts[1]) : nil
         do {
-            try await auth.register(
+            let needsVerification = try await auth.register(
                 email: email,
                 password: password,
                 firstName: firstName,
                 lastName: lastName
             )
+            if needsVerification {
+                showVerifyAlert = true
+            }
         } catch {
             self.error = error.localizedDescription
         }

@@ -7,6 +7,18 @@ struct AuthTokens: Codable {
     let user: UserSummary?
 }
 
+/// Registration can return tokens (auto-verified) or a message (needs email verification)
+struct RegisterResponse: Codable {
+    let accessToken: String?
+    let refreshToken: String?
+    let message: String?
+    let user: UserSummary?
+
+    var needsVerification: Bool {
+        accessToken == nil
+    }
+}
+
 struct RegisterRequest: Codable {
     let email: String
     let password: String
