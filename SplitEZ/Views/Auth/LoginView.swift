@@ -30,7 +30,7 @@ struct SplitEZLogo: View {
             context.fill(rightPath, with: .color(SplitEZTheme.primary))
 
             // White diagonal divider — slightly rotated
-            let dividerWidth: CGFloat = radius * 0.12
+            let dividerWidth: CGFloat = radius * 0.08
             var divider = Path()
             divider.addRoundedRect(in: CGRect(
                 x: center.x - dividerWidth / 2,
@@ -40,7 +40,7 @@ struct SplitEZLogo: View {
             ), cornerSize: .zero)
 
             let transform = CGAffineTransform(translationX: center.x, y: center.y)
-                .rotated(by: .pi * -0.12)
+                .rotated(by: .pi * -0.03)
                 .translatedBy(x: -center.x, y: -center.y)
             let rotatedDivider = divider.applying(transform)
 
