@@ -29,18 +29,18 @@ struct SplitEZLogo: View {
             rightPath.closeSubpath()
             context.fill(rightPath, with: .color(SplitEZTheme.primary))
 
-            // Diagonal divider — slightly rotated
-            let dividerWidth: CGFloat = radius * 0.06
+            // White diagonal divider — slightly rotated
+            let dividerWidth: CGFloat = radius * 0.12
             var divider = Path()
             divider.addRoundedRect(in: CGRect(
                 x: center.x - dividerWidth / 2,
-                y: 0,
+                y: -2,
                 width: dividerWidth,
-                height: canvasSize.height
+                height: canvasSize.height + 4
             ), cornerSize: .zero)
 
             let transform = CGAffineTransform(translationX: center.x, y: center.y)
-                .rotated(by: .pi * -0.08)
+                .rotated(by: .pi * -0.12)
                 .translatedBy(x: -center.x, y: -center.y)
             let rotatedDivider = divider.applying(transform)
 
@@ -49,7 +49,7 @@ struct SplitEZLogo: View {
             clipCircle.addEllipse(in: CGRect(x: 0, y: 0, width: canvasSize.width, height: canvasSize.height))
 
             context.clip(to: clipCircle)
-            context.fill(rotatedDivider, with: .color(Color(hex: "10142A")))
+            context.fill(rotatedDivider, with: .color(.white))
         }
         .frame(width: size, height: size)
     }
