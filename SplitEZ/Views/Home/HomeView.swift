@@ -2,8 +2,9 @@ import SwiftUI
 
 struct HomeView: View {
     @EnvironmentObject var auth: AuthService
+    @State private var groups: [ExpenseGroup] = []
+    @State private var trips: [Trip] = []
     @State private var balances: [Balance] = []
-    @State private var recentActivity: [Activity] = []
     @State private var banners: [PromotionalBanner] = []
     @State private var dashboardElements: [DashboardElement] = []
     @State private var isLoading = true
@@ -11,135 +12,26 @@ struct HomeView: View {
     private let api = APIClient.shared
 
     @State private var activeFilter = "All"
-    private let filters = ["All", "Owed", "You owe", "Settled"]
+    private let filters = ["All", "Owed", "You owe", "Hide settled"]
+
+    // MARK: – Derived values
+
+    private var netBalance: Int {
+        balances.reduce(0) { $0 + $1.amount }
+    }
+
+    private var currency: String {
+        auth.currentUser?.currency ?? "INR"
+    }
+
+    // MARK: – Body
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    // Light header with balance
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text("Home")
-                                .font(.system(size: 20, weight: .bold))
-                            Spacer()
-                            NavigationLink(destination: NotificationsListView()) {
-                                Image(systemName: "bell")
-                                    .foregroundColor(SplitEZTheme.primary)
-                            }
-                        }
-                        .padding(.bottom, 8)
-
-                        // Balance card
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Net Balance")
-                                .font(.caption)
-                                .foregroundColor(SplitEZTheme.textSecondary)
-                            Text(totalOwed)
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(SplitEZTheme.positive)
-                                .monospacedDigit()
-                            HStack(spacing: 16) {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("You owe")
-                                        .font(.caption2)
-                                        .foregroundColor(SplitEZTheme.textSecondary)
-                                    Text(totalYouOwe)
-                                        .font(.subheadline.weight(.semibold))
-                                        .foregroundColor(SplitEZTheme.negative)
-                                }
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Owed to you")
-                                        .font(.caption2)
-                                        .foregroundColor(SplitEZTheme.textSecondary)
-                                    Text(totalOwed)
-                                        .font(.subheadline.weight(.semibold))
-                                        .foregroundColor(SplitEZTheme.positive)
-                                }
-                            }
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(.systemBackground))
-                                .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
-                        )
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 12)
-                    .padding(.bottom, 16)
-
-                    // Content area
-                    VStack(spacing: 0) {
-                        // Dashboard Elements
-                        ForEach(dashboardElements) { element in
-                            DashboardElementCard(element: element)
-                                .padding(.horizontal, 20)
-                                .padding(.bottom, 8)
-                        }
-
-                        // Banners
-                        if !banners.isEmpty {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 12) {
-                                    ForEach(banners) { banner in
-                                        BannerCard(banner: banner)
-                                    }
-                                }
-                                .padding(.horizontal, 20)
-                            }
-                            .padding(.bottom, 12)
-                        }
-
-                        // Ad banner
-                        AdBannerSlot(placementName: "home_banner")
-
-                        // Recent Activity
-                        HStack {
-                            Text("Recent Activity")
-                                .font(.subheadline.weight(.bold))
-                            Spacer()
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-
-                        if recentActivity.isEmpty {
-                            Text("No recent activity")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal, 20)
-                        } else {
-                            ForEach(recentActivity) { activity in
-                                ActivityRow(activity: activity)
-                            }
-                        }
-
-                        // Balances
-                        HStack {
-                            Text("Balances")
-                                .font(.subheadline.weight(.bold))
-                            Spacer()
-                            Text("See all")
-                                .font(.caption.weight(.semibold))
-                                .foregroundColor(SplitEZTheme.primary)
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 16)
-                        .padding(.bottom, 8)
-
-                        if balances.isEmpty {
-                            Text("No outstanding balances")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .padding(20)
-                        } else {
-                            ForEach(balances, id: \.userId) { balance in
-                                BalanceRow(balance: balance)
-                                Divider().padding(.leading, 70)
-                            }
-                        }
-                    }
+                    headerSection
+                    contentSection
                 }
             }
             .background(SplitEZTheme.secondaryBackground)
@@ -149,162 +41,397 @@ struct HomeView: View {
         }
     }
 
-    private var totalOwed: String {
-        let total = balances.filter { $0.amount > 0 }.reduce(0) { $0 + $1.amount }
-        return formatAmount(total)
+    // MARK: – Header (dark navy)
+
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Top bar: logo + icons
+            HStack {
+                // Logo
+                HStack(spacing: 6) {
+                    LogoMark(size: 28)
+                    Text("Split")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.white) +
+                    Text("EZ")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(SplitEZTheme.primaryLight)
+                }
+                Spacer()
+                Button(action: {}) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                .padding(.trailing, 12)
+                NavigationLink(destination: SettingsView()) {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                }
+            }
+            .padding(.top, 8)
+
+            // Summary line
+            Text("Overall, \(netBalance >= 0 ? "you are owed" : "you owe")")
+                .font(.subheadline)
+                .foregroundColor(SplitEZTheme.textTertiary)
+                .padding(.top, 8)
+
+            // Big balance number + currency picker
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(formatAmount(abs(netBalance), currency: currency))
+                    .font(.system(size: 36, weight: .bold))
+                    .foregroundColor(netBalance >= 0 ? SplitEZTheme.positive : SplitEZTheme.negative)
+                    .monospacedDigit()
+
+                HStack(spacing: 2) {
+                    Text(currency)
+                        .font(.caption.weight(.medium))
+                        .foregroundColor(SplitEZTheme.textTertiary)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundColor(SplitEZTheme.textTertiary)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 20)
+        .background(SplitEZTheme.darkBg)
     }
 
-    private var totalYouOwe: String {
-        let total = balances.filter { $0.amount < 0 }.reduce(0) { $0 + abs($1.amount) }
-        return formatAmount(total)
+    // MARK: – Content (white card area)
+
+    private var contentSection: some View {
+        VStack(spacing: 0) {
+            // Filter pills
+            filterPills
+                .padding(.top, 20)
+                .padding(.bottom, 16)
+
+            // Groups & Trips
+            sectionHeader(title: "Groups & trips", destination: AnyView(GroupsListView()))
+                .padding(.horizontal, 20)
+
+            if groups.isEmpty && trips.isEmpty {
+                emptyRow("No groups or trips yet")
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(filteredGroups) { group in
+                        NavigationLink(destination: GroupsListView()) {
+                            GroupTripRow(
+                                icon: "house",
+                                name: group.name,
+                                subtitle: "\(group.memberCount ?? 0) people · Group",
+                                amount: groupBalance(group.id),
+                                currency: currency
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    ForEach(filteredTrips) { trip in
+                        NavigationLink(destination: TripsListView()) {
+                            GroupTripRow(
+                                icon: "paperplane",
+                                name: trip.name,
+                                subtitle: "\(trip.memberCount ?? 0) people · Trip",
+                                amount: tripBalance(trip.id),
+                                currency: currency
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            // Friends
+            sectionHeader(title: "Friends", destination: AnyView(EmptyView()))
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+
+            if filteredBalances.isEmpty {
+                emptyRow("No friends added yet")
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(filteredBalances, id: \.userId) { balance in
+                        FriendRow(balance: balance, currency: currency)
+                    }
+                }
+            }
+
+            // Sponsored ad slot
+            sponsoredBanner
+                .padding(.top, 24)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 24)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(Color(.systemBackground))
+                .ignoresSafeArea(edges: .bottom)
+        )
+        .offset(y: -16)
     }
+
+    // MARK: – Filter Pills
+
+    private var filterPills: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(filters, id: \.self) { filter in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) { activeFilter = filter }
+                    } label: {
+                        Text(filter)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundColor(activeFilter == filter ? .white : SplitEZTheme.textSecondary)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(
+                                Capsule()
+                                    .fill(activeFilter == filter
+                                          ? SplitEZTheme.darkBg
+                                          : SplitEZTheme.pillInactive)
+                            )
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+        }
+    }
+
+    // MARK: – Section Header
+
+    private func sectionHeader(title: String, destination: AnyView) -> some View {
+        HStack {
+            Text(title)
+                .font(.headline)
+            Spacer()
+            NavigationLink(destination: destination) {
+                Text("See all")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(SplitEZTheme.primary)
+            }
+        }
+        .padding(.bottom, 8)
+    }
+
+    // MARK: – Sponsored banner
+
+    private var sponsoredBanner: some View {
+        HStack(spacing: 12) {
+            Text("AD")
+                .font(.caption2.weight(.bold))
+                .foregroundColor(SplitEZTheme.textTertiary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(SplitEZTheme.pillInactive)
+                )
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Sponsored")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(SplitEZTheme.textPrimary)
+                Text("Remove ads · SplitEZ Plus ₹99/mo")
+                    .font(.caption)
+                    .foregroundColor(SplitEZTheme.textSecondary)
+            }
+            Spacer()
+            Button("Go Plus") {}
+                .font(.caption.weight(.semibold))
+                .foregroundColor(SplitEZTheme.primary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(SplitEZTheme.primary, lineWidth: 1)
+                )
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(SplitEZTheme.secondaryBackground)
+        )
+    }
+
+    // MARK: – Filtering
+
+    private var filteredGroups: [ExpenseGroup] { groups } // TODO: filter by balance
+
+    private var filteredTrips: [Trip] { trips }
+
+    private var filteredBalances: [Balance] {
+        switch activeFilter {
+        case "Owed": return balances.filter { $0.amount > 0 }
+        case "You owe": return balances.filter { $0.amount < 0 }
+        case "Hide settled": return balances.filter { $0.amount != 0 }
+        default: return balances
+        }
+    }
+
+    private func groupBalance(_ groupId: String) -> Int { 0 } // TODO: from API
+    private func tripBalance(_ tripId: String) -> Int { 0 }
+
+    // MARK: – Empty state
+
+    private func emptyRow(_ text: String) -> some View {
+        Text(text)
+            .font(.subheadline)
+            .foregroundColor(SplitEZTheme.textTertiary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+    }
+
+    // MARK: – Load data
 
     private func loadData() async {
         isLoading = true
         async let b: [Balance] = (try? api.get("/balances")) ?? []
-        async let a: PaginatedResponse<Activity> = (try? api.get("/activity/feed", query: ["limit": "10"])) ?? PaginatedResponse(items: [], nextCursor: nil)
+        async let g: [ExpenseGroup] = (try? api.get("/groups")) ?? []
+        async let t: [Trip] = (try? api.get("/trips")) ?? []
         async let p: [PromotionalBanner] = (try? api.get("/promos", query: ["screen": "home"])) ?? []
         async let d: [DashboardElement] = (try? api.get("/dashboard/elements", query: ["screen": "home"])) ?? []
         balances = await b
-        recentActivity = await a.items
+        groups = await g
+        trips = await t
         banners = await p
         dashboardElements = await d
         isLoading = false
-        // Load ad placements for this screen
         await AdManager.shared.loadPlacements(screen: "home")
     }
 }
 
-struct BannerCard: View {
-    let banner: PromotionalBanner
+// MARK: - Group / Trip Row
+
+struct GroupTripRow: View {
+    let icon: String
+    let name: String
+    let subtitle: String
+    var amount: Int = 0
+    var currency: String = "INR"
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(banner.title)
-                .font(.headline)
-                .foregroundColor(.white)
-            if let subtitle = banner.subtitle {
+        HStack(spacing: 12) {
+            // Icon circle
+            Circle()
+                .fill(SplitEZTheme.secondaryBackground)
+                .frame(width: 44, height: 44)
+                .overlay(
+                    Image(systemName: icon)
+                        .font(.system(size: 18))
+                        .foregroundColor(SplitEZTheme.primary)
+                )
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(SplitEZTheme.textPrimary)
                 Text(subtitle)
                     .font(.caption)
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundColor(SplitEZTheme.textSecondary)
             }
-            if let cta = banner.cta {
-                Text(cta)
-                    .font(.caption.bold())
-                    .foregroundColor(.white)
-                    .padding(.top, 4)
+
+            Spacer()
+
+            if amount != 0 {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(amount > 0 ? "owes you" : "you owe")
+                        .font(.caption)
+                        .foregroundColor(SplitEZTheme.textSecondary)
+                    Text(formatAmount(abs(amount), currency: currency))
+                        .font(.subheadline.weight(.bold))
+                        .foregroundColor(amount > 0 ? SplitEZTheme.positive : SplitEZTheme.negative)
+                }
             }
         }
-        .padding()
-        .frame(width: 260, alignment: .leading)
-        .background(
-            LinearGradient(
-                colors: [SplitEZTheme.primary, SplitEZTheme.accent],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-        .cornerRadius(12)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
     }
 }
 
-struct DashboardElementCard: View {
-    let element: DashboardElement
+// MARK: - Friend Row
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let title = element.title {
-                Text(title)
-                    .font(element.type == "greeting" ? .title2.bold() : .headline)
-            }
-            if let subtitle = element.subtitle {
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            if let body = element.body {
-                Text(body)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            if let cta = element.cta {
-                Text(cta)
-                    .font(.subheadline.bold())
-                    .foregroundColor(SplitEZTheme.primary)
-                    .padding(.top, 2)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(backgroundColor)
-        .cornerRadius(12)
-    }
-
-    private var backgroundColor: Color {
-        if let config = element.config,
-           let bgValue = config["backgroundColor"]?.value as? String {
-            return Color(hex: bgValue)
-        }
-        switch element.type {
-        case "announcement": return SplitEZTheme.primary.opacity(0.1)
-        case "tip": return Color.yellow.opacity(0.1)
-        case "spotlight": return SplitEZTheme.accent.opacity(0.1)
-        default: return SplitEZTheme.secondaryBackground
-        }
-    }
-}
-
-struct BalanceRow: View {
+struct FriendRow: View {
     let balance: Balance
+    var currency: String = "INR"
 
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
+            // Avatar
             if let user = balance.user {
-                AvatarView(user: user, size: 36)
-                Text(user.displayName)
+                AvatarView(user: user, size: 44)
+            } else {
+                Circle()
+                    .fill(SplitEZTheme.pillInactive)
+                    .frame(width: 44, height: 44)
             }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(balance.user?.displayName ?? "Unknown")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(SplitEZTheme.textPrimary)
+                if let phone = balance.user?.phone, !phone.isEmpty {
+                    Text(phone)
+                        .font(.caption)
+                        .foregroundColor(SplitEZTheme.textSecondary)
+                }
+            }
+
             Spacer()
-            Text(formatAmount(abs(balance.amount)))
-                .font(.subheadline.bold())
-                .foregroundColor(balance.amount >= 0 ? SplitEZTheme.positive : SplitEZTheme.negative)
-            Text(balance.amount >= 0 ? "owes you" : "you owe")
-                .font(.caption)
-                .foregroundColor(.secondary)
+
+            if balance.amount == 0 {
+                Text("Settled")
+                    .font(.caption.weight(.medium))
+                    .foregroundColor(SplitEZTheme.positive)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .stroke(SplitEZTheme.positive.opacity(0.4), lineWidth: 1)
+                    )
+            } else {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(balance.amount > 0 ? "owes you" : "you owe")
+                        .font(.caption)
+                        .foregroundColor(SplitEZTheme.textSecondary)
+                    Text(formatAmount(abs(balance.amount), currency: currency))
+                        .font(.subheadline.weight(.bold))
+                        .foregroundColor(balance.amount > 0 ? SplitEZTheme.positive : SplitEZTheme.negative)
+                }
+            }
         }
-        .padding(.horizontal)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
     }
 }
 
-struct ActivityRow: View {
-    let activity: Activity
+// MARK: - Logo Mark (small circle logo)
+
+struct LogoMark: View {
+    var size: CGFloat = 28
 
     var body: some View {
-        HStack {
-            if let user = activity.user {
-                AvatarView(user: user, size: 32)
-            }
-            VStack(alignment: .leading) {
-                Text(activityDescription)
-                    .font(.subheadline)
-                Text(activity.createdAt.prefix(10))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            Spacer()
-        }
-        .padding(.horizontal)
-    }
+        ZStack {
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [SplitEZTheme.primaryLight, SplitEZTheme.primary],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: size, height: size)
 
-    private var activityDescription: String {
-        let name = activity.user?.firstName ?? "Someone"
-        switch activity.type {
-        case "EXPENSE_CREATED": return "\(name) added an expense"
-        case "SETTLEMENT_COMPLETED": return "\(name) settled up"
-        case "GROUP_CREATED": return "\(name) created a group"
-        case "TRIP_CREATED": return "\(name) created a trip"
-        case "GROUP_MEMBER_ADDED": return "\(name) joined a group"
-        case "TRIP_MEMBER_ADDED": return "\(name) joined a trip"
-        default: return "\(name) did something"
+            // Diagonal line
+            Path { path in
+                path.move(to: CGPoint(x: size * 0.3, y: size * 0.2))
+                path.addLine(to: CGPoint(x: size * 0.7, y: size * 0.8))
+            }
+            .stroke(.white, lineWidth: 2)
+            .frame(width: size, height: size)
         }
     }
 }

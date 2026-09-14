@@ -54,6 +54,7 @@ struct UserSummary: Codable, Identifiable, Hashable {
     let id: String
     let firstName: String
     let lastName: String?
+    let phone: String?
     let profilePicture: String?
     let avatar: AvatarData?
 
