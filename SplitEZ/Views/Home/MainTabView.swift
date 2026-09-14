@@ -57,9 +57,9 @@ struct MainTabView: View {
     // MARK: – Custom Tab Bar
 
     private var customTabBar: some View {
-        HStack {
-            tabButton(icon: "house.fill", label: "Home", tag: 0)
-            tabButton(icon: "person.2", label: "Friends", tag: 1)
+        HStack(spacing: 0) {
+            tabButton(activeIcon: "house.fill", inactiveIcon: "house", label: "Home", tag: 0)
+            tabButton(activeIcon: "person.2.fill", inactiveIcon: "person.2", label: "Friends", tag: 1)
 
             // Center "Add" button
             Button {
@@ -69,39 +69,41 @@ struct MainTabView: View {
                     Circle()
                         .fill(SplitEZTheme.primary)
                         .frame(width: 52, height: 52)
-                        .shadow(color: SplitEZTheme.primary.opacity(0.3), radius: 8, y: 4)
+                        .shadow(color: SplitEZTheme.primary.opacity(0.25), radius: 8, y: 4)
                     Image(systemName: "plus")
-                        .font(.system(size: 24, weight: .bold))
+                        .font(.system(size: 22, weight: .bold))
                         .foregroundColor(.white)
                 }
             }
-            .offset(y: -12)
+            .frame(maxWidth: .infinity)
+            .offset(y: -14)
 
-            tabButton(icon: "arrow.triangle.branch", label: "Activity", tag: 3)
-            tabButton(icon: "ellipsis", label: "More", tag: 4)
+            tabButton(activeIcon: "arrow.triangle.branch", inactiveIcon: "arrow.triangle.branch", label: "Activity", tag: 3)
+            tabButton(activeIcon: "ellipsis.circle.fill", inactiveIcon: "ellipsis", label: "More", tag: 4)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .padding(.bottom, 4)
+        .padding(.horizontal, 12)
+        .padding(.top, 10)
+        .padding(.bottom, 6)
         .background(
             Rectangle()
                 .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.06), radius: 8, y: -2)
+                .shadow(color: .black.opacity(0.08), radius: 10, y: -3)
                 .ignoresSafeArea(edges: .bottom)
         )
     }
 
-    private func tabButton(icon: String, label: String, tag: Int) -> some View {
-        Button {
+    private func tabButton(activeIcon: String, inactiveIcon: String, label: String, tag: Int) -> some View {
+        let isActive = selectedTab == tag
+        return Button {
             selectedTab = tag
         } label: {
             VStack(spacing: 4) {
-                Image(systemName: icon)
+                Image(systemName: isActive ? activeIcon : inactiveIcon)
                     .font(.system(size: 20))
                 Text(label)
                     .font(.system(size: 10, weight: .medium))
             }
-            .foregroundColor(selectedTab == tag ? SplitEZTheme.primary : SplitEZTheme.muted)
+            .foregroundColor(isActive ? SplitEZTheme.primary : SplitEZTheme.muted)
             .frame(maxWidth: .infinity)
         }
     }
