@@ -29,6 +29,25 @@
 - "AD" badge, "Sponsored" title, "Remove ads · SplitEZ Plus ₹99/mo"
 - "Go Plus" button with border
 
+## Screen: 04 · ACTIVITY · SORTABLE
+
+### Header (dark navy #10142A)
+- "Activity" title in large bold white text
+- Right side: search icon + download/export icon (white)
+- Sort pills: Date ↓ (active, indigo filled), Name, Type, Amount (inactive, white 12% opacity)
+- Active sort pill shows down arrow
+
+### Content Area (white, rounded top corners)
+- Grouped by day: TODAY, YESTERDAY, older dates (section labels in indigo, uppercase, caption weight)
+- Each row: colored icon circle (44pt), bold name + action text, subtitle, amount or time on right
+- Icon colors by type:
+  - Settlement/paid back: green checkmark on green tint
+  - Expense added: amber fork.knife on amber tint
+  - Group/trip: indigo house/paperplane on indigo tint
+  - Reminder: red clock on red tint
+- Amounts: green for incoming (+ ₹450), red for outgoing (– ₹800)
+- Dividers between rows within same day group (indented past icon)
+
 ### Tab Bar (5 tabs) — DARK NAVY background (#10142A)
 - Background: dark navy (SplitEZTheme.darkBg), NOT white
 - Active tab: white text/icon

@@ -336,31 +336,170 @@ struct FriendListRow: View {
     }
 }
 
-// MARK: - Activity Tab (placeholder)
+// MARK: - Activity Tab
 
 struct ActivityTabView: View {
     @State private var activities: [Activity] = []
+    @State private var activeSort = "Date"
+    @State private var searchText = ""
     private let api = APIClient.shared
+    private let sortOptions = ["Date", "Name", "Type", "Amount"]
+
+    /// Group activities by day label (TODAY, YESTERDAY, or date)
+    private var groupedActivities: [(String, [Activity])] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+
+        var groups: [String: [Activity]] = [:]
+        var order: [String] = []
+
+        for activity in activities {
+            let label: String
+            if let date = parseDate(activity.createdAt) {
+                let day = calendar.startOfDay(for: date)
+                if day == today { label = "TODAY" }
+                else if day == yesterday { label = "YESTERDAY" }
+                else {
+                    let fmt = DateFormatter()
+                    fmt.dateFormat = "MMM d, yyyy"
+                    label = fmt.string(from: date).uppercased()
+                }
+            } else {
+                label = "OLDER"
+            }
+            if groups[label] == nil { order.append(label) }
+            groups[label, default: []].append(activity)
+        }
+        return order.map { ($0, groups[$0]!) }
+    }
+
+    private func parseDate(_ str: String) -> Date? {
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return iso.date(from: str) ?? ISO8601DateFormatter().date(from: str)
+    }
 
     var body: some View {
         NavigationStack {
-            List {
-                if activities.isEmpty {
-                    Text("No recent activity")
-                        .foregroundColor(SplitEZTheme.textSecondary)
-                } else {
-                    ForEach(activities) { activity in
-                        ActivityRow(activity: activity)
+            ZStack(alignment: .top) {
+                VStack(spacing: 0) {
+                    SplitEZTheme.darkBg.frame(height: 160)
+                    Color(.systemBackground)
+                }
+                .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Header
+                        activityHeader
+
+                        // Content card
+                        VStack(spacing: 0) {
+                            if activities.isEmpty {
+                                Text("No recent activity")
+                                    .font(.subheadline)
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 40)
+                            } else {
+                                ForEach(groupedActivities, id: \.0) { label, items in
+                                    // Section header
+                                    Text(label)
+                                        .font(.caption.weight(.semibold))
+                                        .foregroundColor(SplitEZTheme.primary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.horizontal, 20)
+                                        .padding(.top, 20)
+                                        .padding(.bottom, 8)
+
+                                    ForEach(items) { activity in
+                                        ActivityRow(activity: activity)
+                                        if activity.id != items.last?.id {
+                                            Divider()
+                                                .padding(.leading, 72)
+                                                .padding(.trailing, 20)
+                                        }
+                                    }
+                                }
+                            }
+
+                            Spacer().frame(height: 80)
+                        }
+                        .background(
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .fill(Color(.systemBackground))
+                        )
+                        .offset(y: -16)
                     }
                 }
             }
-            .listStyle(.plain)
-            .navigationTitle("Activity")
+            .navigationBarHidden(true)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .task {
                 let feed: PaginatedResponse<Activity> = (try? await api.get("/activity/feed", query: ["limit": "50"])) ?? PaginatedResponse(items: [], nextCursor: nil)
                 activities = feed.items
             }
         }
+    }
+
+    // MARK: – Activity Header
+
+    private var activityHeader: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Title + icons
+            HStack {
+                Text("Activity")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(.white)
+                Spacer()
+                Button(action: {}) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                .padding(.trailing, 12)
+                Button(action: {}) {
+                    Image(systemName: "square.and.arrow.down")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                }
+            }
+
+            // Sort pills
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(sortOptions, id: \.self) { option in
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) { activeSort = option }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(option)
+                                    .font(.subheadline.weight(.medium))
+                                if activeSort == option {
+                                    Image(systemName: "arrow.down")
+                                        .font(.system(size: 10, weight: .bold))
+                                }
+                            }
+                            .foregroundColor(activeSort == option ? .white : Color.white.opacity(0.7))
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(
+                                Capsule()
+                                    .fill(activeSort == option
+                                          ? SplitEZTheme.primary
+                                          : Color.white.opacity(0.12))
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+        .padding(.bottom, 24)
+        .background(SplitEZTheme.darkBg)
     }
 }
 
@@ -385,39 +524,151 @@ struct AddExpenseSheet: View {
     }
 }
 
-// MARK: - Activity Row (moved here for shared use)
+// MARK: - Activity Row
 
 struct ActivityRow: View {
     let activity: Activity
 
     var body: some View {
         HStack(spacing: 12) {
-            if let user = activity.user {
-                AvatarView(user: user, size: 36)
-            }
+            // Category icon circle
+            Circle()
+                .fill(iconBackground)
+                .frame(width: 44, height: 44)
+                .overlay(
+                    Image(systemName: iconName)
+                        .font(.system(size: 18))
+                        .foregroundColor(iconColor)
+                )
+
             VStack(alignment: .leading, spacing: 2) {
-                Text(activityDescription)
-                    .font(.subheadline)
-                Text(activity.createdAt.prefix(10))
+                // Bold name + action
+                Text(activityTitle)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(SplitEZTheme.textPrimary)
+                Text(activitySubtitle)
                     .font(.caption)
                     .foregroundColor(SplitEZTheme.textSecondary)
             }
+
             Spacer()
+
+            // Amount or time
+            if let amount = activityAmount {
+                Text(amount)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundColor(amountColor)
+            } else {
+                Text(timeString)
+                    .font(.caption)
+                    .foregroundColor(SplitEZTheme.textTertiary)
+            }
         }
-        .padding(.vertical, 4)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
     }
 
-    private var activityDescription: String {
-        let name = activity.user?.firstName ?? "Someone"
+    // MARK: – Icon
+
+    private var iconName: String {
         switch activity.type {
-        case "EXPENSE_CREATED": return "\(name) added an expense"
-        case "SETTLEMENT_COMPLETED": return "\(name) settled up"
-        case "GROUP_CREATED": return "\(name) created a group"
-        case "TRIP_CREATED": return "\(name) created a trip"
-        case "GROUP_MEMBER_ADDED": return "\(name) joined a group"
-        case "TRIP_MEMBER_ADDED": return "\(name) joined a trip"
-        default: return "\(name) did something"
+        case "SETTLEMENT_COMPLETED": return "checkmark"
+        case "EXPENSE_CREATED": return "fork.knife"
+        case "GROUP_CREATED": return "house"
+        case "TRIP_CREATED": return "paperplane"
+        case "GROUP_MEMBER_ADDED", "TRIP_MEMBER_ADDED": return "person.badge.plus"
+        default: return "bell"
         }
+    }
+
+    private var iconColor: Color {
+        switch activity.type {
+        case "SETTLEMENT_COMPLETED": return SplitEZTheme.positive
+        case "EXPENSE_CREATED": return Color(red: 0.8, green: 0.6, blue: 0.2)
+        case "GROUP_CREATED", "TRIP_CREATED": return SplitEZTheme.primary
+        default: return SplitEZTheme.negative
+        }
+    }
+
+    private var iconBackground: Color {
+        iconColor.opacity(0.12)
+    }
+
+    // MARK: – Text
+
+    private var activityTitle: AttributedString {
+        let name = activity.user?.firstName ?? "Someone"
+        var result = AttributedString()
+        switch activity.type {
+        case "EXPENSE_CREATED":
+            var bold = AttributedString(name)
+            bold.font = .subheadline.weight(.bold)
+            let desc = activity.metadata?["description"]
+            let expName = (desc?.value as? String) ?? "an expense"
+            result = bold + AttributedString(" added \(expName)")
+        case "SETTLEMENT_COMPLETED":
+            var bold = AttributedString(name)
+            bold.font = .subheadline.weight(.bold)
+            result = bold + AttributedString(" paid you back")
+        case "GROUP_CREATED":
+            var bold = AttributedString("You")
+            bold.font = .subheadline.weight(.bold)
+            result = bold + AttributedString(" created a group")
+        case "TRIP_CREATED":
+            var bold = AttributedString("You")
+            bold.font = .subheadline.weight(.bold)
+            result = bold + AttributedString(" created a trip")
+        default:
+            var bold = AttributedString(name)
+            bold.font = .subheadline.weight(.bold)
+            result = bold + AttributedString(" did something")
+        }
+        return result
+    }
+
+    private var activitySubtitle: String {
+        let groupName = (activity.metadata?["groupName"]?.value as? String)
+            ?? (activity.metadata?["tripName"]?.value as? String)
+            ?? ""
+        switch activity.type {
+        case "SETTLEMENT_COMPLETED":
+            return groupName.isEmpty ? "settlement" : "\(groupName) · settlement"
+        case "EXPENSE_CREATED":
+            let share = activity.metadata?["shareAmount"]?.value
+            let shareStr = share != nil ? " · your share \(formatAmount(share as? Int ?? 0))" : ""
+            return groupName.isEmpty ? "expense\(shareStr)" : "\(groupName)\(shareStr)"
+        default:
+            return groupName
+        }
+    }
+
+    private var activityAmount: String? {
+        guard let meta = activity.metadata else { return nil }
+        if let amt = meta["amount"]?.value as? Int, amt != 0 {
+            let prefix = amt > 0 ? "+ " : "– "
+            return "\(prefix)\(formatAmount(abs(amt)))"
+        }
+        if let share = meta["shareAmount"]?.value as? Int, share != 0 {
+            return "– \(formatAmount(abs(share)))"
+        }
+        return nil
+    }
+
+    private var amountColor: Color {
+        if let meta = activity.metadata, let amt = meta["amount"]?.value as? Int {
+            return amt >= 0 ? SplitEZTheme.positive : SplitEZTheme.negative
+        }
+        return SplitEZTheme.negative
+    }
+
+    private var timeString: String {
+        // Extract HH:mm from ISO date
+        if activity.createdAt.count >= 16 {
+            let idx = activity.createdAt.index(activity.createdAt.startIndex, offsetBy: 11)
+            let end = activity.createdAt.index(idx, offsetBy: 5)
+            return String(activity.createdAt[idx..<end])
+        }
+        return ""
     }
 }
 
