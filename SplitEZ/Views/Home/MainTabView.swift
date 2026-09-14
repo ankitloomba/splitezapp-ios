@@ -86,8 +86,7 @@ struct MainTabView: View {
         .padding(.bottom, 6)
         .background(
             Rectangle()
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.08), radius: 10, y: -3)
+                .fill(SplitEZTheme.darkBg)
                 .ignoresSafeArea(edges: .bottom)
         )
     }
@@ -103,7 +102,7 @@ struct MainTabView: View {
                 Text(label)
                     .font(.system(size: 10, weight: .medium))
             }
-            .foregroundColor(isActive ? SplitEZTheme.primary : SplitEZTheme.muted)
+            .foregroundColor(isActive ? .white : Color.white.opacity(0.45))
             .frame(maxWidth: .infinity)
         }
     }

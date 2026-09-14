@@ -29,9 +29,12 @@
 - "AD" badge, "Sponsored" title, "Remove ads · SplitEZ Plus ₹99/mo"
 - "Go Plus" button with border
 
-### Tab Bar (5 tabs)
+### Tab Bar (5 tabs) — DARK NAVY background (#10142A)
+- Background: dark navy (SplitEZTheme.darkBg), NOT white
+- Active tab: white text/icon
+- Inactive tab: white at 45% opacity
 - Home (house icon, filled when active)
-- Friends (people icon)
-- Add (center, indigo circle with + icon, elevated)
+- Friends (people icon, filled when active)
+- Add (center, indigo circle with + icon, elevated above bar)
 - Activity (branch/arrow icon)
 - More (three dots icon)
