@@ -130,3 +130,34 @@ struct CreateGroupView: View {
         }
     }
 }
+
+// MARK: - Balance Row
+
+struct BalanceRow: View {
+    let balance: Balance
+
+    var body: some View {
+        HStack {
+            if let user = balance.user {
+                AvatarView(user: user, size: 36)
+            }
+            Text(balance.user?.displayName ?? "Unknown")
+                .font(.subheadline)
+            Spacer()
+            if balance.amount == 0 {
+                Text("Settled")
+                    .font(.caption.weight(.medium))
+                    .foregroundColor(SplitEZTheme.positive)
+            } else {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(balance.amount > 0 ? "owes you" : "you owe")
+                        .font(.caption)
+                        .foregroundColor(SplitEZTheme.textSecondary)
+                    Text(formatAmount(abs(balance.amount)))
+                        .font(.subheadline.weight(.bold))
+                        .foregroundColor(balance.amount > 0 ? SplitEZTheme.positive : SplitEZTheme.negative)
+                }
+            }
+        }
+    }
+}
