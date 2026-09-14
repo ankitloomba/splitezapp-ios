@@ -20,7 +20,7 @@ struct MainTabView: View {
                 ActivityTabView()
                     .tag(3)
 
-                SettingsView()
+                MoreTabView()
                     .tag(4)
             }
 
@@ -669,6 +669,109 @@ struct ActivityRow: View {
             return String(activity.createdAt[idx..<end])
         }
         return ""
+    }
+}
+
+// MARK: - More Tab
+
+struct MoreTabView: View {
+    var body: some View {
+        NavigationStack {
+            ZStack(alignment: .top) {
+                VStack(spacing: 0) {
+                    SplitEZTheme.darkBg.frame(height: 120)
+                    Color(.systemBackground)
+                }
+                .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Header
+                        HStack {
+                            Text("More")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundColor(.white)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 8)
+                        .padding(.bottom, 24)
+                        .background(SplitEZTheme.darkBg)
+
+                        // Menu items
+                        VStack(spacing: 0) {
+                            moreSection(title: "Manage") {
+                                moreRow(icon: "rectangle.3.group", iconColor: SplitEZTheme.primary, label: "Groups", destination: AnyView(GroupsListView()))
+                                moreRow(icon: "paperplane", iconColor: Color.orange, label: "Trips", destination: AnyView(TripsListView()))
+                                moreRow(icon: "creditcard", iconColor: Color.teal, label: "Expenses", destination: AnyView(CreateExpenseView()))
+                            }
+
+                            moreSection(title: "Finances") {
+                                moreRow(icon: "chart.pie", iconColor: SplitEZTheme.positive, label: "Finances", destination: AnyView(FinancesView()))
+                                moreRow(icon: "square.and.arrow.up", iconColor: Color.blue, label: "Export", destination: AnyView(ExportView()))
+                                moreRow(icon: "square.and.arrow.down", iconColor: Color.purple, label: "Import", destination: AnyView(ImportView()))
+                            }
+
+                            moreSection(title: "Account") {
+                                moreRow(icon: "bell", iconColor: SplitEZTheme.negative, label: "Notifications", destination: AnyView(NotificationsListView()))
+                                moreRow(icon: "gearshape", iconColor: SplitEZTheme.muted, label: "Settings", destination: AnyView(SettingsView()))
+                            }
+
+                            Spacer().frame(height: 80)
+                        }
+                        .background(
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .fill(Color(.systemBackground))
+                        )
+                        .offset(y: -16)
+                    }
+                }
+            }
+            .navigationBarHidden(true)
+            .toolbarBackground(.hidden, for: .navigationBar)
+        }
+    }
+
+    private func moreSection(title: String, @ViewBuilder content: () -> some View) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundColor(SplitEZTheme.textTertiary)
+                .textCase(.uppercase)
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 8)
+
+            content()
+        }
+    }
+
+    private func moreRow(icon: String, iconColor: Color, label: String, destination: AnyView) -> some View {
+        NavigationLink(destination: destination) {
+            HStack(spacing: 14) {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(iconColor.opacity(0.12))
+                    .frame(width: 36, height: 36)
+                    .overlay(
+                        Image(systemName: icon)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(iconColor)
+                    )
+
+                Text(label)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(SplitEZTheme.textPrimary)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(SplitEZTheme.textTertiary)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+        }
+        .buttonStyle(.plain)
     }
 }
 

@@ -48,6 +48,25 @@
 - Amounts: green for incoming (+ ₹450), red for outgoing (– ₹800)
 - Dividers between rows within same day group (indented past icon)
 
+## Screen: 17 · SETTINGS · FREE USER
+
+### Header (dark navy #10142A)
+- "Account" title centered in white
+- User avatar with dashed indigo border circle, QR badge bottom-left
+- Name bold white, email muted below
+- Edit (pencil) icon on right
+
+### Upgrade Banner
+- Indigo gradient background, rounded corners
+- "Get SplitEZ Ad Free" bold white, "No ads · priority support · exports" subtitle
+- Gold "₹99/mo" pill on right
+
+### Content (white, rounded top corners)
+- PREFERENCES section: Notifications, Security, Appearance, Currency & language (shows "INR · EN" value)
+- HELP & SUPPORT section: Contact us (with envelope icon), Rate SplitEZ
+- Red "Log out" button full width
+- Footer: "An Adrevo Product" with indigo circle, "© 2026 SplitEZ · 1.0.0"
+
 ### Tab Bar (5 tabs) — DARK NAVY background (#10142A)
 - Background: dark navy (SplitEZTheme.darkBg), NOT white
 - Active tab: white text/icon
