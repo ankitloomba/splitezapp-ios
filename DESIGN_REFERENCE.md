@@ -24,10 +24,19 @@
 - "Friends" section header with "See all" link
   - Rows with avatar (letter circle), name, phone number, balance or "Settled" badge
 
-### Sponsored Banner (bottom of content)
-- Light gray background, rounded corners
-- "AD" badge, "Sponsored" title, "Remove ads · SplitEZ Plus ₹99/mo"
-- "Go Plus" button with border
+## Screen: 02 · FRIENDS
+
+### Header (dark navy #10142A)
+- "Friends" title large bold white
+- Right side: QR code icon + add friend (person.badge.plus) icon (white)
+- Search bar: rounded rect, white 10% opacity fill, magnifying glass + placeholder "Search friends"
+
+### Content Area (white, rounded top corners)
+- "All friends" header with count (· X) + Sort button (indigo, line.3.horizontal.decrease icon)
+- Friend rows: avatar circle (44pt), name bold, phone subtitle, balance on right
+  - Green "owes you" / red "you owe" with amount
+  - "Settled" green outlined capsule badge when balance = 0
+- Empty state: "No friends added yet" or "No results" for search
 
 ## Screen: 04 · ACTIVITY · SORTABLE
 
@@ -66,6 +75,27 @@
 - HELP & SUPPORT section: Contact us (with envelope icon), Rate SplitEZ
 - Red "Log out" button full width
 - Footer: "An Adrevo Product" with indigo circle, "© 2026 SplitEZ · 1.0.0"
+
+## Screen: 05 · MORE TAB
+
+### Header (dark navy #10142A)
+- "More" title large bold white
+
+### Content (white, rounded top corners)
+- MANAGE section: Groups (rectangle.3.group, indigo), Trips (paperplane, orange), Expenses (creditcard, teal)
+- FINANCES section: Finances (chart.pie, green), Export (square.and.arrow.up, blue), Import (square.and.arrow.down, purple)
+- ACCOUNT section: Notifications (bell, red), Settings (gearshape, gray)
+- Each row: colored rounded-rect icon (36pt), label, chevron right
+- Section labels: uppercase, caption weight, tertiary color
+
+## Global Components
+
+### Sponsored Banner (persistent above tab bar)
+- Light gray background
+- "AD" badge, "Sponsored" title, "Remove ads · ₹99/mo"
+- "Go Plus" outlined button
+- Shows on: Home, Friends, Activity, Settings, Groups, Trips, Expenses, Finances, Export/Import, Notifications
+- NOT on: Add Expense sheet, Login/Auth screens
 
 ### Tab Bar (5 tabs) — DARK NAVY background (#10142A)
 - Background: dark navy (SplitEZTheme.darkBg), NOT white
