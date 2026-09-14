@@ -30,6 +30,10 @@ struct MainTabView: View {
                 customTabBar
             }
         }
+        .onAppear {
+            // Hide the default tab bar so only our custom one shows
+            UITabBar.appearance().isHidden = true
+        }
         .sheet(isPresented: $showAddSheet) {
             AddExpenseSheet()
         }
