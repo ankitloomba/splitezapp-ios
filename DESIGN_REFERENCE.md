@@ -1,0 +1,37 @@
+# SplitEZ Home Screen Design Reference
+
+## Screen: 01 · HOME · FILTERS + BANNER AD
+
+### Logo (Split Coin)
+- Two halves of a circle, shifted apart with a visible gap
+- Left half: light indigo #818CF8
+- Right half: deep indigo #4338CA
+- Nearly vertical cut (~3°)
+- Rules: light indigo always left, deep indigo always right
+- Minimum size 20px on screen
+
+### Header (dark navy #10142A)
+- Logo + "SplitEZ" (Split in white, EZ in light indigo #818CF8)
+- Right side: search icon + settings icon (white)
+- "Overall, you are owed" in muted text
+- Large balance amount in green (₹1,220) with INR dropdown
+
+### Content Area (white, rounded top corners)
+- Filter pills: All (filled dark), Owed, You owe, Hide settled
+- "Groups & trips" section header with "See all" link
+  - Rows with icon circle, name, subtitle (X people · Group/Trip), balance on right
+  - Red for "you owe", green for "owes you"
+- "Friends" section header with "See all" link
+  - Rows with avatar (letter circle), name, phone number, balance or "Settled" badge
+
+### Sponsored Banner (bottom of content)
+- Light gray background, rounded corners
+- "AD" badge, "Sponsored" title, "Remove ads · SplitEZ Plus ₹99/mo"
+- "Go Plus" button with border
+
+### Tab Bar (5 tabs)
+- Home (house icon, filled when active)
+- Friends (people icon)
+- Add (center, indigo circle with + icon, elevated)
+- Activity (branch/arrow icon)
+- More (three dots icon)
