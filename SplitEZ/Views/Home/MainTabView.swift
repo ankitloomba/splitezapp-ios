@@ -24,8 +24,11 @@ struct MainTabView: View {
                     .tag(4)
             }
 
-            // Custom tab bar
-            customTabBar
+            // Persistent ad banner + custom tab bar
+            VStack(spacing: 0) {
+                SponsoredBannerView()
+                customTabBar
+            }
         }
         .sheet(isPresented: $showAddSheet) {
             AddExpenseSheet()
@@ -193,5 +196,48 @@ struct ActivityRow: View {
         case "TRIP_MEMBER_ADDED": return "\(name) joined a trip"
         default: return "\(name) did something"
         }
+    }
+}
+
+// MARK: - Sponsored Banner (persistent above tab bar on all screens)
+
+struct SponsoredBannerView: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            Text("AD")
+                .font(.caption2.weight(.bold))
+                .foregroundColor(SplitEZTheme.textTertiary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(SplitEZTheme.pillInactive)
+                )
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Sponsored")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(SplitEZTheme.textPrimary)
+                Text("Remove ads · SplitEZ Plus ₹99/mo")
+                    .font(.caption)
+                    .foregroundColor(SplitEZTheme.textSecondary)
+            }
+            Spacer()
+            Button("Go Plus") {}
+                .font(.caption.weight(.semibold))
+                .foregroundColor(SplitEZTheme.primary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(SplitEZTheme.primary, lineWidth: 1)
+                )
+        }
+        .padding(14)
+        .background(
+            Rectangle()
+                .fill(SplitEZTheme.secondaryBackground)
+                .shadow(color: .black.opacity(0.04), radius: 4, y: -1)
+        )
     }
 }

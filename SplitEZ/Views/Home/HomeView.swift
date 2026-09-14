@@ -168,11 +168,7 @@ struct HomeView: View {
                 }
             }
 
-            // Sponsored ad slot
-            sponsoredBanner
-                .padding(.top, 24)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 24)
+            Spacer().frame(height: 80) // room for fixed ad banner + tab bar
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(
@@ -224,46 +220,6 @@ struct HomeView: View {
             }
         }
         .padding(.bottom, 8)
-    }
-
-    // MARK: – Sponsored banner
-
-    private var sponsoredBanner: some View {
-        HStack(spacing: 12) {
-            Text("AD")
-                .font(.caption2.weight(.bold))
-                .foregroundColor(SplitEZTheme.textTertiary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(SplitEZTheme.pillInactive)
-                )
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Sponsored")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(SplitEZTheme.textPrimary)
-                Text("Remove ads · SplitEZ Plus ₹99/mo")
-                    .font(.caption)
-                    .foregroundColor(SplitEZTheme.textSecondary)
-            }
-            Spacer()
-            Button("Go Plus") {}
-                .font(.caption.weight(.semibold))
-                .foregroundColor(SplitEZTheme.primary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(SplitEZTheme.primary, lineWidth: 1)
-                )
-        }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(SplitEZTheme.secondaryBackground)
-        )
     }
 
     // MARK: – Filtering
