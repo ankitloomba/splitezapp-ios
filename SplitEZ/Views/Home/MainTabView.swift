@@ -107,14 +107,231 @@ struct MainTabView: View {
     }
 }
 
-// MARK: - Friends Tab (placeholder, wraps Groups for now)
+// MARK: - Friends Tab
 
 struct FriendsTabView: View {
+    @State private var friends: [Friend] = []
+    @State private var balances: [Balance] = []
+    @State private var searchText = ""
+    @State private var isLoading = true
+    private let api = APIClient.shared
+
+    private var filteredFriends: [Friend] {
+        if searchText.isEmpty { return friends }
+        return friends.filter {
+            $0.displayName.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+
+    private func balanceFor(_ friendId: String) -> Int {
+        balances.first(where: { $0.userId == friendId })?.amount ?? 0
+    }
+
     var body: some View {
         NavigationStack {
-            GroupsListView()
-                .navigationTitle("Friends")
+            ZStack(alignment: .top) {
+                // Background: dark top, white bottom
+                VStack(spacing: 0) {
+                    SplitEZTheme.darkBg.frame(height: 160)
+                    Color(.systemBackground)
+                }
+                .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Header
+                        friendsHeader
+
+                        // Content card
+                        VStack(spacing: 0) {
+                            // All friends
+                            HStack {
+                                Text("All friends")
+                                    .font(.headline)
+                                Text("· \(friends.count)")
+                                    .font(.headline)
+                                    .foregroundColor(SplitEZTheme.textSecondary)
+                                Spacer()
+                                Button {
+                                    // Sort action
+                                } label: {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "line.3.horizontal.decrease")
+                                            .font(.caption)
+                                        Text("Sort")
+                                            .font(.subheadline.weight(.medium))
+                                    }
+                                    .foregroundColor(SplitEZTheme.primary)
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 20)
+                            .padding(.bottom, 12)
+
+                            if filteredFriends.isEmpty {
+                                Text(searchText.isEmpty ? "No friends added yet" : "No results")
+                                    .font(.subheadline)
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 20)
+                            } else {
+                                ForEach(filteredFriends) { friend in
+                                    FriendListRow(
+                                        friend: friend,
+                                        balance: balanceFor(friend.id)
+                                    )
+                                }
+                            }
+
+                            Spacer().frame(height: 80)
+                        }
+                        .background(
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .fill(Color(.systemBackground))
+                        )
+                        .offset(y: -16)
+                    }
+                }
+            }
+            .navigationBarHidden(true)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .task { await loadData() }
         }
+    }
+
+    // MARK: – Friends Header
+
+    private var friendsHeader: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Top bar: title + icons
+            HStack {
+                Text("Friends")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                Spacer()
+                Button(action: {}) {
+                    Image(systemName: "qrcode")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                .padding(.trailing, 12)
+                Button(action: {}) {
+                    Image(systemName: "person.badge.plus")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                }
+            }
+
+            // Search bar
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 14))
+                    .foregroundColor(SplitEZTheme.textTertiary)
+                TextField("Search friends", text: $searchText)
+                    .font(.subheadline)
+                    .foregroundColor(.white)
+                if !searchText.isEmpty {
+                    Button {
+                        searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(SplitEZTheme.textTertiary)
+                    }
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.white.opacity(0.1))
+            )
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+        .padding(.bottom, 24)
+        .background(SplitEZTheme.darkBg)
+    }
+
+    // MARK: – Load Data
+
+    private func loadData() async {
+        isLoading = true
+        async let f: [Friend] = (try? api.get("/people")) ?? []
+        async let b: [Balance] = (try? api.get("/balances")) ?? []
+        friends = await f
+        balances = await b
+        isLoading = false
+    }
+}
+
+// MARK: - Friend List Row
+
+struct FriendListRow: View {
+    let friend: Friend
+    var balance: Int = 0
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Avatar
+            if let user = friendAsUser {
+                AvatarView(user: user, size: 44)
+            } else {
+                Circle()
+                    .fill(SplitEZTheme.pillInactive)
+                    .frame(width: 44, height: 44)
+                    .overlay(
+                        Text(friend.firstName.prefix(1).uppercased())
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(SplitEZTheme.textSecondary)
+                    )
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(friend.displayName)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(SplitEZTheme.textPrimary)
+                if let phone = friend.phone, !phone.isEmpty {
+                    Text(phone)
+                        .font(.caption)
+                        .foregroundColor(SplitEZTheme.textSecondary)
+                }
+            }
+
+            Spacer()
+
+            if balance == 0 {
+                Text("Settled")
+                    .font(.caption.weight(.medium))
+                    .foregroundColor(SplitEZTheme.positive)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .stroke(SplitEZTheme.positive.opacity(0.4), lineWidth: 1)
+                    )
+            } else {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(balance > 0 ? "owes you" : "you owe")
+                        .font(.caption)
+                        .foregroundColor(SplitEZTheme.textSecondary)
+                    Text(formatAmount(abs(balance)))
+                        .font(.subheadline.weight(.bold))
+                        .foregroundColor(balance > 0 ? SplitEZTheme.positive : SplitEZTheme.negative)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+    }
+
+    /// Convert Friend → UserSummary for AvatarView
+    private var friendAsUser: UserSummary? {
+        guard let data = try? JSONEncoder().encode(friend),
+              let user = try? JSONDecoder().decode(UserSummary.self, from: data)
+        else { return nil }
+        return user
     }
 }
 

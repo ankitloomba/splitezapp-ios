@@ -63,6 +63,21 @@ struct UserSummary: Codable, Identifiable, Hashable {
     }
 }
 
+/// A person from /people endpoint
+struct Friend: Codable, Identifiable {
+    let id: String
+    let firstName: String
+    let lastName: String?
+    let phone: String?
+    let profilePicture: String?
+    let avatar: AvatarData?
+    let isRegistered: Bool?
+
+    var displayName: String {
+        [firstName, lastName].compactMap { $0 }.joined(separator: " ")
+    }
+}
+
 struct AvatarData: Codable, Hashable {
     let initials: String
     let backgroundColor: String
