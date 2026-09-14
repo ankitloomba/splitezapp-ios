@@ -418,7 +418,7 @@ struct LogoMark: View {
     private let deepIndigo  = Color(red: 0x43/255, green: 0x38/255, blue: 0xCA/255) // #4338CA
 
     var body: some View {
-        let gap: CGFloat = size * 0.04          // hairline gap between halves
+        let gap: CGFloat = size * 0.12            // visible gap between halves
         let halfShift: CGFloat = gap / 2
         // Cut angle: nearly vertical, ~3° clockwise
         let angle = Angle.degrees(3)
