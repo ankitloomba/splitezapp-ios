@@ -34,8 +34,9 @@ struct HomeView: View {
                     contentSection
                 }
             }
-            .background(SplitEZTheme.secondaryBackground)
+            .background(SplitEZTheme.darkBg)
             .navigationBarHidden(true)
+            .toolbarBackground(.hidden, for: .navigationBar)
             .refreshable { await loadData() }
             .task { await loadData() }
         }
@@ -70,13 +71,11 @@ struct HomeView: View {
                         .foregroundColor(.white)
                 }
             }
-            .padding(.top, 8)
-
             // Summary line
             Text("Overall, \(netBalance >= 0 ? "you are owed" : "you owe")")
                 .font(.subheadline)
                 .foregroundColor(SplitEZTheme.textTertiary)
-                .padding(.top, 8)
+                .padding(.top, 4)
 
             // Big balance number + currency picker
             HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -96,8 +95,9 @@ struct HomeView: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 20)
+        .padding(.bottom, 14)
         .background(SplitEZTheme.darkBg)
+        .edgesIgnoringSafeArea(.top)
     }
 
     // MARK: – Content (white card area)
