@@ -104,7 +104,7 @@ struct HomeView: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 14)
+        .padding(.bottom, 24)
         .background(SplitEZTheme.darkBg)
         .edgesIgnoringSafeArea(.top)
     }
