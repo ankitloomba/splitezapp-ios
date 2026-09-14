@@ -28,16 +28,25 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ZStack(alignment: .top) {
+                // Bottom half is always white so no dark gap shows
                 VStack(spacing: 0) {
-                    headerSection
-                    contentSection
+                    SplitEZTheme.darkBg
+                        .frame(height: 200)
+                    Color(.systemBackground)
                 }
+                .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 0) {
+                        headerSection
+                        contentSection
+                    }
+                }
+                .refreshable { await loadData() }
             }
-            .background(SplitEZTheme.darkBg)
             .navigationBarHidden(true)
             .toolbarBackground(.hidden, for: .navigationBar)
-            .refreshable { await loadData() }
             .task { await loadData() }
         }
     }
@@ -165,6 +174,7 @@ struct HomeView: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 24)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(Color(.systemBackground))
@@ -411,6 +421,7 @@ struct FriendRow: View {
 // MARK: - Logo Mark (small circle logo)
 
 /// Split Coin logo mark — one coin cut in two, light indigo left, deep indigo right.
+/// Draws two half-circle arcs separated by a visible gap.
 struct LogoMark: View {
     var size: CGFloat = 28
 
@@ -418,52 +429,28 @@ struct LogoMark: View {
     private let deepIndigo  = Color(red: 0x43/255, green: 0x38/255, blue: 0xCA/255) // #4338CA
 
     var body: some View {
-        let gap: CGFloat = size * 0.12            // visible gap between halves
-        let halfShift: CGFloat = gap / 2
-        // Cut angle: nearly vertical, ~3° clockwise
-        let angle = Angle.degrees(3)
+        let gap: CGFloat = size * 0.08  // gap between halves
+        let r = size / 2                // radius
 
-        ZStack {
-            // Left half — light indigo, shifted left
-            Circle()
-                .fill(lightIndigo)
-                .frame(width: size, height: size)
-                .clipShape(HalfCircle(isLeft: true, angle: angle))
-                .offset(x: -halfShift)
+        Canvas { context, canvasSize in
+            let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
 
-            // Right half — deep indigo, shifted right
-            Circle()
-                .fill(deepIndigo)
-                .frame(width: size, height: size)
-                .clipShape(HalfCircle(isLeft: false, angle: angle))
-                .offset(x: halfShift)
+            // Left half — light indigo
+            var leftPath = Path()
+            leftPath.addArc(center: CGPoint(x: center.x - gap / 2, y: center.y),
+                            radius: r, startAngle: .degrees(90), endAngle: .degrees(270),
+                            clockwise: false)
+            leftPath.closeSubpath()
+            context.fill(leftPath, with: .color(lightIndigo))
+
+            // Right half — deep indigo
+            var rightPath = Path()
+            rightPath.addArc(center: CGPoint(x: center.x + gap / 2, y: center.y),
+                             radius: r, startAngle: .degrees(270), endAngle: .degrees(90),
+                             clockwise: false)
+            rightPath.closeSubpath()
+            context.fill(rightPath, with: .color(deepIndigo))
         }
-        .frame(width: size, height: size)
-    }
-}
-
-/// Clips to the left or right half of a rectangle along a nearly-vertical line.
-private struct HalfCircle: Shape {
-    let isLeft: Bool
-    let angle: Angle
-
-    func path(in rect: CGRect) -> Path {
-        let mid = rect.midX
-        let dx = tan(angle.radians) * rect.height / 2
-        var path = Path()
-        if isLeft {
-            path.move(to: CGPoint(x: 0, y: 0))
-            path.addLine(to: CGPoint(x: mid + dx, y: 0))
-            path.addLine(to: CGPoint(x: mid - dx, y: rect.height))
-            path.addLine(to: CGPoint(x: 0, y: rect.height))
-            path.closeSubpath()
-        } else {
-            path.move(to: CGPoint(x: mid + dx, y: 0))
-            path.addLine(to: CGPoint(x: rect.width, y: 0))
-            path.addLine(to: CGPoint(x: rect.width, y: rect.height))
-            path.addLine(to: CGPoint(x: mid - dx, y: rect.height))
-            path.closeSubpath()
-        }
-        return path
+        .frame(width: size + size * 0.08, height: size)
     }
 }
