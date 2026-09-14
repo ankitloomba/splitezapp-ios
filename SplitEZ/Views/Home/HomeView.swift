@@ -410,28 +410,60 @@ struct FriendRow: View {
 
 // MARK: - Logo Mark (small circle logo)
 
+/// Split Coin logo mark — one coin cut in two, light indigo left, deep indigo right.
 struct LogoMark: View {
     var size: CGFloat = 28
 
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(
-                    LinearGradient(
-                        colors: [SplitEZTheme.primaryLight, SplitEZTheme.primary],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(width: size, height: size)
+    private let lightIndigo = Color(red: 0x81/255, green: 0x8C/255, blue: 0xF8/255) // #818CF8
+    private let deepIndigo  = Color(red: 0x43/255, green: 0x38/255, blue: 0xCA/255) // #4338CA
 
-            // Diagonal line
-            Path { path in
-                path.move(to: CGPoint(x: size * 0.3, y: size * 0.2))
-                path.addLine(to: CGPoint(x: size * 0.7, y: size * 0.8))
-            }
-            .stroke(.white, lineWidth: 2)
-            .frame(width: size, height: size)
+    var body: some View {
+        let gap: CGFloat = size * 0.04          // hairline gap between halves
+        let halfShift: CGFloat = gap / 2
+        // Cut angle: nearly vertical, ~3° clockwise
+        let angle = Angle.degrees(3)
+
+        ZStack {
+            // Left half — light indigo, shifted left
+            Circle()
+                .fill(lightIndigo)
+                .frame(width: size, height: size)
+                .clipShape(HalfCircle(isLeft: true, angle: angle))
+                .offset(x: -halfShift)
+
+            // Right half — deep indigo, shifted right
+            Circle()
+                .fill(deepIndigo)
+                .frame(width: size, height: size)
+                .clipShape(HalfCircle(isLeft: false, angle: angle))
+                .offset(x: halfShift)
         }
+        .frame(width: size, height: size)
+    }
+}
+
+/// Clips to the left or right half of a rectangle along a nearly-vertical line.
+private struct HalfCircle: Shape {
+    let isLeft: Bool
+    let angle: Angle
+
+    func path(in rect: CGRect) -> Path {
+        let mid = rect.midX
+        let dx = tan(angle.radians) * rect.height / 2
+        var path = Path()
+        if isLeft {
+            path.move(to: CGPoint(x: 0, y: 0))
+            path.addLine(to: CGPoint(x: mid + dx, y: 0))
+            path.addLine(to: CGPoint(x: mid - dx, y: rect.height))
+            path.addLine(to: CGPoint(x: 0, y: rect.height))
+            path.closeSubpath()
+        } else {
+            path.move(to: CGPoint(x: mid + dx, y: 0))
+            path.addLine(to: CGPoint(x: rect.width, y: 0))
+            path.addLine(to: CGPoint(x: rect.width, y: rect.height))
+            path.addLine(to: CGPoint(x: mid - dx, y: rect.height))
+            path.closeSubpath()
+        }
+        return path
     }
 }
