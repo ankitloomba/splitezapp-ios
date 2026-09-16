@@ -27,6 +27,7 @@
 		A100000018 /* NotificationsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000018; };
 		A100000019 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000019; };
 		A100000020 /* TripsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000020; };
+		A100000021 /* FriendLedgerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000021; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +51,7 @@
 		B100000018 /* NotificationsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsListView.swift; sourceTree = "<group>"; };
 		B100000019 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B100000020 /* TripsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripsListView.swift; sourceTree = "<group>"; };
+		B100000021 /* FriendLedgerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendLedgerView.swift; sourceTree = "<group>"; };
 		C100000001 /* SplitEZ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SplitEZ.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -126,6 +128,7 @@
 			children = (
 				E100000008 /* Auth */,
 				E100000009 /* Expenses */,
+				E100000013 /* Friends */,
 				E10000000A /* Exports */,
 				E10000000B /* Finances */,
 				E10000000C /* Groups */,
@@ -227,6 +230,14 @@
 			path = Trips;
 			sourceTree = "<group>";
 		};
+		E100000013 /* Friends */ = {
+			isa = PBXGroup;
+			children = (
+				B100000021 /* FriendLedgerView.swift */,
+			);
+			path = Friends;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -315,6 +326,7 @@
 				A100000018 /* NotificationsListView.swift in Sources */,
 				A100000019 /* SettingsView.swift in Sources */,
 				A100000020 /* TripsListView.swift in Sources */,
+				A100000021 /* FriendLedgerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

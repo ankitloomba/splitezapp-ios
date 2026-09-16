@@ -826,7 +826,7 @@ struct MoreTabView: View {
                             moreSection(title: "Manage") {
                                 moreRow(icon: "rectangle.3.group", iconColor: SplitEZTheme.primary, label: "Groups", destination: AnyView(GroupsListView()))
                                 moreRow(icon: "paperplane", iconColor: Color.orange, label: "Trips", destination: AnyView(TripsListView()))
-                                moreRow(icon: "creditcard", iconColor: Color.teal, label: "Expenses", destination: AnyView(CreateExpenseView()))
+                                moreRow(icon: "creditcard", iconColor: Color.teal, label: "Expenses", destination: AnyView(CreateExpenseView(groupId: nil, tripId: nil, members: [], onCreated: {})))
                             }
 
                             moreSection(title: "Finances") {
