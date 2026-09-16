@@ -64,6 +64,31 @@
   - Right side: "received" caption + "– ₹X" amount (muted)
 - Net balance row at bottom: bold "Net balance" + colored amount, separated by divider
 
+## Screen: 03 · TRIP SHEET · MULTI-CURRENCY
+
+### Header (dark navy #10142A)
+- Back chevron left, download + sparkles + ellipsis icons right (white)
+- Eyebrow: "TRIP · 22–29 AUG" (white 50%, uppercase, tracked)
+- Trip name large bold white (28pt)
+- Members: "You · Rahul · Ankit · Priya" (white 50%, caption)
+- Financial summary row (3 columns):
+  - Total spend: label muted + amount white bold
+  - Your share: label muted + amount white bold
+  - You are owed: label muted + amount green bold
+- Multi-currency note (green 80%): "Includes $120 converted at ₹83.40 · 29 Aug rate"
+- Two action buttons: "Remind all" (indigo filled) + "Export" (white filled), 24pt rounded
+
+### Content Area (white, rounded top corners)
+- SPEND BY CATEGORY section (indigo label):
+  - Stacked horizontal bar chart (10pt height, rounded segments, 2px gaps)
+  - Color-coded: Stay=green, Food=indigo, Travel=teal, Other=gray
+  - Labels below: "Stay 36%  Food 28%  Travel 21%  Other 15%"
+- "Expenses" header with Filter button (indigo)
+- Expense rows: category icon circle (44pt, colored tint), bold description
+  - Subtitle: "date · payer paid ₹X · ÷N"
+  - Right side: "owed to you" / "you owe" caption + ₹ amount (green/red bold)
+  - Icons: house.fill (stay), fork.knife (food), car.fill (transport)
+
 ## Screen: 04 · ACTIVITY · SORTABLE
 
 ### Header (dark navy #10142A)
