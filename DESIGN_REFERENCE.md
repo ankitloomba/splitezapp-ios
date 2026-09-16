@@ -160,6 +160,23 @@
 - ACCOUNT section (muted uppercase):
   - Delete account: trash icon, green text (destructive), chevron
 
+## Screen: 21 · APPEARANCE
+
+### Header: dark nav bar with "Appearance" centered title
+### Content (white, rounded top corners):
+- THEME section (muted uppercase):
+  - Three cards in a row: Dark (moon icon, navy bg, indigo border when selected), Light (sun icon, gray bg), System (half-circle icon, gray bg)
+  - Selected card has indigo 2px border + indigo label + indigo dot below
+  - Unselected cards have gray 1px border + muted label + no dot
+- ACCENT COLOUR section (muted uppercase):
+  - 5 color circles (40pt): Indigo, Teal, Red, Amber, Green
+  - Selected shows white checkmark overlay
+- DISPLAY section (muted uppercase):
+  - Compact list view: toggle OFF
+  - Show avatars in lists: toggle ON (indigo)
+  - Animations: toggle ON (indigo)
+  - Dividers between rows
+
 ## Screen: 11 · PROFILE & PREFERENCES (Legacy)
 
 ### Header (dark navy #10142A)

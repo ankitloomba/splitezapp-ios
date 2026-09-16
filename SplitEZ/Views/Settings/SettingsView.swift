@@ -613,22 +613,148 @@ struct SecuritySettingsView: View {
 // MARK: - Appearance Settings
 
 struct AppearanceSettingsView: View {
-    @State private var darkModeOption = 0 // 0=system, 1=light, 2=dark
+    @State private var selectedTheme = 0 // 0=dark, 1=light, 2=system
+    @State private var selectedAccent = 0
+    @State private var compactList = false
+    @State private var showAvatars = true
+    @State private var animations = true
+
+    private let accentColors: [(Color, String)] = [
+        (Color(hex: "6366F1"), "Indigo"),
+        (Color(hex: "0D9488"), "Teal"),
+        (Color(hex: "DC2626"), "Red"),
+        (Color(hex: "F59E0B"), "Amber"),
+        (Color(hex: "16A34A"), "Green"),
+    ]
+
+    private let themes: [(icon: String, label: String, iconColor: Color, bgColor: Color)] = [
+        ("moon.fill", "Dark", .white, Color(hex: "10142A")),
+        ("sun.min", "Light", .orange, Color(.systemGray6)),
+        ("circle.righthalf.filled", "System", Color(hex: "10142A"), Color(.systemGray6)),
+    ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            Picker("Theme", selection: $darkModeOption) {
-                Text("System").tag(0)
-                Text("Light").tag(1)
-                Text("Dark").tag(2)
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 100)
+                Color(.systemBackground)
             }
-            .pickerStyle(.segmented)
-            .padding(20)
+            .ignoresSafeArea()
 
-            Spacer()
+            ScrollView {
+                VStack(spacing: 0) {
+                    Spacer().frame(height: 8)
+
+                    VStack(spacing: 0) {
+                        sectionLabel("THEME")
+
+                        HStack(spacing: 12) {
+                            ForEach(Array(themes.enumerated()), id: \.offset) { index, theme in
+                                Button {
+                                    selectedTheme = index
+                                } label: {
+                                    VStack(spacing: 10) {
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .fill(theme.bgColor)
+                                            .frame(width: 52, height: 52)
+                                            .overlay(
+                                                Image(systemName: theme.icon)
+                                                    .font(.system(size: 20, weight: .medium))
+                                                    .foregroundColor(theme.iconColor)
+                                            )
+                                        Text(theme.label)
+                                            .font(.caption.weight(.medium))
+                                            .foregroundColor(selectedTheme == index ? SplitEZTheme.primary : SplitEZTheme.textSecondary)
+                                        Circle()
+                                            .fill(selectedTheme == index ? SplitEZTheme.primary : Color.clear)
+                                            .frame(width: 6, height: 6)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .stroke(
+                                                selectedTheme == index ? SplitEZTheme.primary : Color(.systemGray4),
+                                                lineWidth: selectedTheme == index ? 2 : 1
+                                            )
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 8)
+
+                        sectionLabel("ACCENT COLOUR")
+
+                        HStack(spacing: 16) {
+                            ForEach(Array(accentColors.enumerated()), id: \.offset) { index, accent in
+                                Button {
+                                    selectedAccent = index
+                                } label: {
+                                    Circle()
+                                        .fill(accent.0)
+                                        .frame(width: 40, height: 40)
+                                        .overlay(
+                                            Image(systemName: "checkmark")
+                                                .font(.system(size: 14, weight: .bold))
+                                                .foregroundColor(.white)
+                                                .opacity(selectedAccent == index ? 1 : 0)
+                                        )
+                                }
+                            }
+                            Spacer()
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 8)
+
+                        sectionLabel("DISPLAY")
+
+                        toggleRow(label: "Compact list view", isOn: $compactList)
+                        Divider().padding(.leading, 20)
+                        toggleRow(label: "Show avatars in lists", isOn: $showAvatars)
+                        Divider().padding(.leading, 20)
+                        toggleRow(label: "Animations", isOn: $animations)
+
+                        Spacer().frame(height: 40)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color(.systemBackground))
+                    )
+                }
+            }
         }
         .navigationTitle("Appearance")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+
+    private func sectionLabel(_ title: String) -> some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundColor(SplitEZTheme.textTertiary)
+            .tracking(0.5)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20)
+            .padding(.top, 24)
+            .padding(.bottom, 12)
+    }
+
+    private func toggleRow(label: String, isOn: Binding<Bool>) -> some View {
+        HStack {
+            Text(label)
+                .font(.subheadline.weight(.medium))
+                .foregroundColor(SplitEZTheme.textPrimary)
+            Spacer()
+            Toggle("", isOn: isOn)
+                .labelsHidden()
+                .tint(SplitEZTheme.primary)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
     }
 }
 
