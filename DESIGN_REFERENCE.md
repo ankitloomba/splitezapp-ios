@@ -177,6 +177,20 @@
   - Animations: toggle ON (indigo)
   - Dividers between rows
 
+## Screen: 22 · CURRENCY & LANGUAGE
+
+### Header: dark nav bar with "Currency & language" centered title
+### Content (white, rounded top corners):
+- DEFAULT CURRENCY section (muted uppercase):
+  - Currency rows: flag emoji (title2), name bold, "symbol · CODE" caption, indigo radio circle
+  - Options: Indian Rupee (₹ INR), US Dollar ($ USD), Euro (€ EUR), British Pound (£ GBP)
+  - Selected row has filled indigo dot, unselected has gray circle outline
+  - "+ Add more currencies" indigo text link at bottom
+- LANGUAGE section (muted uppercase):
+  - Language rows: native name bold (or English for default), subtitle "CODE · default" or English name
+  - Options: English (EN · default), हिन्दी (Hindi), Español (Spanish)
+  - Same indigo radio circle selection as currencies
+
 ## Screen: 11 · PROFILE & PREFERENCES (Legacy)
 
 ### Header (dark navy #10142A)

@@ -761,17 +761,140 @@ struct AppearanceSettingsView: View {
 // MARK: - Currency & Language
 
 struct CurrencyLanguageView: View {
+    @State private var selectedCurrency = 0
+    @State private var selectedLanguage = 0
+
+    private let currencies: [(flag: String, name: String, symbol: String, code: String)] = [
+        ("\u{1F1EE}\u{1F1F3}", "Indian Rupee", "₹", "INR"),
+        ("\u{1F1FA}\u{1F1F8}", "US Dollar", "$", "USD"),
+        ("\u{1F1EA}\u{1F1FA}", "Euro", "€", "EUR"),
+        ("\u{1F1EC}\u{1F1E7}", "British Pound", "£", "GBP"),
+    ]
+
+    private let languages: [(name: String, native: String, code: String)] = [
+        ("English", "English", "EN"),
+        ("Hindi", "हिन्दी", "HI"),
+        ("Spanish", "Español", "ES"),
+    ]
+
     var body: some View {
-        List {
-            Section("Currency") {
-                Text("INR ₹ (Indian Rupee)")
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 100)
+                Color(.systemBackground)
             }
-            Section("Language") {
-                Text("English")
+            .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    Spacer().frame(height: 8)
+
+                    VStack(spacing: 0) {
+                        sectionLabel("DEFAULT CURRENCY")
+
+                        ForEach(Array(currencies.enumerated()), id: \.offset) { index, currency in
+                            if index > 0 {
+                                Divider().padding(.leading, 20)
+                            }
+                            Button {
+                                selectedCurrency = index
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Text(currency.flag)
+                                        .font(.title2)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(currency.name)
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundColor(SplitEZTheme.textPrimary)
+                                        Text("\(currency.symbol) · \(currency.code)")
+                                            .font(.caption)
+                                            .foregroundColor(SplitEZTheme.textTertiary)
+                                    }
+                                    Spacer()
+                                    Circle()
+                                        .fill(selectedCurrency == index ? SplitEZTheme.primary : Color.clear)
+                                        .frame(width: 12, height: 12)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(selectedCurrency == index ? SplitEZTheme.primary : Color(.systemGray3), lineWidth: 1.5)
+                                                .frame(width: 18, height: 18)
+                                        )
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 14)
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        Divider().padding(.leading, 20)
+
+                        Button(action: {}) {
+                            Text("+ Add more currencies")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(SplitEZTheme.primary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                        }
+
+                        sectionLabel("LANGUAGE")
+
+                        ForEach(Array(languages.enumerated()), id: \.offset) { index, lang in
+                            if index > 0 {
+                                Divider().padding(.leading, 20)
+                            }
+                            Button {
+                                selectedLanguage = index
+                            } label: {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(index == 0 ? lang.name : lang.native)
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundColor(SplitEZTheme.textPrimary)
+                                        Text(index == 0 ? "\(lang.code) · default" : lang.name)
+                                            .font(.caption)
+                                            .foregroundColor(SplitEZTheme.textTertiary)
+                                    }
+                                    Spacer()
+                                    Circle()
+                                        .fill(selectedLanguage == index ? SplitEZTheme.primary : Color.clear)
+                                        .frame(width: 12, height: 12)
+                                        .overlay(
+                                            Circle()
+                                                .stroke(selectedLanguage == index ? SplitEZTheme.primary : Color(.systemGray3), lineWidth: 1.5)
+                                                .frame(width: 18, height: 18)
+                                        )
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 14)
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        Spacer().frame(height: 40)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color(.systemBackground))
+                    )
+                }
             }
         }
         .navigationTitle("Currency & language")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+
+    private func sectionLabel(_ title: String) -> some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundColor(SplitEZTheme.textTertiary)
+            .tracking(0.5)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20)
+            .padding(.top, 24)
+            .padding(.bottom, 12)
     }
 }
 
