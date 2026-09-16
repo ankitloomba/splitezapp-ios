@@ -2,7 +2,9 @@ import SwiftUI
 
 struct MainTabView: View {
     @State private var selectedTab = 0
+    @State private var previousTab = 0
     @State private var showAddSheet = false
+    @State private var showMoreSheet = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -20,14 +22,10 @@ struct MainTabView: View {
 
                 ActivityTabView()
                     .tag(3)
-
-                MoreTabView()
-                    .tag(4)
             }
 
             // Bottom bar: floating + button, ad banner, tab bar
             VStack(spacing: 0) {
-                // Floating + button — right-aligned above ad bar
                 HStack {
                     Spacer()
                     Button {
@@ -57,9 +55,15 @@ struct MainTabView: View {
         .sheet(isPresented: $showAddSheet) {
             AddExpenseSheet()
         }
-        .onChange(of: selectedTab) { _, tab in
-            let screens = ["home", "friends", "groups", "activity", "more"]
+        .sheet(isPresented: $showMoreSheet) {
+            MoreOverlaySheet()
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+        .onChange(of: selectedTab) { oldTab, tab in
+            let screens = ["home", "friends", "groups", "activity"]
             if tab < screens.count {
+                previousTab = oldTab
                 Task { await AnalyticsTracker.shared.trackScreen(screens[tab]) }
             }
         }
@@ -77,7 +81,29 @@ struct MainTabView: View {
             tabButton(activeIcon: "person.2.fill", inactiveIcon: "person.2", label: "Friends", tag: 1)
             tabButton(activeIcon: "person.3.fill", inactiveIcon: "person.3", label: "Groups", tag: 2)
             tabButton(activeIcon: "arrow.triangle.branch", inactiveIcon: "arrow.triangle.branch", label: "Activity", tag: 3)
-            tabButton(activeIcon: "ellipsis", inactiveIcon: "ellipsis", label: "More", tag: 4)
+
+            // More button — opens sheet overlay
+            Button {
+                showMoreSheet = true
+            } label: {
+                VStack(spacing: 4) {
+                    ZStack {
+                        if showMoreSheet {
+                            Circle()
+                                .fill(SplitEZTheme.primary)
+                                .frame(width: 36, height: 36)
+                        }
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 18))
+                            .foregroundColor(showMoreSheet ? .white : SplitEZTheme.textTertiary)
+                    }
+                    .frame(height: 36)
+                    Text("More")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(showMoreSheet ? SplitEZTheme.primary : SplitEZTheme.textTertiary)
+                }
+                .frame(maxWidth: .infinity)
+            }
         }
         .padding(.horizontal, 8)
         .padding(.top, 8)
@@ -1320,89 +1346,147 @@ struct ActivityRow: View {
 
 // MARK: - More Tab
 
-struct MoreTabView: View {
+struct MoreOverlaySheet: View {
+    @Environment(\.dismiss) var dismiss
+
+    private let navItems: [(icon: String, label: String, number: Int)] = [
+        ("house", "Home", 1),
+        ("person.2", "Friends", 2),
+        ("person.3", "Groups", 3),
+        ("arrow.triangle.branch", "Activity", 4),
+    ]
+
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .top) {
-                VStack(spacing: 0) {
-                    SplitEZTheme.darkBg.frame(height: 120)
-                    Color(.systemBackground)
-                }
-                .ignoresSafeArea()
-
-                ScrollView {
-                    VStack(spacing: 0) {
-                        // Header
-                        HStack {
-                            Text("More")
-                                .font(.system(size: 28, weight: .bold))
-                                .foregroundColor(.white)
-                            Spacer()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    // Title + close
+                    HStack {
+                        Text("More")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(SplitEZTheme.textPrimary)
+                        Spacer()
+                        Button { dismiss() } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(SplitEZTheme.textTertiary)
+                                .frame(width: 28, height: 28)
+                                .background(Circle().fill(Color(.systemGray5)))
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 8)
-                        .padding(.bottom, 24)
-                        .background(SplitEZTheme.darkBg)
-
-                        // Menu items
-                        VStack(spacing: 0) {
-                            moreSection(title: "Manage") {
-                                moreRow(icon: "rectangle.3.group", iconColor: SplitEZTheme.primary, label: "Groups", destination: AnyView(GroupsListView()))
-                                moreRow(icon: "paperplane", iconColor: Color.orange, label: "Trips", destination: AnyView(TripsListView()))
-                                moreRow(icon: "creditcard", iconColor: Color.teal, label: "Expenses", destination: AnyView(CreateExpenseView(groupId: nil, tripId: nil, members: [], onCreated: {})))
-                            }
-
-                            moreSection(title: "Finances") {
-                                moreRow(icon: "chart.pie", iconColor: SplitEZTheme.positive, label: "Finances", destination: AnyView(FinancesView()))
-                                moreRow(icon: "square.and.arrow.up", iconColor: Color.blue, label: "Export", destination: AnyView(ExportView()))
-                                moreRow(icon: "square.and.arrow.down", iconColor: Color.purple, label: "Import", destination: AnyView(ImportView()))
-                            }
-
-                            moreSection(title: "Account") {
-                                moreRow(icon: "bell", iconColor: SplitEZTheme.negative, label: "Notifications", destination: AnyView(NotificationsListView()))
-                                moreRow(icon: "gearshape", iconColor: SplitEZTheme.muted, label: "Settings", destination: AnyView(SettingsView()))
-                            }
-
-                            Spacer().frame(height: 80)
-                        }
-                        .background(
-                            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .fill(Color(.systemBackground))
-                        )
-                        .offset(y: -16)
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 16)
+
+                    // NAV BAR section
+                    Text("NAV BAR · DRAG TO REORDER")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundColor(SplitEZTheme.textTertiary)
+                        .tracking(0.5)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 8)
+
+                    VStack(spacing: 0) {
+                        ForEach(Array(navItems.enumerated()), id: \.element.number) { index, item in
+                            if index > 0 {
+                                Divider().padding(.leading, 60)
+                            }
+                            HStack(spacing: 14) {
+                                Image(systemName: "line.3.horizontal")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+
+                                Image(systemName: item.icon)
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(SplitEZTheme.primary)
+                                    .frame(width: 36, height: 36)
+                                    .background(
+                                        Circle().fill(SplitEZTheme.primary.opacity(0.1))
+                                    )
+
+                                Text(item.label)
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundColor(SplitEZTheme.textPrimary)
+
+                                Spacer()
+
+                                Text("\(item.number)")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundColor(SplitEZTheme.primary)
+                                    .frame(width: 26, height: 26)
+                                    .background(
+                                        Circle()
+                                            .stroke(SplitEZTheme.primary, lineWidth: 1.2)
+                                    )
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                        }
+                    }
+
+                    // ALL MENUS section
+                    Text("ALL MENUS")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundColor(SplitEZTheme.textTertiary)
+                        .tracking(0.5)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 24)
+                        .padding(.bottom, 8)
+
+                    VStack(spacing: 0) {
+                        menuRow(icon: "gearshape", label: "Settings", trailing: .chevron) {
+                            SettingsView()
+                        }
+                        Divider().padding(.leading, 60)
+                        menuRow(icon: "bell", label: "Notifications", trailing: .badge(3)) {
+                            NotificationsListView()
+                        }
+                        Divider().padding(.leading, 60)
+                        menuRow(icon: "pencil", label: "Edit profile", trailing: .chevron) {
+                            EditProfileView()
+                        }
+                        Divider().padding(.leading, 60)
+                        menuRow(icon: "moon", label: "Appearance", trailing: .text("System")) {
+                            AppearanceSettingsView()
+                        }
+                        Divider().padding(.leading, 60)
+                        menuRow(icon: "globe", label: "Currency & language", trailing: .text("INR · EN")) {
+                            CurrencyLanguageView()
+                        }
+                        Divider().padding(.leading, 60)
+                        menuRow(icon: "paperplane", label: "Trips", trailing: .chevron) {
+                            TripsListView()
+                        }
+                        Divider().padding(.leading, 60)
+                        menuRow(icon: "chart.pie", label: "Finances", trailing: .chevron) {
+                            FinancesView()
+                        }
+                        Divider().padding(.leading, 60)
+                        menuRow(icon: "square.and.arrow.up", label: "Export", trailing: .chevron) {
+                            ExportView()
+                        }
+                    }
+
+                    Spacer().frame(height: 40)
                 }
             }
             .navigationBarHidden(true)
-            .toolbarBackground(.hidden, for: .navigationBar)
         }
     }
 
-    private func moreSection(title: String, @ViewBuilder content: () -> some View) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .foregroundColor(SplitEZTheme.textTertiary)
-                .textCase(.uppercase)
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
-                .padding(.bottom, 8)
-
-            content()
-        }
+    private enum TrailingContent {
+        case chevron
+        case badge(Int)
+        case text(String)
     }
 
-    private func moreRow(icon: String, iconColor: Color, label: String, destination: AnyView) -> some View {
-        NavigationLink(destination: destination) {
+    private func menuRow<Destination: View>(icon: String, label: String, trailing: TrailingContent, @ViewBuilder destination: () -> Destination) -> some View {
+        NavigationLink(destination: destination()) {
             HStack(spacing: 14) {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(iconColor.opacity(0.12))
-                    .frame(width: 36, height: 36)
-                    .overlay(
-                        Image(systemName: icon)
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(iconColor)
-                    )
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(SplitEZTheme.textSecondary)
+                    .frame(width: 28)
 
                 Text(label)
                     .font(.subheadline.weight(.medium))
@@ -1410,12 +1494,25 @@ struct MoreTabView: View {
 
                 Spacer()
 
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(SplitEZTheme.textTertiary)
+                switch trailing {
+                case .chevron:
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(SplitEZTheme.textTertiary)
+                case .badge(let count):
+                    Text("\(count)")
+                        .font(.caption2.weight(.bold))
+                        .foregroundColor(.white)
+                        .frame(width: 22, height: 22)
+                        .background(Circle().fill(SplitEZTheme.negative))
+                case .text(let value):
+                    Text(value)
+                        .font(.caption.weight(.medium))
+                        .foregroundColor(SplitEZTheme.textTertiary)
+                }
             }
             .padding(.horizontal, 20)
-            .padding(.vertical, 10)
+            .padding(.vertical, 14)
         }
         .buttonStyle(.plain)
     }
