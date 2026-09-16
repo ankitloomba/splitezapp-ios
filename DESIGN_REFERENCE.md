@@ -108,7 +108,59 @@
 - Amounts: green for incoming (+ ₹450), red for outgoing (– ₹800)
 - Dividers between rows within same day group (indented past icon)
 
-## Screen: 11 · PROFILE & PREFERENCES
+## Screen: 17/18 · SETTINGS (FREE / AD-FREE USER)
+
+### Header (dark navy #10142A)
+- Back chevron left, "Account" centered title (white)
+- Avatar (56pt) with dashed indigo border circle (68pt), initial letter, QR badge (bottom-left, indigo circle)
+- Name bold white, email muted below
+- Edit (pencil) icon on right side
+
+### Upgrade Banner (indigo gradient, rounded 16pt)
+- FREE: "Get SplitEZ Ad Free", "No ads · priority support · exports", orange "₹99/mo" capsule
+- AD-FREE: green checkmark, "SplitEZ Ad Free", "Renews on 15 Oct 2026", translucent "Manage" capsule
+
+### Content Area (white, rounded top corners)
+- PREFERENCES section (muted uppercase):
+  - Notifications → NotificationSettingsView
+  - Security → SecuritySettingsView
+  - Appearance → AppearanceSettingsView
+  - Currency & language: value "INR · EN" + chevron
+- HELP & SUPPORT section (muted uppercase):
+  - Contact us: envelope icon + chevron
+  - Rate SplitEZ: chevron
+- "Log out" red outlined full-width button (24pt rounded)
+- Footer: Adrevo logo + "An Adrevo Product" + "© 2026 SplitEZ · 1.0.0"
+
+## Screen: 19 · NOTIFICATIONS
+
+### Header: dark nav bar with "Notifications" centered title
+### Content (white, rounded top corners):
+- Push notifications: subtitle "Reminders, settlements & activity", indigo toggle
+- Email notifications: subtitle "Weekly summary & receipts", indigo toggle
+- NOTIFY ME ABOUT section (muted uppercase):
+  - New expenses added: toggle ON
+  - Payment received: toggle ON
+  - Friend requests: toggle ON
+  - Reminders sent to you: toggle ON
+  - Group updates: toggle OFF
+  - Promotional offers: toggle OFF
+
+## Screen: 20 · SECURITY
+
+### Header: dark nav bar with "Security" centered title
+### Content (white, rounded top corners):
+- Change password: lock icon, "Last changed 3 months ago" subtitle, chevron
+- Biometric login: shield icon, "Face ID / fingerprint" subtitle, indigo toggle
+- App lock: rectangle icon, "Require PIN on every open" subtitle, toggle OFF
+- SESSIONS section (muted uppercase):
+  - Current device: iPhone icon, "iPhone 15 Pro", "Active now · this device" green, green dot
+  - Other session: desktop icon, "Chrome · Windows", "Last active 2 days ago", red "Revoke" text
+  - "Log out all other devices" red outlined button
+- ACCOUNT section (muted uppercase):
+  - Delete account: trash icon, green text (destructive), chevron
+
+## Screen: 11 · PROFILE & PREFERENCES (Legacy)
 
 ### Header (dark navy #10142A)
 - Back chevron left, "Edit" text link right (white)

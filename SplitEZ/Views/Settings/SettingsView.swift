@@ -2,95 +2,103 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var auth: AuthService
+    @State private var isPlusUser = false
 
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
                 VStack(spacing: 0) {
-                    SplitEZTheme.darkBg.frame(height: 260)
+                    SplitEZTheme.darkBg.frame(height: 280)
                     Color(.systemBackground)
                 }
                 .ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 0) {
-                        // Dark header
                         settingsHeader
 
-                        // White content card
                         VStack(spacing: 0) {
-                            // Upgrade banner
-                            upgradeBanner
-                                .padding(.horizontal, 20)
-                                .padding(.top, 20)
-                                .padding(.bottom, 8)
-
                             // Preferences
                             sectionLabel("PREFERENCES")
 
-                            settingsRowWithIconAndToggle(
-                                icon: "moon",
-                                label: "Dark mode",
-                                subtitle: "Follow system · On · Off"
-                            )
-                            rowDivider
-
-                            settingsRowWithIconAndValue(
-                                icon: "questionmark.circle",
-                                label: "Default currency",
-                                value: "\(auth.currentUser?.currency ?? "INR") ₹"
-                            ) {
-                                Text("Currency settings coming soon")
-                                    .navigationTitle("Default currency")
+                            settingsRow(label: "Notifications") {
+                                NotificationSettingsView()
                             }
                             rowDivider
-
-                            settingsRowWithIcon(icon: "bell", label: "Notifications") {
-                                NotificationsListView()
+                            settingsRow(label: "Security") {
+                                SecuritySettingsView()
                             }
                             rowDivider
-
-                            settingsRowWithIconAndValue(
-                                icon: "globe",
-                                label: "Language",
-                                value: "English"
-                            ) {
-                                Text("Language settings coming soon")
-                                    .navigationTitle("Language")
-                            }
-
-                            // Account
-                            sectionLabel("ACCOUNT")
-
-                            settingsRow(label: "Payment methods · UPI") {
-                                Text("Payment methods coming soon")
-                                    .navigationTitle("Payment methods")
+                            settingsRow(label: "Appearance") {
+                                AppearanceSettingsView()
                             }
                             rowDivider
-
-                            settingsRow(label: "Export all data") {
-                                ExportView()
+                            settingsRowWithValue(label: "Currency & language", value: "\(auth.currentUser?.currency ?? "INR") · EN") {
+                                CurrencyLanguageView()
                             }
+
+                            // Help & Support
+                            sectionLabel("HELP & SUPPORT")
+
+                            HStack(spacing: 12) {
+                                Image(systemName: "envelope")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(SplitEZTheme.textSecondary)
+                                Text("Contact us")
+                                    .font(.subheadline)
+                                    .foregroundColor(SplitEZTheme.textPrimary)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
                             rowDivider
 
-                            // Log out
+                            settingsRow(label: "Rate SplitEZ") {
+                                Text("Rate SplitEZ coming soon").navigationTitle("Rate SplitEZ")
+                            }
+
+                            // Log out button
                             Button {
                                 Task { await auth.logout() }
                             } label: {
                                 Text("Log out")
-                                    .font(.subheadline)
+                                    .font(.subheadline.weight(.semibold))
                                     .foregroundColor(SplitEZTheme.negative)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal, 20)
+                                    .frame(maxWidth: .infinity)
                                     .padding(.vertical, 14)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                            .stroke(SplitEZTheme.negative, lineWidth: 1)
+                                    )
                             }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 24)
 
                             // Footer
-                            Text("SplitEZ 2.4.0 · Made in India")
-                                .font(.caption)
-                                .foregroundColor(SplitEZTheme.textTertiary)
-                                .padding(.top, 32)
-                                .padding(.bottom, 8)
+                            VStack(spacing: 4) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "square.fill")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(SplitEZTheme.primary)
+                                    Text("An ")
+                                        .font(.caption)
+                                        .foregroundColor(SplitEZTheme.textTertiary)
+                                    + Text("Adrevo")
+                                        .font(.caption.weight(.medium))
+                                        .foregroundColor(SplitEZTheme.primary)
+                                    + Text(" Product")
+                                        .font(.caption)
+                                        .foregroundColor(SplitEZTheme.textTertiary)
+                                }
+                                Text("© 2026 SplitEZ · 1.0.0")
+                                    .font(.caption2)
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                            .padding(.top, 24)
+                            .padding(.bottom, 8)
 
                             Spacer().frame(height: 80)
                         }
@@ -107,11 +115,11 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: – Header
+    // MARK: - Header
 
     private var settingsHeader: some View {
-        VStack(spacing: 12) {
-            // Back + Edit
+        VStack(spacing: 16) {
+            // Nav bar
             HStack {
                 Button(action: {}) {
                     Image(systemName: "chevron.left")
@@ -119,71 +127,70 @@ struct SettingsView: View {
                         .foregroundColor(.white)
                 }
                 Spacer()
-                NavigationLink(destination: EditProfileView()) {
-                    Text("Edit")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundColor(.white)
-                }
+                Text("Account")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.white)
+                Spacer()
+                Color.clear.frame(width: 24)
             }
 
-            // User info
+            // Profile row
             if let user = auth.currentUser {
                 HStack(spacing: 14) {
-                    // Avatar with camera badge
+                    // Avatar with QR badge
                     ZStack(alignment: .bottomLeading) {
-                        if let avatar = user.avatar {
-                            Circle()
-                                .fill(Color(hex: avatar.backgroundColor))
-                                .frame(width: 72, height: 72)
-                                .overlay(
-                                    Text(avatar.initials)
-                                        .font(.title.bold())
-                                        .foregroundColor(.white)
-                                )
-                        } else {
-                            Circle()
-                                .fill(SplitEZTheme.primary)
-                                .frame(width: 72, height: 72)
-                                .overlay(
-                                    Text(user.firstName.prefix(1).uppercased())
-                                        .font(.title.bold())
-                                        .foregroundColor(.white)
-                                )
-                        }
+                        Circle()
+                            .stroke(
+                                SplitEZTheme.primary.opacity(0.3),
+                                style: StrokeStyle(lineWidth: 2, dash: [4, 3])
+                            )
+                            .frame(width: 68, height: 68)
+                            .overlay(
+                                Circle()
+                                    .fill(SplitEZTheme.primary)
+                                    .frame(width: 56, height: 56)
+                                    .overlay(
+                                        Text(user.firstName.prefix(1).uppercased())
+                                            .font(.title2.bold())
+                                            .foregroundColor(.white)
+                                    )
+                            )
 
-                        // Camera badge
-                        Image(systemName: "camera.fill")
+                        Image(systemName: "qrcode")
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(.white)
                             .padding(5)
-                            .background(Circle().fill(SplitEZTheme.darkBg).overlay(Circle().stroke(Color.white, lineWidth: 1.5)))
-                            .offset(x: 0, y: 4)
+                            .background(
+                                Circle()
+                                    .fill(SplitEZTheme.primary)
+                                    .overlay(Circle().stroke(SplitEZTheme.darkBg, lineWidth: 2))
+                            )
+                            .offset(x: 2, y: 2)
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(user.displayName)
                             .font(.title3.weight(.bold))
                             .foregroundColor(.white)
-                        HStack(spacing: 0) {
-                            if let email = user.email {
-                                Text(email)
-                                    .font(.caption)
-                                    .foregroundColor(SplitEZTheme.textTertiary)
-                            }
-                            if let phone = user.phone, !phone.isEmpty {
-                                Text(" · \(phone)")
-                                    .font(.caption)
-                                    .foregroundColor(SplitEZTheme.textTertiary)
-                            }
+                        if let email = user.email {
+                            Text(email)
+                                .font(.caption)
+                                .foregroundColor(Color.white.opacity(0.5))
                         }
-                        Text("Add profile photo")
-                            .font(.caption.weight(.medium))
-                            .foregroundColor(SplitEZTheme.primary)
                     }
 
                     Spacer()
+
+                    NavigationLink(destination: EditProfileView()) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                    }
                 }
             }
+
+            // Upgrade banner
+            upgradeBanner
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
@@ -191,42 +198,70 @@ struct SettingsView: View {
         .background(SplitEZTheme.darkBg)
     }
 
-    // MARK: – Upgrade Banner
+    // MARK: - Upgrade Banner
 
     private var upgradeBanner: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("SplitEZ Plus · ad-free")
-                    .font(.subheadline.weight(.semibold))
+            if isPlusUser {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(.white)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("SplitEZ Ad Free")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundColor(.white)
+                    Text("Renews on 15 Oct 2026")
+                        .font(.caption)
+                        .foregroundColor(Color.white.opacity(0.7))
+                }
+                Spacer()
+                Button("Manage") {}
+                    .font(.caption.weight(.semibold))
                     .foregroundColor(SplitEZTheme.textPrimary)
-                Text("7 days free, then ₹99/month")
-                    .font(.caption)
-                    .foregroundColor(SplitEZTheme.textSecondary)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule().fill(Color.white.opacity(0.3))
+                    )
+            } else {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Get SplitEZ Ad Free")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundColor(.white)
+                    Text("No ads · priority support · exports")
+                        .font(.caption)
+                        .foregroundColor(Color.white.opacity(0.7))
+                }
+                Spacer()
+                Button("₹99/mo") {}
+                    .font(.caption.weight(.bold))
+                    .foregroundColor(SplitEZTheme.textPrimary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(
+                        Capsule().fill(Color.orange)
+                    )
             }
-            Spacer()
-            Button("Start trial") {}
-                .font(.caption.weight(.bold))
-                .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(
-                    Capsule()
-                        .fill(SplitEZTheme.darkBg)
-                )
         }
         .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(SplitEZTheme.textTertiary.opacity(0.3), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [SplitEZTheme.primary.opacity(0.8), SplitEZTheme.primary.opacity(0.5)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
         )
     }
 
-    // MARK: – Helpers
+    // MARK: - Helpers
 
     private func sectionLabel(_ title: String) -> some View {
         Text(title)
             .font(.caption.weight(.semibold))
-            .foregroundColor(SplitEZTheme.primary)
+            .foregroundColor(SplitEZTheme.textTertiary)
             .tracking(0.5)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 20)
@@ -251,44 +286,20 @@ struct SettingsView: View {
         .buttonStyle(.plain)
     }
 
-    private func settingsRowWithIcon<D: View>(icon: String, label: String, @ViewBuilder destination: () -> D) -> some View {
+    private func settingsRowWithValue<D: View>(label: String, value: String, @ViewBuilder destination: () -> D) -> some View {
         NavigationLink(destination: destination()) {
-            HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(SplitEZTheme.textSecondary)
-                    .frame(width: 24)
-                Text(label)
-                    .font(.subheadline)
-                    .foregroundColor(SplitEZTheme.textPrimary)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(SplitEZTheme.textTertiary)
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func settingsRowWithIconAndValue<D: View>(icon: String, label: String, value: String, @ViewBuilder destination: () -> D) -> some View {
-        NavigationLink(destination: destination()) {
-            HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(SplitEZTheme.textSecondary)
-                    .frame(width: 24)
+            HStack {
                 Text(label)
                     .font(.subheadline)
                     .foregroundColor(SplitEZTheme.textPrimary)
                 Spacer()
                 Text(value)
                     .font(.subheadline)
-                    .foregroundColor(SplitEZTheme.primary)
+                    .foregroundColor(SplitEZTheme.textTertiary)
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(SplitEZTheme.textTertiary)
+                    .padding(.leading, 2)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
@@ -296,35 +307,349 @@ struct SettingsView: View {
         .buttonStyle(.plain)
     }
 
-    @State private var darkModeOn = true
+    private var rowDivider: some View {
+        Divider().padding(.leading, 20)
+    }
+}
 
-    private func settingsRowWithIconAndToggle(icon: String, label: String, subtitle: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 16))
-                .foregroundColor(SplitEZTheme.textSecondary)
-                .frame(width: 24)
+// MARK: - Notification Settings (Screen 19)
+
+struct NotificationSettingsView: View {
+    @State private var pushEnabled = true
+    @State private var emailEnabled = true
+    @State private var newExpenses = true
+    @State private var paymentReceived = true
+    @State private var friendRequests = true
+    @State private var reminders = true
+    @State private var groupUpdates = false
+    @State private var promotions = false
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 100)
+                Color(.systemBackground)
+            }
+            .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Header handled by NavigationStack title
+                    Spacer().frame(height: 8)
+
+                    VStack(spacing: 0) {
+                        toggleRow(label: "Push notifications", subtitle: "Reminders, settlements & activity", isOn: $pushEnabled)
+                        rowDivider
+                        toggleRow(label: "Email notifications", subtitle: "Weekly summary & receipts", isOn: $emailEnabled)
+
+                        sectionLabel("NOTIFY ME ABOUT")
+
+                        toggleRow(label: "New expenses added", isOn: $newExpenses)
+                        rowDivider
+                        toggleRow(label: "Payment received", isOn: $paymentReceived)
+                        rowDivider
+                        toggleRow(label: "Friend requests", isOn: $friendRequests)
+                        rowDivider
+                        toggleRow(label: "Reminders sent to you", isOn: $reminders)
+                        rowDivider
+                        toggleRow(label: "Group updates", isOn: $groupUpdates)
+                        rowDivider
+                        toggleRow(label: "Promotional offers", isOn: $promotions)
+
+                        Spacer().frame(height: 40)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color(.systemBackground))
+                    )
+                }
+            }
+        }
+        .navigationTitle("Notifications")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+
+    private func toggleRow(label: String, subtitle: String? = nil, isOn: Binding<Bool>) -> some View {
+        HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
-                    .font(.subheadline)
+                    .font(.subheadline.weight(.medium))
                     .foregroundColor(SplitEZTheme.textPrimary)
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundColor(SplitEZTheme.textTertiary)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundColor(SplitEZTheme.textTertiary)
+                }
             }
             Spacer()
-            Toggle("", isOn: $darkModeOn)
+            Toggle("", isOn: isOn)
                 .labelsHidden()
                 .tint(SplitEZTheme.primary)
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 10)
+        .padding(.vertical, 12)
+    }
+
+    private func sectionLabel(_ title: String) -> some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundColor(SplitEZTheme.textTertiary)
+            .tracking(0.5)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20)
+            .padding(.top, 24)
+            .padding(.bottom, 8)
+    }
+
+    private var rowDivider: some View {
+        Divider().padding(.leading, 20)
+    }
+}
+
+// MARK: - Security Settings (Screen 20)
+
+struct SecuritySettingsView: View {
+    @State private var biometricEnabled = true
+    @State private var appLockEnabled = false
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 100)
+                Color(.systemBackground)
+            }
+            .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    Spacer().frame(height: 8)
+
+                    VStack(spacing: 0) {
+                        // Change password
+                        NavigationLink(destination: Text("Change password coming soon").navigationTitle("Change Password")) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "lock")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(SplitEZTheme.textSecondary)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Change password")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundColor(SplitEZTheme.textPrimary)
+                                    Text("Last changed 3 months ago")
+                                        .font(.caption)
+                                        .foregroundColor(SplitEZTheme.textTertiary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
+                        }
+                        .buttonStyle(.plain)
+                        rowDivider
+
+                        // Biometric login
+                        HStack(spacing: 12) {
+                            Image(systemName: "shield")
+                                .font(.system(size: 16))
+                                .foregroundColor(SplitEZTheme.textSecondary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Biometric login")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundColor(SplitEZTheme.textPrimary)
+                                Text("Face ID / fingerprint")
+                                    .font(.caption)
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                            Spacer()
+                            Toggle("", isOn: $biometricEnabled)
+                                .labelsHidden()
+                                .tint(SplitEZTheme.primary)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        rowDivider
+
+                        // App lock
+                        HStack(spacing: 12) {
+                            Image(systemName: "rectangle.on.rectangle")
+                                .font(.system(size: 16))
+                                .foregroundColor(SplitEZTheme.textSecondary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("App lock")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundColor(SplitEZTheme.textPrimary)
+                                Text("Require PIN on every open")
+                                    .font(.caption)
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                            Spacer()
+                            Toggle("", isOn: $appLockEnabled)
+                                .labelsHidden()
+                                .tint(SplitEZTheme.primary)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+
+                        // Sessions
+                        sectionLabel("SESSIONS")
+
+                        // Current device
+                        HStack(spacing: 12) {
+                            Image(systemName: "iphone")
+                                .font(.system(size: 16))
+                                .foregroundColor(SplitEZTheme.textSecondary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("iPhone 15 Pro")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundColor(SplitEZTheme.textPrimary)
+                                Text("Active now · this device")
+                                    .font(.caption)
+                                    .foregroundColor(SplitEZTheme.positive)
+                            }
+                            Spacer()
+                            Circle()
+                                .fill(SplitEZTheme.positive)
+                                .frame(width: 8, height: 8)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        rowDivider
+
+                        // Other session
+                        HStack(spacing: 12) {
+                            Image(systemName: "desktopcomputer")
+                                .font(.system(size: 16))
+                                .foregroundColor(SplitEZTheme.textSecondary)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Chrome · Windows")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundColor(SplitEZTheme.textPrimary)
+                                Text("Last active 2 days ago")
+                                    .font(.caption)
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                            Spacer()
+                            Button("Revoke") {}
+                                .font(.caption.weight(.medium))
+                                .foregroundColor(SplitEZTheme.negative)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+
+                        // Log out all
+                        Button(action: {}) {
+                            Text("Log out all other devices")
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(SplitEZTheme.negative)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                        .stroke(SplitEZTheme.negative, lineWidth: 1)
+                                )
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+
+                        // Account section
+                        sectionLabel("ACCOUNT")
+
+                        NavigationLink(destination: Text("Delete account coming soon").navigationTitle("Delete Account")) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "trash")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(SplitEZTheme.positive)
+                                Text("Delete account")
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundColor(SplitEZTheme.positive)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
+                        }
+                        .buttonStyle(.plain)
+
+                        Spacer().frame(height: 40)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color(.systemBackground))
+                    )
+                }
+            }
+        }
+        .navigationTitle("Security")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+
+    private func sectionLabel(_ title: String) -> some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .foregroundColor(SplitEZTheme.textTertiary)
+            .tracking(0.5)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20)
+            .padding(.top, 24)
+            .padding(.bottom, 8)
     }
 
     private var rowDivider: some View {
         Divider().padding(.leading, 56)
     }
 }
+
+// MARK: - Appearance Settings
+
+struct AppearanceSettingsView: View {
+    @State private var darkModeOption = 0 // 0=system, 1=light, 2=dark
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Picker("Theme", selection: $darkModeOption) {
+                Text("System").tag(0)
+                Text("Light").tag(1)
+                Text("Dark").tag(2)
+            }
+            .pickerStyle(.segmented)
+            .padding(20)
+
+            Spacer()
+        }
+        .navigationTitle("Appearance")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Currency & Language
+
+struct CurrencyLanguageView: View {
+    var body: some View {
+        List {
+            Section("Currency") {
+                Text("INR ₹ (Indian Rupee)")
+            }
+            Section("Language") {
+                Text("English")
+            }
+        }
+        .navigationTitle("Currency & language")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+// MARK: - Edit Profile
 
 struct EditProfileView: View {
     @EnvironmentObject var auth: AuthService
