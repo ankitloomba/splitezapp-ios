@@ -669,11 +669,8 @@ struct AddExpenseSheet: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
-                // Dark header
-                Color.clear.frame(height: 0)
-                    .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
+                // Dark header – compact, fixed size
                 VStack(spacing: 8) {
-                    // Nav bar
                     HStack {
                         Button { dismiss() } label: {
                             Image(systemName: "xmark")
@@ -687,9 +684,7 @@ struct AddExpenseSheet: View {
                         Spacer()
                         Color.clear.frame(width: 24)
                     }
-                    .padding(.horizontal, 20)
 
-                    // Amount input
                     HStack(alignment: .center, spacing: 4) {
                         Text(currencySymbols[selectedCurrency] ?? "₹")
                             .font(.system(size: 22, weight: .medium))
@@ -717,11 +712,12 @@ struct AddExpenseSheet: View {
                             .background(Capsule().fill(Color.white.opacity(0.15)))
                         }
                     }
-                    .padding(.horizontal, 20)
                 }
+                .padding(.horizontal, 20)
                 .padding(.top, 8)
-                .padding(.bottom, 16)
-                .background(SplitEZTheme.darkBg)
+                .padding(.bottom, 32)
+                .frame(maxWidth: .infinity)
+                .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
 
                 // Content – white card with rounded top
                 ScrollView {
