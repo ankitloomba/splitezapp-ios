@@ -11,6 +11,7 @@
 		A100000002 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000002; };
 		A100000003 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000003; };
 		A100000004 /* AdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000004; };
+		A100000022 /* AppSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000022; };
 		A100000005 /* AnalyticsTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000005; };
 		A100000006 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000006; };
 		A100000007 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000007; };
@@ -35,6 +36,7 @@
 		B100000002 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		B100000003 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		B100000004 /* AdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdManager.swift; sourceTree = "<group>"; };
+		B100000022 /* AppSettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsManager.swift; sourceTree = "<group>"; };
 		B100000005 /* AnalyticsTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsTracker.swift; sourceTree = "<group>"; };
 		B100000006 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		B100000007 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
@@ -111,6 +113,7 @@
 				B100000006 /* AuthService.swift */,
 				B100000007 /* KeychainHelper.swift */,
 				B100000008 /* PushNotificationManager.swift */,
+				B100000022 /* AppSettingsManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -314,6 +317,7 @@
 				A100000006 /* AuthService.swift in Sources */,
 				A100000007 /* KeychainHelper.swift in Sources */,
 				A100000008 /* PushNotificationManager.swift in Sources */,
+				A100000022 /* AppSettingsManager.swift in Sources */,
 				A100000009 /* Theme.swift in Sources */,
 				A100000010 /* LoginView.swift in Sources */,
 				A100000011 /* ExpenseViews.swift in Sources */,

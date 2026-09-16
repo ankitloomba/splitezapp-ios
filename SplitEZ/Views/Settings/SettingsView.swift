@@ -1,4 +1,5 @@
 import SwiftUI
+import LocalAuthentication
 
 struct SettingsView: View {
     @EnvironmentObject var auth: AuthService
@@ -7,109 +8,105 @@ struct SettingsView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 280)
+                Color(.systemBackground)
+            }
+            .ignoresSafeArea()
+
+            ScrollView {
                 VStack(spacing: 0) {
-                    SplitEZTheme.darkBg.frame(height: 280)
-                    Color(.systemBackground)
-                }
-                .ignoresSafeArea()
+                    settingsHeader
 
-                ScrollView {
                     VStack(spacing: 0) {
-                        settingsHeader
+                        sectionLabel("PREFERENCES")
 
-                        VStack(spacing: 0) {
-                            // Preferences
-                            sectionLabel("PREFERENCES")
-
-                            settingsRow(label: "Notifications") {
-                                NotificationSettingsView()
-                            }
-                            rowDivider
-                            settingsRow(label: "Security") {
-                                SecuritySettingsView()
-                            }
-                            rowDivider
-                            settingsRow(label: "Appearance") {
-                                AppearanceSettingsView()
-                            }
-                            rowDivider
-                            settingsRowWithValue(label: "Currency & language", value: "\(auth.currentUser?.currency ?? "INR") · EN") {
-                                CurrencyLanguageView()
-                            }
-
-                            // Help & Support
-                            sectionLabel("HELP & SUPPORT")
-
-                            HStack(spacing: 12) {
-                                Image(systemName: "envelope")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(SplitEZTheme.textSecondary)
-                                Text("Contact us")
-                                    .font(.subheadline)
-                                    .foregroundColor(SplitEZTheme.textPrimary)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(SplitEZTheme.textTertiary)
-                            }
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 14)
-                            rowDivider
-
-                            settingsRow(label: "Rate SplitEZ") {
-                                Text("Rate SplitEZ coming soon").navigationTitle("Rate SplitEZ")
-                            }
-
-                            // Log out button
-                            Button {
-                                Task { await auth.logout() }
-                            } label: {
-                                Text("Log out")
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundColor(SplitEZTheme.negative)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 14)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                            .stroke(SplitEZTheme.negative, lineWidth: 1)
-                                    )
-                            }
-                            .padding(.horizontal, 20)
-                            .padding(.top, 24)
-
-                            // Footer
-                            VStack(spacing: 4) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "square.fill")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(SplitEZTheme.primary)
-                                    Text("An ")
-                                        .font(.caption)
-                                        .foregroundColor(SplitEZTheme.textTertiary)
-                                    + Text("Adrevo")
-                                        .font(.caption.weight(.medium))
-                                        .foregroundColor(SplitEZTheme.primary)
-                                    + Text(" Product")
-                                        .font(.caption)
-                                        .foregroundColor(SplitEZTheme.textTertiary)
-                                }
-                                Text("© 2026 SplitEZ · 1.0.0")
-                                    .font(.caption2)
-                                    .foregroundColor(SplitEZTheme.textTertiary)
-                            }
-                            .padding(.top, 24)
-                            .padding(.bottom, 8)
-
-                            Spacer().frame(height: 80)
+                        settingsRow(label: "Notifications") {
+                            NotificationSettingsView()
                         }
-                        .background(
-                            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .fill(Color(.systemBackground))
-                        )
-                        .offset(y: -16)
+                        rowDivider
+                        settingsRow(label: "Security") {
+                            SecuritySettingsView()
+                        }
+                        rowDivider
+                        settingsRow(label: "Appearance") {
+                            AppearanceSettingsView()
+                        }
+                        rowDivider
+                        settingsRowWithValue(label: "Currency & language", value: "\(auth.currentUser?.currency ?? "INR") · EN") {
+                            CurrencyLanguageView()
+                        }
+
+                        sectionLabel("HELP & SUPPORT")
+
+                        HStack(spacing: 12) {
+                            Image(systemName: "envelope")
+                                .font(.system(size: 16))
+                                .foregroundColor(SplitEZTheme.textSecondary)
+                            Text("Contact us")
+                                .font(.subheadline)
+                                .foregroundColor(SplitEZTheme.textPrimary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(SplitEZTheme.textTertiary)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
+                        rowDivider
+
+                        settingsRow(label: "Rate SplitEZ") {
+                            Text("Rate SplitEZ coming soon").navigationTitle("Rate SplitEZ")
+                        }
+
+                        Button {
+                            Task { await auth.logout() }
+                        } label: {
+                            Text("Log out")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundColor(SplitEZTheme.negative)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                        .stroke(SplitEZTheme.negative, lineWidth: 1)
+                                )
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 24)
+
+                        VStack(spacing: 4) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "square.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(SplitEZTheme.primary)
+                                Text("An ")
+                                    .font(.caption)
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                                + Text("Adrevo")
+                                    .font(.caption.weight(.medium))
+                                    .foregroundColor(SplitEZTheme.primary)
+                                + Text(" Product")
+                                    .font(.caption)
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                            Text("© 2026 SplitEZ · 1.0.0")
+                                .font(.caption2)
+                                .foregroundColor(SplitEZTheme.textTertiary)
+                        }
+                        .padding(.top, 24)
+                        .padding(.bottom, 8)
+
+                        Spacer().frame(height: 80)
                     }
+                    .background(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color(.systemBackground))
+                    )
+                    .offset(y: -16)
                 }
             }
+        }
         .navigationBarHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
     }
@@ -118,7 +115,6 @@ struct SettingsView: View {
 
     private var settingsHeader: some View {
         VStack(spacing: 16) {
-            // Nav bar
             HStack {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
@@ -133,10 +129,8 @@ struct SettingsView: View {
                 Color.clear.frame(width: 24)
             }
 
-            // Profile row
             if let user = auth.currentUser {
                 HStack(spacing: 14) {
-                    // Avatar with QR badge
                     ZStack(alignment: .bottomLeading) {
                         Circle()
                             .stroke(
@@ -188,7 +182,6 @@ struct SettingsView: View {
                 }
             }
 
-            // Upgrade banner
             upgradeBanner
         }
         .padding(.horizontal, 20)
@@ -314,14 +307,8 @@ struct SettingsView: View {
 // MARK: - Notification Settings (Screen 19)
 
 struct NotificationSettingsView: View {
-    @State private var pushEnabled = true
-    @State private var emailEnabled = true
-    @State private var newExpenses = true
-    @State private var paymentReceived = true
-    @State private var friendRequests = true
-    @State private var reminders = true
-    @State private var groupUpdates = false
-    @State private var promotions = false
+    @ObservedObject private var settings = AppSettingsManager.shared
+    @State private var showSystemSettings = false
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -333,27 +320,33 @@ struct NotificationSettingsView: View {
 
             ScrollView {
                 VStack(spacing: 0) {
-                    // Header handled by NavigationStack title
                     Spacer().frame(height: 8)
 
                     VStack(spacing: 0) {
-                        toggleRow(label: "Push notifications", subtitle: "Reminders, settlements & activity", isOn: $pushEnabled)
+                        toggleRow(label: "Push notifications", subtitle: "Reminders, settlements & activity", isOn: $settings.pushEnabled) {
+                            if settings.pushEnabled {
+                                PushNotificationManager.shared.requestPermission()
+                            }
+                            syncPreferences()
+                        }
                         rowDivider
-                        toggleRow(label: "Email notifications", subtitle: "Weekly summary & receipts", isOn: $emailEnabled)
+                        toggleRow(label: "Email notifications", subtitle: "Weekly summary & receipts", isOn: $settings.emailEnabled) {
+                            syncPreferences()
+                        }
 
                         sectionLabel("NOTIFY ME ABOUT")
 
-                        toggleRow(label: "New expenses added", isOn: $newExpenses)
+                        toggleRow(label: "New expenses added", isOn: $settings.newExpenses) { syncPreferences() }
                         rowDivider
-                        toggleRow(label: "Payment received", isOn: $paymentReceived)
+                        toggleRow(label: "Payment received", isOn: $settings.paymentReceived) { syncPreferences() }
                         rowDivider
-                        toggleRow(label: "Friend requests", isOn: $friendRequests)
+                        toggleRow(label: "Friend requests", isOn: $settings.friendRequests) { syncPreferences() }
                         rowDivider
-                        toggleRow(label: "Reminders sent to you", isOn: $reminders)
+                        toggleRow(label: "Reminders sent to you", isOn: $settings.reminders) { syncPreferences() }
                         rowDivider
-                        toggleRow(label: "Group updates", isOn: $groupUpdates)
+                        toggleRow(label: "Group updates", isOn: $settings.groupUpdates) { syncPreferences() }
                         rowDivider
-                        toggleRow(label: "Promotional offers", isOn: $promotions)
+                        toggleRow(label: "Promotional offers", isOn: $settings.promotions) { syncPreferences() }
 
                         Spacer().frame(height: 40)
                     }
@@ -371,7 +364,11 @@ struct NotificationSettingsView: View {
         .toolbarColorScheme(.dark, for: .navigationBar)
     }
 
-    private func toggleRow(label: String, subtitle: String? = nil, isOn: Binding<Bool>) -> some View {
+    private func syncPreferences() {
+        Task { await settings.syncNotificationPreferences() }
+    }
+
+    private func toggleRow(label: String, subtitle: String? = nil, isOn: Binding<Bool>, onChange: @escaping () -> Void) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
@@ -387,6 +384,9 @@ struct NotificationSettingsView: View {
             Toggle("", isOn: isOn)
                 .labelsHidden()
                 .tint(SplitEZTheme.primary)
+                .onChange(of: isOn.wrappedValue) { _, _ in
+                    onChange()
+                }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
@@ -411,8 +411,14 @@ struct NotificationSettingsView: View {
 // MARK: - Security Settings (Screen 20)
 
 struct SecuritySettingsView: View {
-    @State private var biometricEnabled = true
-    @State private var appLockEnabled = false
+    @ObservedObject private var settings = AppSettingsManager.shared
+    @EnvironmentObject var auth: AuthService
+    @State private var showChangePassword = false
+    @State private var showDeleteConfirm = false
+    @State private var showRevokeConfirm = false
+    @State private var showLogoutAllConfirm = false
+    @State private var biometricError: String?
+    @State private var showBiometricAlert = false
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -428,7 +434,7 @@ struct SecuritySettingsView: View {
 
                     VStack(spacing: 0) {
                         // Change password
-                        NavigationLink(destination: Text("Change password coming soon").navigationTitle("Change Password")) {
+                        NavigationLink(destination: ChangePasswordView()) {
                             HStack(spacing: 12) {
                                 Image(systemName: "lock")
                                     .font(.system(size: 16))
@@ -461,14 +467,32 @@ struct SecuritySettingsView: View {
                                 Text("Biometric login")
                                     .font(.subheadline.weight(.medium))
                                     .foregroundColor(SplitEZTheme.textPrimary)
-                                Text("Face ID / fingerprint")
+                                Text(settings.biometricType == .none ? "Not available on this device" : settings.biometricLabel)
                                     .font(.caption)
                                     .foregroundColor(SplitEZTheme.textTertiary)
                             }
                             Spacer()
-                            Toggle("", isOn: $biometricEnabled)
-                                .labelsHidden()
-                                .tint(SplitEZTheme.primary)
+                            Toggle("", isOn: Binding(
+                                get: { settings.biometricEnabled },
+                                set: { newValue in
+                                    if newValue {
+                                        Task {
+                                            let success = await settings.authenticateBiometric()
+                                            if success {
+                                                settings.biometricEnabled = true
+                                            } else {
+                                                biometricError = "Authentication failed. Please try again."
+                                                showBiometricAlert = true
+                                            }
+                                        }
+                                    } else {
+                                        settings.biometricEnabled = false
+                                    }
+                                }
+                            ))
+                            .labelsHidden()
+                            .tint(SplitEZTheme.primary)
+                            .disabled(settings.biometricType == .none)
                         }
                         .padding(.horizontal, 20)
                         .padding(.vertical, 12)
@@ -488,7 +512,7 @@ struct SecuritySettingsView: View {
                                     .foregroundColor(SplitEZTheme.textTertiary)
                             }
                             Spacer()
-                            Toggle("", isOn: $appLockEnabled)
+                            Toggle("", isOn: $settings.appLockEnabled)
                                 .labelsHidden()
                                 .tint(SplitEZTheme.primary)
                         }
@@ -504,7 +528,7 @@ struct SecuritySettingsView: View {
                                 .font(.system(size: 16))
                                 .foregroundColor(SplitEZTheme.textSecondary)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("iPhone 15 Pro")
+                                Text(UIDevice.current.name)
                                     .font(.subheadline.weight(.medium))
                                     .foregroundColor(SplitEZTheme.textPrimary)
                                 Text("Active now · this device")
@@ -534,15 +558,19 @@ struct SecuritySettingsView: View {
                                     .foregroundColor(SplitEZTheme.textTertiary)
                             }
                             Spacer()
-                            Button("Revoke") {}
-                                .font(.caption.weight(.medium))
-                                .foregroundColor(SplitEZTheme.negative)
+                            Button("Revoke") {
+                                showRevokeConfirm = true
+                            }
+                            .font(.caption.weight(.medium))
+                            .foregroundColor(SplitEZTheme.negative)
                         }
                         .padding(.horizontal, 20)
                         .padding(.vertical, 12)
 
                         // Log out all
-                        Button(action: {}) {
+                        Button {
+                            showLogoutAllConfirm = true
+                        } label: {
                             Text("Log out all other devices")
                                 .font(.subheadline.weight(.medium))
                                 .foregroundColor(SplitEZTheme.negative)
@@ -559,14 +587,16 @@ struct SecuritySettingsView: View {
                         // Account section
                         sectionLabel("ACCOUNT")
 
-                        NavigationLink(destination: Text("Delete account coming soon").navigationTitle("Delete Account")) {
+                        Button {
+                            showDeleteConfirm = true
+                        } label: {
                             HStack(spacing: 12) {
                                 Image(systemName: "trash")
                                     .font(.system(size: 16))
-                                    .foregroundColor(SplitEZTheme.positive)
+                                    .foregroundColor(SplitEZTheme.negative)
                                 Text("Delete account")
                                     .font(.subheadline.weight(.medium))
-                                    .foregroundColor(SplitEZTheme.positive)
+                                    .foregroundColor(SplitEZTheme.negative)
                                 Spacer()
                                 Image(systemName: "chevron.right")
                                     .font(.system(size: 12, weight: .semibold))
@@ -591,6 +621,48 @@ struct SecuritySettingsView: View {
         .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .onAppear {
+            settings.checkBiometricAvailability()
+        }
+        .alert("Biometric Authentication", isPresented: $showBiometricAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(biometricError ?? "Authentication failed.")
+        }
+        .alert("Delete Account", isPresented: $showDeleteConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                Task {
+                    let api = APIClient.shared
+                    let _: AnyCodable? = try? await api.post("/users/me/delete")
+                    await auth.logout()
+                }
+            }
+        } message: {
+            Text("This will permanently delete your account and all data. This action cannot be undone.")
+        }
+        .alert("Revoke Session", isPresented: $showRevokeConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Revoke", role: .destructive) {
+                Task {
+                    let api = APIClient.shared
+                    let _: AnyCodable? = try? await api.post("/auth/sessions/revoke-all")
+                }
+            }
+        } message: {
+            Text("This will end the selected session. The device will need to log in again.")
+        }
+        .alert("Log Out All Devices", isPresented: $showLogoutAllConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Log Out All", role: .destructive) {
+                Task {
+                    let api = APIClient.shared
+                    let _: AnyCodable? = try? await api.post("/auth/sessions/revoke-all")
+                }
+            }
+        } message: {
+            Text("All other devices will be logged out. You'll stay logged in on this device.")
+        }
     }
 
     private func sectionLabel(_ title: String) -> some View {
@@ -609,22 +681,138 @@ struct SecuritySettingsView: View {
     }
 }
 
+// MARK: - Change Password
+
+struct ChangePasswordView: View {
+    @State private var currentPassword = ""
+    @State private var newPassword = ""
+    @State private var confirmPassword = ""
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+    @State private var showSuccess = false
+    @Environment(\.dismiss) var dismiss
+    private let api = APIClient.shared
+
+    private var isValid: Bool {
+        !currentPassword.isEmpty && newPassword.count >= 8 && newPassword == confirmPassword
+    }
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 100)
+                Color(.systemBackground)
+            }
+            .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    Spacer().frame(height: 8)
+
+                    VStack(spacing: 0) {
+                        VStack(alignment: .leading, spacing: 16) {
+                            passwordField("Current password", text: $currentPassword)
+                            passwordField("New password", text: $newPassword)
+                            passwordField("Confirm new password", text: $confirmPassword)
+
+                            if newPassword.count > 0 && newPassword.count < 8 {
+                                Text("Password must be at least 8 characters")
+                                    .font(.caption)
+                                    .foregroundColor(SplitEZTheme.negative)
+                            }
+
+                            if !confirmPassword.isEmpty && newPassword != confirmPassword {
+                                Text("Passwords do not match")
+                                    .font(.caption)
+                                    .foregroundColor(SplitEZTheme.negative)
+                            }
+
+                            if let error = errorMessage {
+                                Text(error)
+                                    .font(.caption)
+                                    .foregroundColor(SplitEZTheme.negative)
+                            }
+
+                            Button {
+                                Task {
+                                    isLoading = true
+                                    errorMessage = nil
+                                    do {
+                                        let _: AnyCodable = try await api.put("/users/me/password", body: ChangePasswordRequest(
+                                            currentPassword: currentPassword,
+                                            newPassword: newPassword
+                                        ))
+                                        showSuccess = true
+                                    } catch {
+                                        errorMessage = "Failed to change password. Check your current password."
+                                    }
+                                    isLoading = false
+                                }
+                            } label: {
+                                if isLoading {
+                                    ProgressView()
+                                        .tint(.white)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 14)
+                                } else {
+                                    Text("Update Password")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundColor(.white)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 14)
+                                }
+                            }
+                            .background(
+                                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                    .fill(isValid ? SplitEZTheme.primary : SplitEZTheme.primary.opacity(0.4))
+                            )
+                            .disabled(!isValid || isLoading)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 24)
+
+                        Spacer().frame(height: 40)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color(.systemBackground))
+                    )
+                }
+            }
+        }
+        .navigationTitle("Change Password")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .alert("Password Changed", isPresented: $showSuccess) {
+            Button("OK") { dismiss() }
+        } message: {
+            Text("Your password has been updated successfully.")
+        }
+    }
+
+    private func passwordField(_ placeholder: String, text: Binding<String>) -> some View {
+        SecureField(placeholder, text: text)
+            .textContentType(.password)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(.systemGray6))
+            )
+    }
+}
+
+private struct ChangePasswordRequest: Codable {
+    let currentPassword: String
+    let newPassword: String
+}
+
 // MARK: - Appearance Settings
 
 struct AppearanceSettingsView: View {
-    @State private var selectedTheme = 0 // 0=dark, 1=light, 2=system
-    @State private var selectedAccent = 0
-    @State private var compactList = false
-    @State private var showAvatars = true
-    @State private var animations = true
-
-    private let accentColors: [(Color, String)] = [
-        (Color(hex: "6366F1"), "Indigo"),
-        (Color(hex: "0D9488"), "Teal"),
-        (Color(hex: "DC2626"), "Red"),
-        (Color(hex: "F59E0B"), "Amber"),
-        (Color(hex: "16A34A"), "Green"),
-    ]
+    @ObservedObject private var settings = AppSettingsManager.shared
 
     private let themes: [(icon: String, label: String, iconColor: Color, bgColor: Color)] = [
         ("moon.fill", "Dark", .white, Color(hex: "10142A")),
@@ -650,7 +838,9 @@ struct AppearanceSettingsView: View {
                         HStack(spacing: 12) {
                             ForEach(Array(themes.enumerated()), id: \.offset) { index, theme in
                                 Button {
-                                    selectedTheme = index
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        settings.themeMode = index
+                                    }
                                 } label: {
                                     VStack(spacing: 10) {
                                         RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -663,9 +853,9 @@ struct AppearanceSettingsView: View {
                                             )
                                         Text(theme.label)
                                             .font(.caption.weight(.medium))
-                                            .foregroundColor(selectedTheme == index ? SplitEZTheme.primary : SplitEZTheme.textSecondary)
+                                            .foregroundColor(settings.themeMode == index ? SplitEZTheme.primary : SplitEZTheme.textSecondary)
                                         Circle()
-                                            .fill(selectedTheme == index ? SplitEZTheme.primary : Color.clear)
+                                            .fill(settings.themeMode == index ? SplitEZTheme.primary : Color.clear)
                                             .frame(width: 6, height: 6)
                                     }
                                     .frame(maxWidth: .infinity)
@@ -673,8 +863,8 @@ struct AppearanceSettingsView: View {
                                     .background(
                                         RoundedRectangle(cornerRadius: 16, style: .continuous)
                                             .stroke(
-                                                selectedTheme == index ? SplitEZTheme.primary : Color(.systemGray4),
-                                                lineWidth: selectedTheme == index ? 2 : 1
+                                                settings.themeMode == index ? SplitEZTheme.primary : Color(.systemGray4),
+                                                lineWidth: settings.themeMode == index ? 2 : 1
                                             )
                                     )
                                 }
@@ -687,18 +877,18 @@ struct AppearanceSettingsView: View {
                         sectionLabel("ACCENT COLOUR")
 
                         HStack(spacing: 16) {
-                            ForEach(Array(accentColors.enumerated()), id: \.offset) { index, accent in
+                            ForEach(Array(AppSettingsManager.accentOptions.enumerated()), id: \.offset) { index, accent in
                                 Button {
-                                    selectedAccent = index
+                                    settings.accentIndex = index
                                 } label: {
                                     Circle()
-                                        .fill(accent.0)
+                                        .fill(accent.color)
                                         .frame(width: 40, height: 40)
                                         .overlay(
                                             Image(systemName: "checkmark")
                                                 .font(.system(size: 14, weight: .bold))
                                                 .foregroundColor(.white)
-                                                .opacity(selectedAccent == index ? 1 : 0)
+                                                .opacity(settings.accentIndex == index ? 1 : 0)
                                         )
                                 }
                             }
@@ -709,11 +899,11 @@ struct AppearanceSettingsView: View {
 
                         sectionLabel("DISPLAY")
 
-                        toggleRow(label: "Compact list view", isOn: $compactList)
+                        toggleRow(label: "Compact list view", isOn: $settings.compactList)
                         Divider().padding(.leading, 20)
-                        toggleRow(label: "Show avatars in lists", isOn: $showAvatars)
+                        toggleRow(label: "Show avatars in lists", isOn: $settings.showAvatars)
                         Divider().padding(.leading, 20)
-                        toggleRow(label: "Animations", isOn: $animations)
+                        toggleRow(label: "Animations", isOn: $settings.animationsEnabled)
 
                         Spacer().frame(height: 40)
                     }
