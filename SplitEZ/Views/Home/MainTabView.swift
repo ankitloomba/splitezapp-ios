@@ -1349,172 +1349,222 @@ struct ActivityRow: View {
 struct MoreOverlaySheet: View {
     @Environment(\.dismiss) var dismiss
 
-    private let navItems: [(icon: String, label: String, number: Int)] = [
-        ("house", "Home", 1),
-        ("person.2", "Friends", 2),
-        ("person.3", "Groups", 3),
-        ("arrow.triangle.branch", "Activity", 4),
-    ]
-
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Title + close
-                    HStack {
-                        Text("More")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(SplitEZTheme.textPrimary)
-                        Spacer()
-                        Button { dismiss() } label: {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(SplitEZTheme.textTertiary)
-                                .frame(width: 28, height: 28)
-                                .background(Circle().fill(Color(.systemGray5)))
-                        }
+            VStack(alignment: .leading, spacing: 0) {
+                // Title + close
+                HStack {
+                    Text("More")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(SplitEZTheme.textPrimary)
+                    Spacer()
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(SplitEZTheme.textTertiary)
+                            .frame(width: 28, height: 28)
+                            .background(Circle().fill(Color(.systemGray5)))
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
-                    .padding(.bottom, 16)
-
-                    // NAV BAR section
-                    Text("NAV BAR · DRAG TO REORDER")
-                        .font(.caption2.weight(.semibold))
-                        .foregroundColor(SplitEZTheme.textTertiary)
-                        .tracking(0.5)
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 8)
-
-                    VStack(spacing: 0) {
-                        ForEach(Array(navItems.enumerated()), id: \.element.number) { index, item in
-                            if index > 0 {
-                                Divider().padding(.leading, 60)
-                            }
-                            HStack(spacing: 14) {
-                                Image(systemName: "line.3.horizontal")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(SplitEZTheme.textTertiary)
-
-                                Image(systemName: item.icon)
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(SplitEZTheme.primary)
-                                    .frame(width: 36, height: 36)
-                                    .background(
-                                        Circle().fill(SplitEZTheme.primary.opacity(0.1))
-                                    )
-
-                                Text(item.label)
-                                    .font(.subheadline.weight(.medium))
-                                    .foregroundColor(SplitEZTheme.textPrimary)
-
-                                Spacer()
-
-                                Text("\(item.number)")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundColor(SplitEZTheme.primary)
-                                    .frame(width: 26, height: 26)
-                                    .background(
-                                        Circle()
-                                            .stroke(SplitEZTheme.primary, lineWidth: 1.2)
-                                    )
-                            }
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 12)
-                        }
-                    }
-
-                    // ALL MENUS section
-                    Text("ALL MENUS")
-                        .font(.caption2.weight(.semibold))
-                        .foregroundColor(SplitEZTheme.textTertiary)
-                        .tracking(0.5)
-                        .padding(.horizontal, 20)
-                        .padding(.top, 24)
-                        .padding(.bottom, 8)
-
-                    VStack(spacing: 0) {
-                        menuRow(icon: "gearshape", label: "Settings", trailing: .chevron) {
-                            SettingsView()
-                        }
-                        Divider().padding(.leading, 60)
-                        menuRow(icon: "bell", label: "Notifications", trailing: .badge(3)) {
-                            NotificationsListView()
-                        }
-                        Divider().padding(.leading, 60)
-                        menuRow(icon: "pencil", label: "Edit profile", trailing: .chevron) {
-                            EditProfileView()
-                        }
-                        Divider().padding(.leading, 60)
-                        menuRow(icon: "moon", label: "Appearance", trailing: .text("System")) {
-                            AppearanceSettingsView()
-                        }
-                        Divider().padding(.leading, 60)
-                        menuRow(icon: "globe", label: "Currency & language", trailing: .text("INR · EN")) {
-                            CurrencyLanguageView()
-                        }
-                        Divider().padding(.leading, 60)
-                        menuRow(icon: "paperplane", label: "Trips", trailing: .chevron) {
-                            TripsListView()
-                        }
-                        Divider().padding(.leading, 60)
-                        menuRow(icon: "chart.pie", label: "Finances", trailing: .chevron) {
-                            FinancesView()
-                        }
-                        Divider().padding(.leading, 60)
-                        menuRow(icon: "square.and.arrow.up", label: "Export", trailing: .chevron) {
-                            ExportView()
-                        }
-                    }
-
-                    Spacer().frame(height: 40)
                 }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 20)
+
+                // Menu items
+                VStack(spacing: 0) {
+                    moreMenuRow(icon: "suitcase", iconColor: SplitEZTheme.primary, label: "Trips") {
+                        TripsListView()
+                    }
+                    Divider().padding(.leading, 72)
+                    moreMenuRow(icon: "person.crop.circle", iconColor: SplitEZTheme.primary, label: "Account") {
+                        EditProfileView()
+                    }
+                    Divider().padding(.leading, 72)
+                    moreMenuRow(icon: "gearshape", iconColor: SplitEZTheme.primary, label: "Settings") {
+                        SettingsView()
+                    }
+                    Divider().padding(.leading, 72)
+                    moreMenuRow(icon: "questionmark.circle", iconColor: SplitEZTheme.primary, label: "Help") {
+                        HelpView()
+                    }
+                    Divider().padding(.leading, 72)
+                    moreMenuRow(icon: "text.bubble", iconColor: SplitEZTheme.primary, label: "FAQ") {
+                        FAQView()
+                    }
+                }
+
+                Spacer()
             }
             .navigationBarHidden(true)
         }
     }
 
-    private enum TrailingContent {
-        case chevron
-        case badge(Int)
-        case text(String)
-    }
-
-    private func menuRow<Destination: View>(icon: String, label: String, trailing: TrailingContent, @ViewBuilder destination: () -> Destination) -> some View {
+    private func moreMenuRow<Destination: View>(icon: String, iconColor: Color, label: String, @ViewBuilder destination: () -> Destination) -> some View {
         NavigationLink(destination: destination()) {
             HStack(spacing: 14) {
                 Image(systemName: icon)
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(SplitEZTheme.textSecondary)
-                    .frame(width: 28)
+                    .foregroundColor(iconColor)
+                    .frame(width: 40, height: 40)
+                    .background(
+                        Circle().fill(iconColor.opacity(0.1))
+                    )
 
                 Text(label)
-                    .font(.subheadline.weight(.medium))
+                    .font(.body.weight(.medium))
                     .foregroundColor(SplitEZTheme.textPrimary)
 
                 Spacer()
 
-                switch trailing {
-                case .chevron:
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(SplitEZTheme.textTertiary)
-                case .badge(let count):
-                    Text("\(count)")
-                        .font(.caption2.weight(.bold))
-                        .foregroundColor(.white)
-                        .frame(width: 22, height: 22)
-                        .background(Circle().fill(SplitEZTheme.negative))
-                case .text(let value):
-                    Text(value)
-                        .font(.caption.weight(.medium))
-                        .foregroundColor(SplitEZTheme.textTertiary)
-                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(SplitEZTheme.textTertiary)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Help & FAQ placeholder views
+
+struct HelpView: View {
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 120)
+                Color(.systemBackground)
+            }
+            .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    HStack {
+                        Button { dismiss() } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        Text("Help")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.white)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 24)
+                    .background(SplitEZTheme.darkBg)
+
+                    VStack(spacing: 16) {
+                        helpRow(icon: "envelope", title: "Contact Support", subtitle: "Get help from our team")
+                        helpRow(icon: "shield", title: "Privacy Policy", subtitle: "How we handle your data")
+                        helpRow(icon: "doc.text", title: "Terms of Service", subtitle: "Usage terms and conditions")
+                        helpRow(icon: "info.circle", title: "About SplitEZ", subtitle: "Version 1.0.0")
+                    }
+                    .padding(20)
+                    .background(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color(.systemBackground))
+                    )
+                    .offset(y: -16)
+                }
+            }
+        }
+        .navigationBarHidden(true)
+    }
+
+    private func helpRow(icon: String, title: String, subtitle: String) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(SplitEZTheme.primary)
+                .frame(width: 36, height: 36)
+                .background(Circle().fill(SplitEZTheme.primary.opacity(0.1)))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(SplitEZTheme.textPrimary)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundColor(SplitEZTheme.textTertiary)
+            }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(SplitEZTheme.textTertiary)
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+struct FAQView: View {
+    @Environment(\.dismiss) var dismiss
+
+    private let faqs: [(q: String, a: String)] = [
+        ("How do I add an expense?", "Tap the + button on any screen to add a new expense. Enter the amount, description, and choose how to split it."),
+        ("How do I settle up?", "Go to a friend's ledger and tap 'Settle up'. You can record a payment via UPI, bank transfer, or cash."),
+        ("Can I split expenses unequally?", "Yes! When adding an expense, tap the split method to choose between equal, percentage, or exact amounts."),
+        ("How do I create a group?", "Go to the Groups tab and tap the + button. Add a name and invite your friends."),
+        ("Is my data secure?", "Yes, all data is encrypted in transit and at rest. We never share your financial data with third parties."),
+    ]
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 120)
+                Color(.systemBackground)
+            }
+            .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    HStack {
+                        Button { dismiss() } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        Text("FAQ")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.white)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 24)
+                    .background(SplitEZTheme.darkBg)
+
+                    VStack(spacing: 0) {
+                        ForEach(Array(faqs.enumerated()), id: \.offset) { index, faq in
+                            if index > 0 { Divider() }
+                            DisclosureGroup {
+                                Text(faq.a)
+                                    .font(.subheadline)
+                                    .foregroundColor(SplitEZTheme.textSecondary)
+                                    .padding(.top, 4)
+                                    .padding(.bottom, 8)
+                            } label: {
+                                Text(faq.q)
+                                    .font(.subheadline.weight(.medium))
+                                    .foregroundColor(SplitEZTheme.textPrimary)
+                            }
+                            .tint(SplitEZTheme.primary)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                        }
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color(.systemBackground))
+                    )
+                    .offset(y: -16)
+                }
+            }
+        }
+        .navigationBarHidden(true)
     }
 }
 
