@@ -67,6 +67,7 @@ class AppSettingsManager: ObservableObject {
         case .faceID: return "Face ID"
         case .touchID: return "Touch ID"
         case .opticID: return "Optic ID"
+        case .none: return "Biometric"
         @unknown default: return "Biometric"
         }
     }
