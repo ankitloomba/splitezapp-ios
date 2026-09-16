@@ -626,24 +626,515 @@ struct ActivityTabView: View {
     }
 }
 
-// MARK: - Add Expense Sheet (placeholder)
+// MARK: - Add Expense Sheet
 
 struct AddExpenseSheet: View {
     @Environment(\.dismiss) var dismiss
+    @State private var amountText = ""
+    @State private var description = ""
+    @State private var selectedCurrency = "INR"
+    @State private var selectedCategory: ExpenseCategory = .food
+    @State private var showCategoryPicker = false
+    @State private var splitMethod = "EQUAL"
+    @State private var note = ""
+    @State private var expenseDate = Date()
+    @State private var showDatePicker = false
+    @State private var showNotesField = false
+    @State private var isLoading = false
+    @State private var error: String?
+    @State private var paidByIndex = 0
+    @State private var showCurrencyPicker = false
+
+    private let api = APIClient.shared
+
+    private let currencies = ["INR", "USD", "EUR", "GBP"]
+    private let currencySymbols: [String: String] = ["INR": "₹", "USD": "$", "EUR": "€", "GBP": "£"]
+
+    private var sampleMembers: [(initial: String, name: String, color: Color)] {
+        [
+            ("SK", "You", SplitEZTheme.primary),
+            ("R", "Rahul", Color.purple),
+            ("A", "Anita", Color(hex: "6366F1")),
+            ("P", "Priya", Color(hex: "6366F1").opacity(0.6)),
+        ]
+    }
+
+    private var perPersonAmount: String {
+        guard let amount = Double(amountText), amount > 0 else { return "₹0" }
+        let share = amount / Double(sampleMembers.count)
+        return "\(currencySymbols[selectedCurrency] ?? "₹")\(Int(share).formatted())"
+    }
 
     var body: some View {
-        NavigationStack {
-            Text("Add Expense")
-                .font(.title2)
-                .foregroundColor(SplitEZTheme.textSecondary)
-                .navigationTitle("Add Expense")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") { dismiss() }
+        ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                // Dark header
+                VStack(spacing: 16) {
+                    // Nav bar
+                    HStack {
+                        Button { dismiss() } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.white)
+                        }
+                        Spacer()
+                        Text("New expense")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(.white)
+                        Spacer()
+                        Color.clear.frame(width: 24)
+                    }
+
+                    // Amount input
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text(currencySymbols[selectedCurrency] ?? "₹")
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundColor(Color.white.opacity(0.5))
+
+                        TextField("0", text: $amountText)
+                            .font(.system(size: 48, weight: .bold))
+                            .foregroundColor(.white)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+
+                        Button {
+                            showCurrencyPicker = true
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(selectedCurrency)
+                                    .font(.caption.weight(.semibold))
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 8, weight: .bold))
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(Color.white.opacity(0.15)))
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+                .padding(.bottom, 20)
+                .background(SplitEZTheme.darkBg)
+
+                // Content
+                ScrollView {
+                    VStack(spacing: 16) {
+                        // Category + Description
+                        HStack(spacing: 12) {
+                            Button { showCategoryPicker = true } label: {
+                                Image(systemName: selectedCategory.icon)
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundColor(selectedCategory.color)
+                                    .frame(width: 44, height: 44)
+                                    .background(selectedCategory.color.opacity(0.1))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            }
+
+                            TextField("Dinner at Olive Garden", text: $description)
+                                .font(.subheadline)
+                                .foregroundColor(SplitEZTheme.textPrimary)
+                                .onChange(of: description) { _, newValue in
+                                    let detected = ExpenseCategory.detect(from: newValue)
+                                    if detected != .other || selectedCategory == .other {
+                                        selectedCategory = detected
+                                    }
+                                }
+                        }
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .stroke(Color(.systemGray4), lineWidth: 1)
+                        )
+
+                        // Paid By + Split
+                        HStack(spacing: 16) {
+                            // Paid By
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("PAID BY")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                                    .tracking(0.5)
+
+                                Button(action: {}) {
+                                    HStack(spacing: 8) {
+                                        miniAvatar(initial: sampleMembers[paidByIndex].initial, color: sampleMembers[paidByIndex].color)
+                                        Text(sampleMembers[paidByIndex].name)
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundColor(SplitEZTheme.textPrimary)
+                                        Image(systemName: "chevron.down")
+                                            .font(.system(size: 10, weight: .semibold))
+                                            .foregroundColor(SplitEZTheme.textTertiary)
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 10)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .stroke(Color(.systemGray4), lineWidth: 1)
+                                    )
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                            // Split
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("SPLIT")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                                    .tracking(0.5)
+
+                                Button(action: {}) {
+                                    HStack(spacing: -6) {
+                                        ForEach(sampleMembers.prefix(2), id: \.name) { member in
+                                            miniAvatar(initial: member.initial, color: member.color)
+                                        }
+                                        if sampleMembers.count > 2 {
+                                            Text("+\(sampleMembers.count - 2)")
+                                                .font(.caption2.weight(.bold))
+                                                .foregroundColor(.white)
+                                                .frame(width: 24, height: 24)
+                                                .background(Circle().fill(SplitEZTheme.primary.opacity(0.5)))
+                                                .padding(.leading, 2)
+                                        }
+                                        Image(systemName: "chevron.down")
+                                            .font(.system(size: 10, weight: .semibold))
+                                            .foregroundColor(SplitEZTheme.textTertiary)
+                                            .padding(.leading, 8)
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 10)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .stroke(Color(.systemGray4), lineWidth: 1)
+                                    )
+                                }
+                            }
+                        }
+
+                        // Split method + Group
+                        HStack(spacing: 12) {
+                            Button {
+                                splitMethod = "EQUAL"
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Text("Equally")
+                                        .font(.subheadline.weight(.semibold))
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 10, weight: .bold))
+                                }
+                                .foregroundColor(splitMethod == "EQUAL" ? .white : SplitEZTheme.textPrimary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                        .fill(splitMethod == "EQUAL" ? SplitEZTheme.primary : Color.clear)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                        .stroke(splitMethod == "EQUAL" ? Color.clear : Color(.systemGray4), lineWidth: 1)
+                                )
+                            }
+
+                            Button(action: {}) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "person.2")
+                                        .font(.system(size: 14, weight: .medium))
+                                    Text("Group")
+                                        .font(.subheadline.weight(.medium))
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 10, weight: .bold))
+                                }
+                                .foregroundColor(SplitEZTheme.textPrimary)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                        .stroke(Color(.systemGray4), lineWidth: 1)
+                                )
+                            }
+                        }
+
+                        // Each person pays
+                        VStack(spacing: 0) {
+                            Text("EACH PERSON PAYS")
+                                .font(.caption2.weight(.semibold))
+                                .foregroundColor(SplitEZTheme.textTertiary)
+                                .tracking(0.5)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 16)
+                                .padding(.top, 16)
+                                .padding(.bottom, 12)
+
+                            ForEach(Array(sampleMembers.enumerated()), id: \.element.name) { index, member in
+                                if index > 0 {
+                                    Divider().padding(.leading, 52)
+                                }
+                                HStack(spacing: 10) {
+                                    miniAvatar(initial: member.initial, color: member.color)
+                                    Text(member.name)
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundColor(SplitEZTheme.textPrimary)
+                                    Spacer()
+                                    Text(perPersonAmount)
+                                        .font(.subheadline.weight(.bold))
+                                        .foregroundColor(SplitEZTheme.textPrimary)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                            }
+
+                            Spacer().frame(height: 8)
+                        }
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color(.systemGray6))
+                        )
+
+                        // Date, Notes, Receipt row
+                        HStack(spacing: 0) {
+                            Button {
+                                showDatePicker.toggle()
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "calendar")
+                                        .font(.system(size: 14))
+                                    Text(dateLabel)
+                                        .font(.subheadline)
+                                }
+                                .foregroundColor(SplitEZTheme.textSecondary)
+                            }
+
+                            Divider().frame(height: 20).padding(.horizontal, 16)
+
+                            Button {
+                                showNotesField.toggle()
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "doc.text")
+                                        .font(.system(size: 14))
+                                    Text("Notes")
+                                        .font(.subheadline)
+                                }
+                                .foregroundColor(SplitEZTheme.textSecondary)
+                            }
+
+                            Divider().frame(height: 20).padding(.horizontal, 16)
+
+                            Button(action: {}) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "camera")
+                                        .font(.system(size: 14))
+                                    Text("Receipt")
+                                        .font(.subheadline)
+                                }
+                                .foregroundColor(SplitEZTheme.textSecondary)
+                            }
+
+                            Spacer()
+                        }
+                        .padding(.top, 4)
+
+                        if showDatePicker {
+                            DatePicker("", selection: $expenseDate, displayedComponents: .date)
+                                .datePickerStyle(.graphical)
+                                .tint(SplitEZTheme.primary)
+                        }
+
+                        if showNotesField {
+                            TextField("Add a note...", text: $note, axis: .vertical)
+                                .font(.subheadline)
+                                .lineLimit(3...6)
+                                .padding(12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(Color(.systemGray6))
+                                )
+                        }
+
+                        if let error {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundColor(SplitEZTheme.negative)
+                        }
+
+                        Spacer().frame(height: 80)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                }
+            }
+
+            // Save button
+            VStack(spacing: 0) {
+                Button {
+                    Task { await saveExpense() }
+                } label: {
+                    if isLoading {
+                        ProgressView()
+                            .tint(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                    } else {
+                        Text("Save expense")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
                     }
                 }
+                .background(
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .fill(canSave ? SplitEZTheme.primary : SplitEZTheme.primary.opacity(0.4))
+                )
+                .disabled(!canSave || isLoading)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 8)
+            }
+            .background(
+                Rectangle()
+                    .fill(.ultraThinMaterial)
+                    .ignoresSafeArea(edges: .bottom)
+            )
         }
+        .background(Color(.systemBackground))
+        .confirmationDialog("Select Currency", isPresented: $showCurrencyPicker) {
+            ForEach(currencies, id: \.self) { currency in
+                Button("\(currencySymbols[currency] ?? "") \(currency)") {
+                    selectedCurrency = currency
+                }
+            }
+        }
+        .confirmationDialog("Select Category", isPresented: $showCategoryPicker) {
+            ForEach(ExpenseCategory.allCases, id: \.self) { cat in
+                Button(cat.label) {
+                    selectedCategory = cat
+                }
+            }
+        }
+    }
+
+    private var dateLabel: String {
+        if Calendar.current.isDateInToday(expenseDate) {
+            return "Today"
+        }
+        if Calendar.current.isDateInYesterday(expenseDate) {
+            return "Yesterday"
+        }
+        let fmt = DateFormatter()
+        fmt.dateFormat = "d MMM"
+        return fmt.string(from: expenseDate)
+    }
+
+    private var canSave: Bool {
+        !description.isEmpty && !amountText.isEmpty && (Double(amountText) ?? 0) > 0
+    }
+
+    private func saveExpense() async {
+        guard let amountDouble = Double(amountText) else {
+            error = "Invalid amount"
+            return
+        }
+        let amount = Int(amountDouble * 100)
+        isLoading = true
+        error = nil
+
+        let dateFmt = DateFormatter()
+        dateFmt.dateFormat = "yyyy-MM-dd"
+
+        let req = CreateExpenseRequest(
+            description: description,
+            amount: amount,
+            currency: selectedCurrency,
+            splitMethod: splitMethod,
+            category: selectedCategory.label,
+            note: note.isEmpty ? nil : note,
+            date: dateFmt.string(from: expenseDate),
+            participants: []
+        )
+
+        do {
+            let _: Expense = try await api.post("/expenses", body: req)
+            dismiss()
+        } catch {
+            self.error = error.localizedDescription
+        }
+        isLoading = false
+    }
+
+    private func miniAvatar(initial: String, color: Color) -> some View {
+        Text(initial)
+            .font(.system(size: 10, weight: .bold))
+            .foregroundColor(.white)
+            .frame(width: 28, height: 28)
+            .background(Circle().fill(color))
+    }
+}
+
+// MARK: - Expense Categories
+
+enum ExpenseCategory: String, CaseIterable {
+    case food, transport, shopping, stay, entertainment, utilities, health, education, travel, other
+
+    var label: String {
+        rawValue.capitalized
+    }
+
+    var icon: String {
+        switch self {
+        case .food: return "fork.knife"
+        case .transport: return "car.fill"
+        case .shopping: return "bag.fill"
+        case .stay: return "house.fill"
+        case .entertainment: return "film"
+        case .utilities: return "bolt.fill"
+        case .health: return "heart.fill"
+        case .education: return "book.fill"
+        case .travel: return "airplane"
+        case .other: return "square.grid.2x2"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .food: return .orange
+        case .transport: return Color(hex: "6366F1")
+        case .shopping: return .pink
+        case .stay: return .green
+        case .entertainment: return .purple
+        case .utilities: return .yellow
+        case .health: return .red
+        case .education: return .blue
+        case .travel: return .teal
+        case .other: return .gray
+        }
+    }
+
+    var keywords: [String] {
+        switch self {
+        case .food: return ["dinner", "lunch", "breakfast", "coffee", "restaurant", "pizza", "burger", "snack", "cafe", "meal", "food", "drink", "bar", "pub", "brunch", "bakery", "chai", "tea", "biryani", "dosa", "thali", "swiggy", "zomato"]
+        case .transport: return ["uber", "ola", "cab", "taxi", "auto", "bus", "metro", "train", "fuel", "petrol", "diesel", "gas", "parking", "toll", "rickshaw", "rapido"]
+        case .shopping: return ["amazon", "flipkart", "myntra", "clothes", "shoes", "electronics", "gadget", "phone", "laptop", "mall", "market", "shop", "buy", "gift"]
+        case .stay: return ["hotel", "airbnb", "hostel", "resort", "room", "rent", "stay", "accommodation", "lodge", "oyo"]
+        case .entertainment: return ["movie", "cinema", "netflix", "concert", "game", "show", "theatre", "event", "bookmyshow", "party"]
+        case .utilities: return ["electricity", "water", "wifi", "internet", "phone bill", "recharge", "gas bill", "maintenance", "broadband"]
+        case .health: return ["doctor", "hospital", "medicine", "pharmacy", "gym", "fitness", "yoga", "dental", "medical", "lab test"]
+        case .education: return ["book", "course", "tuition", "school", "college", "udemy", "class", "coaching", "stationery"]
+        case .travel: return ["flight", "airport", "visa", "passport", "ticket", "booking", "trip", "vacation", "holiday", "tour"]
+        case .other: return []
+        }
+    }
+
+    static func detect(from text: String) -> ExpenseCategory {
+        let lower = text.lowercased()
+        for category in allCases where category != .other {
+            if category.keywords.contains(where: { lower.contains($0) }) {
+                return category
+            }
+        }
+        return .food
     }
 }
 
