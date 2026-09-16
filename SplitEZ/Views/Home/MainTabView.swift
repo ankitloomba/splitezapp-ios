@@ -57,7 +57,7 @@ struct MainTabView: View {
         }
         .sheet(isPresented: $showMoreSheet) {
             MoreOverlaySheet()
-                .presentationDetents([.medium, .large])
+                .presentationDetents([.height(380), .large])
                 .presentationDragIndicator(.visible)
         }
         .onChange(of: selectedTab) { oldTab, tab in
@@ -1367,7 +1367,7 @@ struct MoreOverlaySheet: View {
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 20)
+                .padding(.top, 28)
                 .padding(.bottom, 16)
 
                 // Menu items
