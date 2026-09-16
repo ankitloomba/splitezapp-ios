@@ -4,47 +4,105 @@ struct GroupsListView: View {
     @State private var groups: [ExpenseGroup] = []
     @State private var isLoading = true
     @State private var showCreate = false
+    @Environment(\.dismiss) var dismiss
     private let api = APIClient.shared
 
     var body: some View {
-        NavigationStack {
-            List {
-                ForEach(groups) { group in
-                    NavigationLink(destination: GroupDetailView(group: group)) {
-                        HStack {
-                            Image(systemName: "person.3.fill")
-                                .foregroundColor(SplitEZTheme.primary)
-                                .frame(width: 40, height: 40)
-                                .background(SplitEZTheme.primary.opacity(0.1))
-                                .clipShape(Circle())
-                            VStack(alignment: .leading) {
-                                Text(group.name).font(.headline)
-                                Text("\(group.memberCount ?? 0) members")
-                                    .font(.caption).foregroundColor(.secondary)
-                            }
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 120)
+                Color(.systemBackground)
+            }
+            .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Dark header
+                    HStack {
+                        Button { dismiss() } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        Text("Groups")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.white)
+                        Spacer()
+                        Button { showCreate = true } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
                         }
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 24)
+                    .background(SplitEZTheme.darkBg)
+
+                    // Content card
+                    VStack(spacing: 0) {
+                        if groups.isEmpty && !isLoading {
+                            VStack(spacing: 12) {
+                                Image(systemName: "person.3")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                                Text("No Groups")
+                                    .font(.headline)
+                                    .foregroundColor(SplitEZTheme.textPrimary)
+                                Text("Create a group to start splitting expenses")
+                                    .font(.subheadline)
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                            .padding(.vertical, 60)
+                        } else {
+                            ForEach(Array(groups.enumerated()), id: \.element.id) { index, group in
+                                if index > 0 {
+                                    Divider().padding(.leading, 76)
+                                }
+                                NavigationLink(destination: GroupDetailView(group: group)) {
+                                    HStack(spacing: 12) {
+                                        Image(systemName: "person.3.fill")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(SplitEZTheme.primary)
+                                            .frame(width: 44, height: 44)
+                                            .background(SplitEZTheme.primary.opacity(0.1))
+                                            .clipShape(Circle())
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(group.name)
+                                                .font(.subheadline.weight(.semibold))
+                                                .foregroundColor(SplitEZTheme.textPrimary)
+                                            Text("\(group.memberCount ?? 0) people · Group")
+                                                .font(.caption)
+                                                .foregroundColor(SplitEZTheme.textSecondary)
+                                        }
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 12, weight: .semibold))
+                                            .foregroundColor(SplitEZTheme.textTertiary)
+                                    }
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 10)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+
+                        Spacer().frame(height: 80)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color(.systemBackground))
+                    )
+                    .offset(y: -16)
                 }
             }
-            .overlay {
-                if groups.isEmpty && !isLoading {
-                    ContentUnavailableView("No Groups",
-                        systemImage: "person.3",
-                        description: Text("Create a group to start splitting expenses"))
-                }
-            }
-            .navigationTitle("Groups")
-            .toolbar {
-                Button { showCreate = true } label: {
-                    Image(systemName: "plus")
-                }
-            }
-            .sheet(isPresented: $showCreate) {
-                CreateGroupView { await loadGroups() }
-            }
-            .refreshable { await loadGroups() }
-            .task { await loadGroups() }
         }
+        .navigationBarHidden(true)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .sheet(isPresented: $showCreate) {
+            CreateGroupView { await loadGroups() }
+        }
+        .task { await loadGroups() }
     }
 
     private func loadGroups() async {
@@ -64,7 +122,6 @@ struct GroupDetailView: View {
 
     private var memberCount: Int { group.memberCount ?? group.members?.count ?? 0 }
     private var createdDate: String {
-        // Parse ISO date to readable format
         let prefix = String(group.createdAt.prefix(10))
         if let date = ISO8601DateFormatter().date(from: group.createdAt) {
             let fmt = DateFormatter()
@@ -80,16 +137,11 @@ struct GroupDetailView: View {
 
             ScrollView {
                 VStack(spacing: 0) {
-                    // Gradient header
                     groupHeader
-
-                    // Content
                     VStack(spacing: 0) {
-                        // Member avatars row
                         membersRow
                             .padding(.top, 20)
 
-                        // Group Settings
                         sectionLabel("GROUP SETTINGS")
 
                         settingsRowWithValue(label: "Categories", value: "6 in use")
@@ -97,7 +149,6 @@ struct GroupDetailView: View {
                         settingsRowWithValue(label: "Default split", value: "Evenly")
                         rowDivider
 
-                        // Group buy
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Group buy")
@@ -122,7 +173,6 @@ struct GroupDetailView: View {
                         .padding(.vertical, 12)
                         rowDivider
 
-                        // Simplify debts
                         HStack {
                             Text("Simplify debts")
                                 .font(.subheadline.weight(.medium))
@@ -135,7 +185,6 @@ struct GroupDetailView: View {
                         .padding(.horizontal, 20)
                         .padding(.vertical, 12)
 
-                        // Manage
                         sectionLabel("MANAGE")
 
                         manageRow(icon: "doc.on.doc", label: "Duplicate group", subtitle: "Copies members, categories, split rules")
@@ -143,9 +192,7 @@ struct GroupDetailView: View {
                         manageRow(icon: "archivebox", label: "Archive group", subtitle: "Hidden from Home, ledger kept")
                         rowDivider
 
-                        // Delete
                         Button {
-                            // Delete action
                         } label: {
                             HStack(spacing: 12) {
                                 Image(systemName: "trash")
@@ -178,11 +225,8 @@ struct GroupDetailView: View {
         }
     }
 
-    // MARK: – Group Header
-
     private var groupHeader: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Nav bar
             HStack {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
@@ -217,7 +261,6 @@ struct GroupDetailView: View {
                 .font(.caption)
                 .foregroundColor(Color.white.opacity(0.6))
 
-            // Action buttons
             HStack(spacing: 12) {
                 Button(action: {}) {
                     Text("Invite member")
@@ -256,12 +299,9 @@ struct GroupDetailView: View {
         )
     }
 
-    // MARK: – Members Row
-
     private var membersRow: some View {
         NavigationLink(destination: EmptyView()) {
             HStack(spacing: 8) {
-                // Overlapping avatars
                 ZStack {
                     ForEach(Array((group.members ?? []).prefix(3).enumerated()), id: \.element.id) { index, member in
                         AvatarView(user: member, size: 32)
@@ -288,8 +328,6 @@ struct GroupDetailView: View {
         }
         .buttonStyle(.plain)
     }
-
-    // MARK: – Helpers
 
     private func sectionLabel(_ title: String) -> some View {
         Text(title)

@@ -3,10 +3,10 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var auth: AuthService
     @State private var isPlusUser = false
+    @Environment(\.dismiss) var dismiss
 
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .top) {
+        ZStack(alignment: .top) {
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg.frame(height: 280)
                     Color(.systemBackground)
@@ -110,9 +110,8 @@ struct SettingsView: View {
                     }
                 }
             }
-            .navigationBarHidden(true)
-            .toolbarBackground(.hidden, for: .navigationBar)
-        }
+        .navigationBarHidden(true)
+        .toolbarBackground(.hidden, for: .navigationBar)
     }
 
     // MARK: - Header
@@ -121,7 +120,7 @@ struct SettingsView: View {
         VStack(spacing: 16) {
             // Nav bar
             HStack {
-                Button(action: {}) {
+                Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)

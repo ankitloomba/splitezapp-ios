@@ -4,46 +4,111 @@ struct TripsListView: View {
     @State private var trips: [Trip] = []
     @State private var isLoading = true
     @State private var showCreate = false
+    @Environment(\.dismiss) var dismiss
     private let api = APIClient.shared
 
     var body: some View {
-        NavigationStack {
-            List {
-                ForEach(trips) { trip in
-                    NavigationLink(destination: TripDetailView(trip: trip)) {
-                        HStack {
-                            Image(systemName: "airplane")
-                                .foregroundColor(SplitEZTheme.accent)
-                                .frame(width: 40, height: 40)
-                                .background(SplitEZTheme.accent.opacity(0.1))
-                                .clipShape(Circle())
-                            VStack(alignment: .leading) {
-                                Text(trip.name).font(.headline)
-                                if let dest = trip.destination {
-                                    Text(dest).font(.caption).foregroundColor(.secondary)
-                                }
-                            }
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 120)
+                Color(.systemBackground)
+            }
+            .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Dark header
+                    HStack {
+                        Button { dismiss() } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        Text("Trips")
+                            .font(.system(size: 28, weight: .bold))
+                            .foregroundColor(.white)
+                        Spacer()
+                        Button { showCreate = true } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
                         }
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 24)
+                    .background(SplitEZTheme.darkBg)
+
+                    // Content card
+                    VStack(spacing: 0) {
+                        if trips.isEmpty && !isLoading {
+                            VStack(spacing: 12) {
+                                Image(systemName: "airplane")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                                Text("No Trips")
+                                    .font(.headline)
+                                    .foregroundColor(SplitEZTheme.textPrimary)
+                                Text("Plan a trip and track expenses")
+                                    .font(.subheadline)
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                            .padding(.vertical, 60)
+                        } else {
+                            ForEach(Array(trips.enumerated()), id: \.element.id) { index, trip in
+                                if index > 0 {
+                                    Divider().padding(.leading, 76)
+                                }
+                                NavigationLink(destination: TripDetailView(trip: trip)) {
+                                    HStack(spacing: 12) {
+                                        Image(systemName: "paperplane.fill")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.orange)
+                                            .frame(width: 44, height: 44)
+                                            .background(Color.orange.opacity(0.1))
+                                            .clipShape(Circle())
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(trip.name)
+                                                .font(.subheadline.weight(.semibold))
+                                                .foregroundColor(SplitEZTheme.textPrimary)
+                                            if let dest = trip.destination {
+                                                Text("\(dest) · Trip")
+                                                    .font(.caption)
+                                                    .foregroundColor(SplitEZTheme.textSecondary)
+                                            } else {
+                                                Text("\(trip.members?.count ?? 0) people · Trip")
+                                                    .font(.caption)
+                                                    .foregroundColor(SplitEZTheme.textSecondary)
+                                            }
+                                        }
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 12, weight: .semibold))
+                                            .foregroundColor(SplitEZTheme.textTertiary)
+                                    }
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 10)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+
+                        Spacer().frame(height: 80)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color(.systemBackground))
+                    )
+                    .offset(y: -16)
                 }
             }
-            .overlay {
-                if trips.isEmpty && !isLoading {
-                    ContentUnavailableView("No Trips",
-                        systemImage: "airplane",
-                        description: Text("Plan a trip and track expenses"))
-                }
-            }
-            .navigationTitle("Trips")
-            .toolbar {
-                Button { showCreate = true } label: { Image(systemName: "plus") }
-            }
-            .sheet(isPresented: $showCreate) {
-                CreateTripView { await loadTrips() }
-            }
-            .refreshable { await loadTrips() }
-            .task { await loadTrips() }
         }
+        .navigationBarHidden(true)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .sheet(isPresented: $showCreate) {
+            CreateTripView { await loadTrips() }
+        }
+        .task { await loadTrips() }
     }
 
     private func loadTrips() async {
@@ -89,8 +154,6 @@ struct TripDetailView: View {
         guard let start = trip.startDate, let end = trip.endDate else { return "" }
         let fmt = DateFormatter()
         fmt.dateFormat = "yyyy-MM-dd"
-        let dispFmt = DateFormatter()
-        dispFmt.dateFormat = "d MMM"
         if let s = fmt.date(from: String(start.prefix(10))),
            let e = fmt.date(from: String(end.prefix(10))) {
             let sFmt = DateFormatter()
@@ -102,7 +165,6 @@ struct TripDetailView: View {
         return ""
     }
 
-    // Category breakdown
     private var categoryBreakdown: [(name: String, percentage: Double, color: Color)] {
         guard totalSpend > 0 else { return [] }
         var catTotals: [String: Int] = [:]
@@ -146,11 +208,8 @@ struct TripDetailView: View {
         .task { await loadData() }
     }
 
-    // MARK: - Header
-
     private var tripHeader: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Nav bar
             HStack {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
@@ -177,7 +236,6 @@ struct TripDetailView: View {
                 }
             }
 
-            // Eyebrow
             HStack(spacing: 0) {
                 Text("TRIP")
                     .font(.caption.weight(.semibold))
@@ -192,18 +250,15 @@ struct TripDetailView: View {
             }
             .padding(.top, 8)
 
-            // Trip name
             Text(trip.name)
                 .font(.system(size: 28, weight: .bold))
                 .foregroundColor(.white)
 
-            // Members
             Text(memberNames.joined(separator: " · "))
                 .font(.caption)
                 .foregroundColor(Color.white.opacity(0.5))
                 .padding(.bottom, 4)
 
-            // Financial summary
             HStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Total spend")
@@ -236,7 +291,6 @@ struct TripDetailView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            // Multi-currency note
             if hasMultiCurrency {
                 Text(multiCurrencyNote)
                     .font(.caption)
@@ -244,7 +298,6 @@ struct TripDetailView: View {
                     .padding(.top, 2)
             }
 
-            // Action buttons
             HStack(spacing: 12) {
                 Button(action: {}) {
                     Text("Remind all")
@@ -277,11 +330,8 @@ struct TripDetailView: View {
         .background(SplitEZTheme.darkBg)
     }
 
-    // MARK: - Content
-
     private var contentCard: some View {
         VStack(spacing: 0) {
-            // Category breakdown
             if !categoryBreakdown.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("SPEND BY CATEGORY")
@@ -289,7 +339,6 @@ struct TripDetailView: View {
                         .foregroundColor(SplitEZTheme.primary)
                         .tracking(0.5)
 
-                    // Stacked bar
                     GeometryReader { geo in
                         HStack(spacing: 2) {
                             ForEach(categoryBreakdown, id: \.name) { cat in
@@ -301,7 +350,6 @@ struct TripDetailView: View {
                     }
                     .frame(height: 10)
 
-                    // Labels
                     HStack(spacing: 0) {
                         ForEach(categoryBreakdown, id: \.name) { cat in
                             Text("\(cat.name) \(Int(cat.percentage))%")
@@ -316,7 +364,6 @@ struct TripDetailView: View {
                 .padding(.bottom, 16)
             }
 
-            // Expenses header
             HStack {
                 Text("Expenses")
                     .font(.headline)
@@ -359,8 +406,6 @@ struct TripDetailView: View {
         )
         .offset(y: -16)
     }
-
-    // MARK: - Expense Row
 
     private func tripExpenseRow(_ expense: Expense) -> some View {
         HStack(spacing: 12) {
@@ -426,8 +471,6 @@ struct TripDetailView: View {
         }
     }
 
-    // MARK: - Multi-currency
-
     private var hasMultiCurrency: Bool {
         Set(expenses.map { $0.currency }).count > 1
     }
@@ -438,8 +481,6 @@ struct TripDetailView: View {
         let foreignTotal = expenses.filter { $0.currency == foreign }.reduce(0) { $0 + $1.amount }
         return "Includes \(formatAmount(foreignTotal, currency: foreign)) converted at ₹83.40 · 29 Aug rate"
     }
-
-    // MARK: - Load
 
     private func loadData() async {
         isLoading = true
