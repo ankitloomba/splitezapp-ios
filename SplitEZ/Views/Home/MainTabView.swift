@@ -640,6 +640,7 @@ struct AddExpenseSheet: View {
     @State private var expenseDate = Date()
     @State private var showDatePicker = false
     @State private var showNotesField = false
+    @State private var showSplitBreakdown = false
     @State private var isLoading = false
     @State private var error: String?
     @State private var paidByIndex = 0
@@ -859,37 +860,52 @@ struct AddExpenseSheet: View {
                             }
                         }
 
-                        // Each person pays
+                        // Each person pays – expandable
                         VStack(spacing: 0) {
-                            Text("EACH PERSON PAYS")
-                                .font(.caption2.weight(.semibold))
-                                .foregroundColor(SplitEZTheme.textTertiary)
-                                .tracking(0.5)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 16)
-                                .padding(.top, 16)
-                                .padding(.bottom, 12)
-
-                            ForEach(Array(sampleMembers.enumerated()), id: \.element.name) { index, member in
-                                if index > 0 {
-                                    Divider().padding(.leading, 52)
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.25)) {
+                                    showSplitBreakdown.toggle()
                                 }
-                                HStack(spacing: 10) {
-                                    miniAvatar(initial: member.initial, color: member.color)
-                                    Text(member.name)
-                                        .font(.subheadline.weight(.medium))
-                                        .foregroundColor(SplitEZTheme.textPrimary)
+                            } label: {
+                                HStack {
+                                    Text("EACH PERSON PAYS")
+                                        .font(.caption2.weight(.semibold))
+                                        .foregroundColor(SplitEZTheme.textTertiary)
+                                        .tracking(0.5)
                                     Spacer()
-                                    Text(perPersonAmount)
-                                        .font(.subheadline.weight(.bold))
-                                        .foregroundColor(SplitEZTheme.textPrimary)
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(SplitEZTheme.textTertiary)
+                                        .rotationEffect(.degrees(showSplitBreakdown ? 180 : 0))
                                 }
                                 .padding(.horizontal, 16)
-                                .padding(.vertical, 10)
+                                .padding(.vertical, 14)
                             }
 
-                            Spacer().frame(height: 8)
+                            if showSplitBreakdown {
+                                ForEach(Array(sampleMembers.enumerated()), id: \.element.name) { index, member in
+                                    if index > 0 {
+                                        Divider().padding(.leading, 52)
+                                    }
+                                    HStack(spacing: 10) {
+                                        miniAvatar(initial: member.initial, color: member.color)
+                                        Text(member.name)
+                                            .font(.subheadline.weight(.medium))
+                                            .foregroundColor(SplitEZTheme.textPrimary)
+                                        Spacer()
+                                        Text(perPersonAmount)
+                                            .font(.subheadline.weight(.bold))
+                                            .foregroundColor(SplitEZTheme.textPrimary)
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 10)
+                                }
+                                .transition(.opacity.combined(with: .move(edge: .top)))
+
+                                Spacer().frame(height: 8)
+                            }
                         }
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         .background(
                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                 .fill(Color(.systemGray6))
