@@ -83,6 +83,27 @@
 - "Log out" text in red (not a button, just text aligned left)
 - Footer: "SplitEZ 2.4.0 · Made in India" caption centered
 
+## Screen: 12 · GROUP MANAGER · DUPLICATE & ARCHIVE
+
+### Header (gradient: dark navy → indigo → teal, left to right)
+- Back chevron left, "Change banner" capsule button right (camera icon + text, white on translucent)
+- "GROUP MANAGER" eyebrow label (white 70%, uppercase, tracked)
+- Group name large bold white (e.g. "Flat 402")
+- "3 members · created 12 Jan 2026" caption (white 60%)
+- Two action buttons: "Invite member" (indigo filled) + "Share sheet" (white filled)
+
+### Content (white, rounded top corners)
+- Members row: overlapping avatar circles (3 shown), "3 members" + "You are the owner", chevron
+- GROUP SETTINGS section (tertiary uppercase label):
+  - Categories: value "6 in use" + chevron
+  - Default split: value "Evenly" in indigo + chevron
+  - Group buy: label + "Curated rates for this group" subtitle, "4 offers" green pill
+  - Simplify debts: label + toggle (indigo tint)
+- MANAGE section (tertiary uppercase label):
+  - Duplicate group: doc.on.doc icon, "Copies members, categories, split rules" subtitle
+  - Archive group: archivebox icon, "Hidden from Home, ledger kept" subtitle
+  - Delete group: trash icon, red text
+
 ## Screen: 05 · MORE TAB
 
 ### Header (dark navy #10142A)
