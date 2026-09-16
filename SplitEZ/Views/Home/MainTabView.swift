@@ -1362,13 +1362,13 @@ struct MoreOverlaySheet: View {
                         Image(systemName: "xmark")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(SplitEZTheme.textTertiary)
-                            .frame(width: 28, height: 28)
+                            .frame(width: 32, height: 32)
                             .background(Circle().fill(Color(.systemGray5)))
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 0)
-                .padding(.bottom, 12)
+                .padding(.top, 12)
+                .padding(.bottom, 16)
 
                 // Menu items
                 VStack(spacing: 0) {
@@ -1421,7 +1421,7 @@ struct MoreOverlaySheet: View {
                     .foregroundColor(SplitEZTheme.textTertiary)
             }
             .padding(.horizontal, 20)
-            .padding(.vertical, 14)
+            .padding(.vertical, 12)
         }
         .buttonStyle(.plain)
     }
