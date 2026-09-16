@@ -69,13 +69,24 @@ struct Friend: Codable, Identifiable {
     let firstName: String
     let lastName: String?
     let phone: String?
+    let email: String?
     let profilePicture: String?
     let avatar: AvatarData?
     let isRegistered: Bool?
+    let groupCount: Int?
+    let lastActiveAt: String?
 
     var displayName: String {
         [firstName, lastName].compactMap { $0 }.joined(separator: " ")
     }
+}
+
+struct FriendRequest: Codable, Identifiable {
+    let id: String
+    let fromUser: UserSummary
+    let status: String
+    let source: String?
+    let createdAt: String
 }
 
 struct AvatarData: Codable, Hashable {

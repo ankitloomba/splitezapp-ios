@@ -24,7 +24,7 @@
 - "Friends" section header with "See all" link
   - Rows with avatar (letter circle), name, phone number, balance or "Settled" badge
 
-## Screen: 02 · FRIENDS
+## Screen: 02/16 · FRIENDS (with Pending Requests)
 
 ### Header (dark navy #10142A)
 - "Friends" title large bold white
@@ -32,10 +32,18 @@
 - Search bar: rounded rect, white 10% opacity fill, magnifying glass + placeholder "Search friends"
 
 ### Content Area (white, rounded top corners)
+- **Pending requests section** (shown when requests exist):
+  - "Pending requests" header with red count badge (capsule, white text on negative red)
+  - Request rows: avatar (44pt), name bold, source/email subtitle
+  - Accept button: green checkmark in green-tinted circle
+  - Reject button: gray X in gray circle
+  - Divider separates from All friends section
 - "All friends" header with count (· X) + Sort button (indigo, line.3.horizontal.decrease icon)
-- Friend rows: avatar circle (44pt), name bold, phone subtitle, balance on right
-  - Green "owes you" / red "you owe" with amount
-  - "Settled" green outlined capsule badge when balance = 0
+- Friend rows: avatar circle (44pt), name bold, subtitle "X groups · last active Xd ago"
+  - Falls back to phone number if no group/activity data
+  - Green "owes you" / red "you owe" with ₹ amount
+  - "settled up ₹0" (green) when balance = 0
+  - Dividers between rows (indented past avatar, 76pt leading)
 - Empty state: "No friends added yet" or "No results" for search
 
 ## Screen: 04 · ACTIVITY · SORTABLE

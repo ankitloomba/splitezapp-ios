@@ -112,6 +112,7 @@ struct MainTabView: View {
 
 struct FriendsTabView: View {
     @State private var friends: [Friend] = []
+    @State private var pendingRequests: [FriendRequest] = []
     @State private var balances: [Balance] = []
     @State private var searchText = ""
     @State private var isLoading = true
@@ -131,7 +132,6 @@ struct FriendsTabView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                // Background: dark top, white bottom
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg.frame(height: 160)
                     Color(.systemBackground)
@@ -140,12 +140,15 @@ struct FriendsTabView: View {
 
                 ScrollView {
                     VStack(spacing: 0) {
-                        // Header
                         friendsHeader
 
-                        // Content card
                         VStack(spacing: 0) {
-                            // All friends
+                            // Pending requests
+                            if !pendingRequests.isEmpty {
+                                pendingRequestsSection
+                            }
+
+                            // All friends header
                             HStack {
                                 Text("All friends")
                                     .font(.headline)
@@ -154,7 +157,6 @@ struct FriendsTabView: View {
                                     .foregroundColor(SplitEZTheme.textSecondary)
                                 Spacer()
                                 Button {
-                                    // Sort action
                                 } label: {
                                     HStack(spacing: 4) {
                                         Image(systemName: "line.3.horizontal.decrease")
@@ -166,7 +168,7 @@ struct FriendsTabView: View {
                                 }
                             }
                             .padding(.horizontal, 20)
-                            .padding(.top, 20)
+                            .padding(.top, pendingRequests.isEmpty ? 20 : 8)
                             .padding(.bottom, 12)
 
                             if filteredFriends.isEmpty {
@@ -177,7 +179,10 @@ struct FriendsTabView: View {
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 20)
                             } else {
-                                ForEach(filteredFriends) { friend in
+                                ForEach(Array(filteredFriends.enumerated()), id: \.element.id) { index, friend in
+                                    if index > 0 {
+                                        Divider().padding(.leading, 76)
+                                    }
                                     FriendListRow(
                                         friend: friend,
                                         balance: balanceFor(friend.id)
@@ -201,11 +206,46 @@ struct FriendsTabView: View {
         }
     }
 
+    // MARK: – Pending Requests
+
+    private var pendingRequestsSection: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Pending requests")
+                    .font(.headline)
+                Text("\(pendingRequests.count)")
+                    .font(.caption.weight(.bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(Capsule().fill(SplitEZTheme.negative))
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 12)
+
+            ForEach(Array(pendingRequests.enumerated()), id: \.element.id) { index, request in
+                if index > 0 {
+                    Divider().padding(.leading, 76)
+                }
+                PendingRequestRow(request: request) {
+                    Task { await acceptRequest(request.id) }
+                } onReject: {
+                    Task { await rejectRequest(request.id) }
+                }
+            }
+
+            Divider()
+                .padding(.top, 8)
+                .padding(.bottom, 4)
+        }
+    }
+
     // MARK: – Friends Header
 
     private var friendsHeader: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Top bar: title + icons
             HStack {
                 Text("Friends")
                     .font(.system(size: 24, weight: .bold))
@@ -224,7 +264,6 @@ struct FriendsTabView: View {
                 }
             }
 
-            // Search bar
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 14))
@@ -255,15 +294,80 @@ struct FriendsTabView: View {
         .background(SplitEZTheme.darkBg)
     }
 
-    // MARK: – Load Data
+    // MARK: – Actions
 
     private func loadData() async {
         isLoading = true
         async let f: [Friend] = (try? api.get("/people")) ?? []
         async let b: [Balance] = (try? api.get("/balances")) ?? []
+        async let r: [FriendRequest] = (try? api.get("/friend-requests", query: ["status": "pending"])) ?? []
         friends = await f
         balances = await b
+        pendingRequests = await r
         isLoading = false
+    }
+
+    private func acceptRequest(_ id: String) async {
+        let _: SuccessResponse? = try? await api.put("/friend-requests/\(id)/accept", body: EmptyBody())
+        await loadData()
+    }
+
+    private func rejectRequest(_ id: String) async {
+        let _: SuccessResponse? = try? await api.put("/friend-requests/\(id)/reject", body: EmptyBody())
+        await loadData()
+    }
+}
+
+private struct EmptyBody: Codable {}
+
+// MARK: - Pending Request Row
+
+struct PendingRequestRow: View {
+    let request: FriendRequest
+    let onAccept: () -> Void
+    let onReject: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            AvatarView(user: request.fromUser, size: 44)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(request.fromUser.displayName)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(SplitEZTheme.textPrimary)
+                if let source = request.source {
+                    Text(source)
+                        .font(.caption)
+                        .foregroundColor(SplitEZTheme.textSecondary)
+                }
+            }
+
+            Spacer()
+
+            Button(action: onAccept) {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(SplitEZTheme.positive)
+                    .frame(width: 36, height: 36)
+                    .background(
+                        Circle()
+                            .fill(SplitEZTheme.positive.opacity(0.1))
+                    )
+            }
+
+            Button(action: onReject) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(SplitEZTheme.textTertiary)
+                    .frame(width: 36, height: 36)
+                    .background(
+                        Circle()
+                            .fill(Color(.systemGray5))
+                    )
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 8)
     }
 }
 
@@ -275,7 +379,6 @@ struct FriendListRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Avatar
             if let user = friendAsUser {
                 AvatarView(user: user, size: 44)
             } else {
@@ -293,25 +396,22 @@ struct FriendListRow: View {
                 Text(friend.displayName)
                     .font(.subheadline.weight(.semibold))
                     .foregroundColor(SplitEZTheme.textPrimary)
-                if let phone = friend.phone, !phone.isEmpty {
-                    Text(phone)
-                        .font(.caption)
-                        .foregroundColor(SplitEZTheme.textSecondary)
-                }
+                Text(subtitleText)
+                    .font(.caption)
+                    .foregroundColor(SplitEZTheme.textSecondary)
             }
 
             Spacer()
 
             if balance == 0 {
-                Text("Settled")
-                    .font(.caption.weight(.medium))
-                    .foregroundColor(SplitEZTheme.positive)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(
-                        Capsule()
-                            .stroke(SplitEZTheme.positive.opacity(0.4), lineWidth: 1)
-                    )
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("settled up")
+                        .font(.caption)
+                        .foregroundColor(SplitEZTheme.textSecondary)
+                    Text("₹0")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundColor(SplitEZTheme.positive)
+                }
             } else {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(balance > 0 ? "owes you" : "you owe")
@@ -327,7 +427,27 @@ struct FriendListRow: View {
         .padding(.vertical, 10)
     }
 
-    /// Convert Friend → UserSummary for AvatarView
+    private var subtitleText: String {
+        var parts: [String] = []
+        if let count = friend.groupCount, count > 0 {
+            parts.append("\(count) group\(count == 1 ? "" : "s")")
+        }
+        if let lastActive = friend.lastActiveAt {
+            parts.append("last active \(relativeTime(lastActive))")
+        } else if let phone = friend.phone, !phone.isEmpty {
+            parts.append(phone)
+        }
+        return parts.isEmpty ? (friend.phone ?? "") : parts.joined(separator: " · ")
+    }
+
+    private func relativeTime(_ iso: String) -> String {
+        guard let date = ISO8601DateFormatter().date(from: iso) else { return "" }
+        let days = Calendar.current.dateComponents([.day], from: date, to: Date()).day ?? 0
+        if days == 0 { return "today" }
+        if days == 1 { return "1d ago" }
+        return "\(days)d ago"
+    }
+
     private var friendAsUser: UserSummary? {
         guard let data = try? JSONEncoder().encode(friend),
               let user = try? JSONDecoder().decode(UserSummary.self, from: data)
