@@ -669,7 +669,9 @@ struct AddExpenseSheet: View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
                 // Dark header
-                VStack(spacing: 16) {
+                Color.clear.frame(height: 0)
+                    .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
+                VStack(spacing: 8) {
                     // Nav bar
                     HStack {
                         Button { dismiss() } label: {
@@ -684,19 +686,20 @@ struct AddExpenseSheet: View {
                         Spacer()
                         Color.clear.frame(width: 24)
                     }
+                    .padding(.horizontal, 20)
 
                     // Amount input
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    HStack(alignment: .center, spacing: 4) {
                         Text(currencySymbols[selectedCurrency] ?? "₹")
-                            .font(.system(size: 24, weight: .medium))
+                            .font(.system(size: 22, weight: .medium))
                             .foregroundColor(Color.white.opacity(0.5))
 
                         TextField("0", text: $amountText)
-                            .font(.system(size: 48, weight: .bold))
+                            .font(.system(size: 44, weight: .bold))
                             .foregroundColor(.white)
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity)
+                            .fixedSize(horizontal: true, vertical: false)
 
                         Button {
                             showCurrencyPicker = true
@@ -709,18 +712,17 @@ struct AddExpenseSheet: View {
                             }
                             .foregroundColor(.white)
                             .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
+                            .padding(.vertical, 5)
                             .background(Capsule().fill(Color.white.opacity(0.15)))
                         }
                     }
                     .padding(.horizontal, 20)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-                .padding(.bottom, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 16)
                 .background(SplitEZTheme.darkBg)
 
-                // Content
+                // Content – white card with rounded top
                 ScrollView {
                     VStack(spacing: 16) {
                         // Category + Description
@@ -963,8 +965,18 @@ struct AddExpenseSheet: View {
                         Spacer().frame(height: 80)
                     }
                     .padding(.horizontal, 20)
-                    .padding(.top, 20)
+                    .padding(.top, 24)
                 }
+                .background(
+                    Color(.systemBackground)
+                        .clipShape(
+                            UnevenRoundedRectangle(
+                                topLeadingRadius: 24,
+                                topTrailingRadius: 24
+                            )
+                        )
+                )
+                .offset(y: -16)
             }
 
             // Save button
