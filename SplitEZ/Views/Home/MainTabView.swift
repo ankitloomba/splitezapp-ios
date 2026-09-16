@@ -13,9 +13,10 @@ struct MainTabView: View {
                 FriendsTabView()
                     .tag(1)
 
-                // Placeholder for the center Add button
-                Color.clear
-                    .tag(2)
+                NavigationStack {
+                    GroupsListView()
+                }
+                .tag(2)
 
                 ActivityTabView()
                     .tag(3)
@@ -24,27 +25,41 @@ struct MainTabView: View {
                     .tag(4)
             }
 
-            // Persistent ad banner + custom tab bar
+            // Bottom bar: floating + button, ad banner, tab bar
             VStack(spacing: 0) {
+                // Floating + button — right-aligned above ad bar
+                HStack {
+                    Spacer()
+                    Button {
+                        showAddSheet = true
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(SplitEZTheme.primary)
+                                .frame(width: 56, height: 56)
+                                .shadow(color: SplitEZTheme.primary.opacity(0.3), radius: 10, y: 4)
+                            Image(systemName: "plus")
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 8)
+                }
+
                 SponsoredBannerView()
                 customTabBar
             }
         }
         .onAppear {
-            // Hide the default tab bar so only our custom one shows
             UITabBar.appearance().isHidden = true
         }
         .sheet(isPresented: $showAddSheet) {
             AddExpenseSheet()
         }
         .onChange(of: selectedTab) { _, tab in
-            if tab == 2 {
-                // Reset to previous tab, show add sheet instead
-                selectedTab = 0
-                showAddSheet = true
-            }
-            let screens = ["home", "friends", "add", "activity", "settings"]
-            if tab < screens.count && tab != 2 {
+            let screens = ["home", "friends", "groups", "activity", "more"]
+            if tab < screens.count {
                 Task { await AnalyticsTracker.shared.trackScreen(screens[tab]) }
             }
         }
@@ -54,39 +69,23 @@ struct MainTabView: View {
         }
     }
 
-    // MARK: – Custom Tab Bar
+    // MARK: – Custom Tab Bar (light background, indigo active circle)
 
     private var customTabBar: some View {
         HStack(spacing: 0) {
             tabButton(activeIcon: "house.fill", inactiveIcon: "house", label: "Home", tag: 0)
             tabButton(activeIcon: "person.2.fill", inactiveIcon: "person.2", label: "Friends", tag: 1)
-
-            // Center "Add" button
-            Button {
-                showAddSheet = true
-            } label: {
-                ZStack {
-                    Circle()
-                        .fill(SplitEZTheme.primary)
-                        .frame(width: 52, height: 52)
-                        .shadow(color: SplitEZTheme.primary.opacity(0.25), radius: 8, y: 4)
-                    Image(systemName: "plus")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(.white)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .offset(y: -14)
-
+            tabButton(activeIcon: "person.3.fill", inactiveIcon: "person.3", label: "Groups", tag: 2)
             tabButton(activeIcon: "arrow.triangle.branch", inactiveIcon: "arrow.triangle.branch", label: "Activity", tag: 3)
-            tabButton(activeIcon: "ellipsis.circle.fill", inactiveIcon: "ellipsis", label: "More", tag: 4)
+            tabButton(activeIcon: "ellipsis", inactiveIcon: "ellipsis", label: "More", tag: 4)
         }
-        .padding(.horizontal, 12)
-        .padding(.top, 10)
-        .padding(.bottom, 6)
+        .padding(.horizontal, 8)
+        .padding(.top, 8)
+        .padding(.bottom, 4)
         .background(
             Rectangle()
-                .fill(SplitEZTheme.darkBg)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.06), radius: 8, y: -2)
                 .ignoresSafeArea(edges: .bottom)
         )
     }
@@ -97,12 +96,21 @@ struct MainTabView: View {
             selectedTab = tag
         } label: {
             VStack(spacing: 4) {
-                Image(systemName: isActive ? activeIcon : inactiveIcon)
-                    .font(.system(size: 20))
+                ZStack {
+                    if isActive {
+                        Circle()
+                            .fill(SplitEZTheme.primary)
+                            .frame(width: 36, height: 36)
+                    }
+                    Image(systemName: isActive ? activeIcon : inactiveIcon)
+                        .font(.system(size: 18))
+                        .foregroundColor(isActive ? .white : SplitEZTheme.textTertiary)
+                }
+                .frame(height: 36)
                 Text(label)
                     .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(isActive ? SplitEZTheme.primary : SplitEZTheme.textTertiary)
             }
-            .foregroundColor(isActive ? .white : Color.white.opacity(0.45))
             .frame(maxWidth: .infinity)
         }
     }
@@ -1417,22 +1425,22 @@ struct MoreTabView: View {
 
 struct SponsoredBannerView: View {
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             Text("AD")
-                .font(.caption2.weight(.bold))
+                .font(.system(size: 10, weight: .bold))
                 .foregroundColor(SplitEZTheme.textTertiary)
                 .padding(.horizontal, 8)
-                .padding(.vertical, 4)
+                .padding(.vertical, 5)
                 .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(SplitEZTheme.pillInactive)
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(Color(.systemGray5))
                 )
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 1) {
                 Text("Sponsored")
                     .font(.subheadline.weight(.semibold))
                     .foregroundColor(SplitEZTheme.textPrimary)
-                Text("Remove ads · SplitEZ Plus ₹99/mo")
+                Text("Remove ads · ₹99/mo")
                     .font(.caption)
                     .foregroundColor(SplitEZTheme.textSecondary)
             }
@@ -1440,17 +1448,18 @@ struct SponsoredBannerView: View {
             Button("Go Plus") {}
                 .font(.caption.weight(.semibold))
                 .foregroundColor(SplitEZTheme.primary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
                 .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(SplitEZTheme.primary, lineWidth: 1)
+                    Capsule()
+                        .stroke(SplitEZTheme.primary, lineWidth: 1.2)
                 )
         }
-        .padding(14)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .background(
             Rectangle()
-                .fill(SplitEZTheme.secondaryBackground)
+                .fill(Color(.systemBackground))
                 .shadow(color: .black.opacity(0.04), radius: 4, y: -1)
         )
     }

@@ -19,11 +19,6 @@ struct GroupsListView: View {
                 VStack(spacing: 0) {
                     // Dark header
                     HStack {
-                        Button { dismiss() } label: {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.white)
-                        }
                         Text("Groups")
                             .font(.system(size: 28, weight: .bold))
                             .foregroundColor(.white)
