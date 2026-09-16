@@ -57,24 +57,31 @@
 - Amounts: green for incoming (+ ₹450), red for outgoing (– ₹800)
 - Dividers between rows within same day group (indented past icon)
 
-## Screen: 17 · SETTINGS · FREE USER
+## Screen: 11 · PROFILE & PREFERENCES
 
 ### Header (dark navy #10142A)
-- "Account" title centered in white
-- User avatar with dashed indigo border circle, QR badge bottom-left
-- Name bold white, email muted below
-- Edit (pencil) icon on right
+- Back chevron left, "Edit" text link right (white)
+- Avatar circle (72pt) with camera badge (bottom-left, dark circle with white camera icon)
+- Name bold white, email · phone muted below
+- "Add profile photo" link in indigo
 
 ### Upgrade Banner
-- Indigo gradient background, rounded corners
-- "Get SplitEZ Ad Free" bold white, "No ads · priority support · exports" subtitle
-- Gold "₹99/mo" pill on right
+- Outlined rounded rect (subtle border), NOT filled
+- "SplitEZ Plus · ad-free" semibold, "7 days free, then ₹99/month" caption
+- "Start trial" dark navy capsule button on right
 
 ### Content (white, rounded top corners)
-- PREFERENCES section: Notifications, Security, Appearance, Currency & language (shows "INR · EN" value)
-- HELP & SUPPORT section: Contact us (with envelope icon), Rate SplitEZ
-- Red "Log out" button full width
-- Footer: "An Adrevo Product" with indigo circle, "© 2026 SplitEZ · 1.0.0"
+- PREFERENCES section label in indigo
+  - Dark mode: moon icon, label + "Follow system · On · Off" subtitle, toggle switch (indigo tint)
+  - Default currency: ? icon, label, "INR ₹" value in indigo + chevron
+  - Notifications: bell icon, label, chevron
+  - Language: globe icon, label, "English" value in indigo + chevron
+  - Dividers indented past icons (56pt leading)
+- ACCOUNT section label in indigo
+  - Payment methods · UPI: label, chevron
+  - Export all data: label, chevron
+- "Log out" text in red (not a button, just text aligned left)
+- Footer: "SplitEZ 2.4.0 · Made in India" caption centered
 
 ## Screen: 05 · MORE TAB
 
