@@ -667,60 +667,60 @@ struct AddExpenseSheet: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            VStack(spacing: 0) {
-                // Dark header – compact, fixed size
-                VStack(spacing: 8) {
-                    HStack {
-                        Button { dismiss() } label: {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(.white)
-                        }
-                        Spacer()
-                        Text("New expense")
-                            .font(.subheadline.weight(.semibold))
+        VStack(spacing: 0) {
+            // Dark header – compact, fixed size
+            VStack(spacing: 8) {
+                HStack {
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.white)
-                        Spacer()
-                        Color.clear.frame(width: 24)
                     }
+                    Spacer()
+                    Text("New expense")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(.white)
+                    Spacer()
+                    Color.clear.frame(width: 24)
+                }
 
-                    HStack(alignment: .center, spacing: 4) {
-                        Text(currencySymbols[selectedCurrency] ?? "₹")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundColor(Color.white.opacity(0.5))
+                HStack(alignment: .center, spacing: 4) {
+                    Text(currencySymbols[selectedCurrency] ?? "₹")
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundColor(Color.white.opacity(0.5))
 
-                        TextField("0", text: $amountText)
-                            .font(.system(size: 44, weight: .bold))
-                            .foregroundColor(.white)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: true, vertical: false)
+                    TextField("0", text: $amountText)
+                        .font(.system(size: 44, weight: .bold))
+                        .foregroundColor(.white)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: true, vertical: false)
 
-                        Button {
-                            showCurrencyPicker = true
-                        } label: {
-                            HStack(spacing: 4) {
-                                Text(selectedCurrency)
-                                    .font(.caption.weight(.semibold))
-                                Image(systemName: "chevron.down")
-                                    .font(.system(size: 8, weight: .bold))
-                            }
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(Capsule().fill(Color.white.opacity(0.15)))
+                    Button {
+                        showCurrencyPicker = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(selectedCurrency)
+                                .font(.caption.weight(.semibold))
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 8, weight: .bold))
                         }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Capsule().fill(Color.white.opacity(0.15)))
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-                .padding(.bottom, 32)
-                .frame(maxWidth: .infinity)
-                .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 32)
+            .frame(maxWidth: .infinity)
+            .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
 
-                // Content – white card with rounded top
-                ScrollView {
+            // Content – white card with rounded top
+            ZStack(alignment: .bottom) {
+            ScrollView {
                     VStack(spacing: 16) {
                         // Category + Description
                         HStack(spacing: 12) {
@@ -989,7 +989,6 @@ struct AddExpenseSheet: View {
                         )
                 )
                 .offset(y: -16)
-            }
 
             // Save button
             VStack(spacing: 0) {
@@ -1022,7 +1021,8 @@ struct AddExpenseSheet: View {
                     .fill(.ultraThinMaterial)
                     .ignoresSafeArea(edges: .bottom)
             )
-        }
+            } // ZStack for scroll + save
+        } // outer VStack
         .background(Color(.systemBackground))
         .confirmationDialog("Select Currency", isPresented: $showCurrencyPicker) {
             ForEach(currencies, id: \.self) { currency in
