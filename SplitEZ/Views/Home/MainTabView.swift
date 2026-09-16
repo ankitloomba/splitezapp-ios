@@ -1367,27 +1367,27 @@ struct MoreOverlaySheet: View {
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 8)
-                .padding(.bottom, 20)
+                .padding(.top, 0)
+                .padding(.bottom, 12)
 
                 // Menu items
                 VStack(spacing: 0) {
                     moreMenuRow(icon: "suitcase", iconColor: SplitEZTheme.primary, label: "Trips") {
                         TripsListView()
                     }
-                    Divider().padding(.leading, 72)
+                    Divider().padding(.leading, 68)
                     moreMenuRow(icon: "person.crop.circle", iconColor: SplitEZTheme.primary, label: "Account") {
                         EditProfileView()
                     }
-                    Divider().padding(.leading, 72)
+                    Divider().padding(.leading, 68)
                     moreMenuRow(icon: "gearshape", iconColor: SplitEZTheme.primary, label: "Settings") {
                         SettingsView()
                     }
-                    Divider().padding(.leading, 72)
+                    Divider().padding(.leading, 68)
                     moreMenuRow(icon: "questionmark.circle", iconColor: SplitEZTheme.primary, label: "Help") {
                         HelpView()
                     }
-                    Divider().padding(.leading, 72)
+                    Divider().padding(.leading, 68)
                     moreMenuRow(icon: "text.bubble", iconColor: SplitEZTheme.primary, label: "FAQ") {
                         FAQView()
                     }
