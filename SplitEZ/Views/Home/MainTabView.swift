@@ -701,9 +701,17 @@ struct AddExpenseSheet: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .top) {
+            // Dark background only covers top portion
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 200)
+                Color(.systemBackground)
+            }
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
             // Dark header – compact, fixed size
-            VStack(spacing: 8) {
+            VStack(spacing: 16) {
                 HStack {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark")
@@ -748,9 +756,7 @@ struct AddExpenseSheet: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
-            .padding(.bottom, 32)
-            .frame(maxWidth: .infinity)
-            .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
+            .padding(.bottom, 24)
 
             // Content – white card with rounded top
             ZStack(alignment: .bottom) {
@@ -1056,8 +1062,8 @@ struct AddExpenseSheet: View {
                     .ignoresSafeArea(edges: .bottom)
             )
             } // ZStack for scroll + save
-        } // outer VStack
-        .background(Color(.systemBackground))
+            } // inner VStack
+        } // outer ZStack
         .confirmationDialog("Select Currency", isPresented: $showCurrencyPicker) {
             ForEach(currencies, id: \.self) { currency in
                 Button("\(currencySymbols[currency] ?? "") \(currency)") {
