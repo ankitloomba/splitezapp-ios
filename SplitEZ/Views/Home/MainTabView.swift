@@ -183,10 +183,13 @@ struct FriendsTabView: View {
                                     if index > 0 {
                                         Divider().padding(.leading, 76)
                                     }
-                                    FriendListRow(
-                                        friend: friend,
-                                        balance: balanceFor(friend.id)
-                                    )
+                                    NavigationLink(destination: FriendLedgerView(friend: friend)) {
+                                        FriendListRow(
+                                            friend: friend,
+                                            balance: balanceFor(friend.id)
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
                                 }
                             }
 

@@ -46,6 +46,24 @@
   - Dividers between rows (indented past avatar, 76pt leading)
 - Empty state: "No friends added yet" or "No results" for search
 
+## Screen: 02B · INDIVIDUAL LEDGER (Friend Detail)
+
+### Header (dark navy #10142A)
+- Back chevron left, sparkles icon + ellipsis (three dots) icon right (white)
+- Avatar circle (56pt) with initials, name bold white, phone muted below
+- Balance: "Owes you" / "You owe" muted + large amount (32pt bold, green/red)
+- Two action buttons: "Send reminder" (indigo filled) + "Settle up" (white filled), 24pt rounded
+
+### Content Area (white, rounded top corners)
+- "Shared expenses" header with Sort button (indigo, line.3.horizontal.decrease)
+- Grouped by date: uppercase date labels (indigo, caption weight, tracked)
+- Expense rows: category icon circle (40pt, colored tint), bold description, subtitle "Payer paid ₹X · split N ways"
+  - Right side: "owes you" / "you owe" caption + amount (green/red bold)
+  - Icon colors: food=orange fork.knife, transport=indigo car.fill, shopping=pink bag
+- Settlement rows: green arrow.up circle, "[Name] paid you back", "UPI · settled partly"
+  - Right side: "received" caption + "– ₹X" amount (muted)
+- Net balance row at bottom: bold "Net balance" + colored amount, separated by divider
+
 ## Screen: 04 · ACTIVITY · SORTABLE
 
 ### Header (dark navy #10142A)
