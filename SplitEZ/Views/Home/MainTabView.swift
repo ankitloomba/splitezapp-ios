@@ -860,7 +860,7 @@ struct ActivityTabView: View {
 // MARK: - Add Expense Sheet
 
 struct AddExpenseSheet: View {
-    var prefillFriend: Friend? = nil
+    let prefillFriend: Friend?
 
     @Environment(\.dismiss) var dismiss
     @State private var amountText = ""
@@ -886,9 +886,18 @@ struct AddExpenseSheet: View {
     @State private var showGroupPicker = false
     @State private var paidByUserId: String = SampleData.currentUser.id
     @State private var showPaidByPicker = false
-    @State private var selectedParticipantIds: Set<String> = []
+    @State private var selectedParticipantIds: Set<String>
     @State private var showParticipantPicker = false
     @State private var participantSearchText = ""
+
+    init(prefillFriend: Friend? = nil) {
+        self.prefillFriend = prefillFriend
+        if let friend = prefillFriend {
+            _selectedParticipantIds = State(initialValue: [SampleData.currentUser.id, friend.id])
+        } else {
+            _selectedParticipantIds = State(initialValue: [])
+        }
+    }
 
     // For exact/percentage splits
     @State private var exactAmounts: [String: String] = [:]
@@ -1730,9 +1739,8 @@ struct AddExpenseSheet: View {
         if loaded.isEmpty { loaded = SampleData.groups }
         groups = loaded
 
-        if let friend = prefillFriend {
-            selectedParticipantIds = [SampleData.currentUser.id, friend.id]
-            paidByUserId = SampleData.currentUser.id
+        if prefillFriend != nil {
+            // Already initialized in init — don't override
         } else if let firstGroup = groups.first {
             let memberIds = Set((firstGroup.members ?? []).map(\.id))
             selectedParticipantIds = memberIds
@@ -1747,7 +1755,11 @@ struct AddExpenseSheet: View {
     private func selectGroup(_ index: Int) {
         selectedGroupIndex = index
         guard index < groups.count, let group = groups[safe: index] else { return }
-        let memberIds = Set((group.members ?? []).map(\.id))
+        var memberIds = Set((group.members ?? []).map(\.id))
+        if let friend = prefillFriend {
+            memberIds.insert(friend.id)
+            memberIds.insert(SampleData.currentUser.id)
+        }
         selectedParticipantIds = memberIds
         if let firstMember = group.members?.first(where: { $0.id == SampleData.currentUser.id }) {
             paidByUserId = firstMember.id
