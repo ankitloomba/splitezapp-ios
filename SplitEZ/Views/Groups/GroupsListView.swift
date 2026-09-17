@@ -4,13 +4,29 @@ struct GroupsListView: View {
     @State private var groups: [ExpenseGroup] = []
     @State private var isLoading = true
     @State private var showCreate = false
+    @State private var activeFilter = "All groups"
     @Environment(\.dismiss) var dismiss
     private let api = APIClient.shared
+
+    private let filters = ["All groups", "Active", "Archived"]
+
+    private static let groupStyles: [(icon: String, color: Color)] = [
+        ("house", Color(hex: "6366F1")),
+        ("clock", Color(hex: "F59E0B")),
+        ("person.3", Color(hex: "16A34A")),
+        ("fork.knife", Color(hex: "F87171")),
+        ("suitcase", Color(hex: "8B5CF6")),
+        ("cart", Color(hex: "0EA5E9")),
+    ]
+
+    private func styleForGroup(_ index: Int) -> (icon: String, color: Color) {
+        Self.groupStyles[index % Self.groupStyles.count]
+    }
 
     var body: some View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
-                SplitEZTheme.darkBg.frame(height: 120)
+                SplitEZTheme.darkBg.frame(height: 160)
                 Color(.systemBackground)
             }
             .ignoresSafeArea()
@@ -18,20 +34,55 @@ struct GroupsListView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     // Dark header
-                    HStack {
-                        Text("Groups")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.white)
-                        Spacer()
-                        Button { showCreate = true } label: {
-                            Image(systemName: "plus")
-                                .font(.system(size: 18, weight: .semibold))
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text("Groups")
+                                .font(.system(size: 28, weight: .bold))
                                 .foregroundColor(.white)
+                            Spacer()
+                            Button(action: {}) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundColor(.white)
+                            }
+                            .padding(.trailing, 8)
+                            Button { showCreate = true } label: {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .frame(width: 36, height: 36)
+                                    .background(Circle().fill(SplitEZTheme.primary))
+                            }
+                        }
+
+                        // Filter pills
+                        HStack(spacing: 8) {
+                            ForEach(filters, id: \.self) { filter in
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.2)) { activeFilter = filter }
+                                } label: {
+                                    Text(filter)
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundColor(activeFilter == filter ? .white : Color.white.opacity(0.7))
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(
+                                            Capsule()
+                                                .fill(activeFilter == filter
+                                                      ? Color.white.opacity(0.2)
+                                                      : Color.clear)
+                                        )
+                                        .overlay(
+                                            Capsule()
+                                                .stroke(Color.white.opacity(activeFilter == filter ? 0 : 0.3), lineWidth: 1)
+                                        )
+                                }
+                            }
                         }
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 8)
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 20)
                     .background(SplitEZTheme.darkBg)
 
                     // Content card
@@ -54,19 +105,20 @@ struct GroupsListView: View {
                                 if index > 0 {
                                     Divider().padding(.leading, 76)
                                 }
+                                let style = styleForGroup(index)
                                 NavigationLink(destination: GroupDetailView(group: group)) {
                                     HStack(spacing: 12) {
-                                        Image(systemName: "person.3.fill")
-                                            .font(.system(size: 16, weight: .medium))
-                                            .foregroundColor(SplitEZTheme.primary)
-                                            .frame(width: 44, height: 44)
-                                            .background(SplitEZTheme.primary.opacity(0.1))
-                                            .clipShape(Circle())
-                                        VStack(alignment: .leading, spacing: 2) {
+                                        Image(systemName: style.icon)
+                                            .font(.system(size: 18, weight: .medium))
+                                            .foregroundColor(style.color)
+                                            .frame(width: 48, height: 48)
+                                            .background(style.color.opacity(0.12))
+                                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                        VStack(alignment: .leading, spacing: 3) {
                                             Text(group.name)
                                                 .font(.subheadline.weight(.semibold))
                                                 .foregroundColor(SplitEZTheme.textPrimary)
-                                            Text("\(group.memberCount ?? 0) people · Group")
+                                            Text("\(group.memberCount ?? 0) members · unsettled")
                                                 .font(.caption)
                                                 .foregroundColor(SplitEZTheme.textSecondary)
                                         }
@@ -76,7 +128,7 @@ struct GroupsListView: View {
                                             .foregroundColor(SplitEZTheme.textTertiary)
                                     }
                                     .padding(.horizontal, 20)
-                                    .padding(.vertical, 10)
+                                    .padding(.vertical, 12)
                                 }
                                 .buttonStyle(.plain)
                             }
