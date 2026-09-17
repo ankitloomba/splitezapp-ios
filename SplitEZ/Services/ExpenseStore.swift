@@ -27,6 +27,12 @@ class ExpenseStore: ObservableObject {
         if !fetchedActivities.isEmpty { activities = fetchedActivities }
     }
 
+    func updateExpense(_ expense: Expense) {
+        if let index = expenses.firstIndex(where: { $0.id == expense.id }) {
+            expenses[index] = expense
+        }
+    }
+
     func addExpense(_ expense: Expense) {
         expenses.insert(expense, at: 0)
 

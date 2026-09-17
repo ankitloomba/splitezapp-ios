@@ -868,18 +868,20 @@ struct ActivityTabView: View {
 
 struct AddExpenseSheet: View {
     let prefillFriend: Friend?
+    let editExpense: Expense?
+    let editingId: String?
 
     @Environment(\.dismiss) var dismiss
-    @State private var amountText = ""
-    @State private var description = ""
-    @State private var selectedCurrency = "INR"
-    @State private var selectedCategory: ExpenseCategory = .food
+    @State private var amountText: String
+    @State private var description: String
+    @State private var selectedCurrency: String
+    @State private var selectedCategory: ExpenseCategory
     @State private var showCategoryPicker = false
-    @State private var splitMethod = "EQUAL"
-    @State private var note = ""
-    @State private var expenseDate = Date()
+    @State private var splitMethod: String
+    @State private var note: String
+    @State private var expenseDate: Date
     @State private var showDatePicker = false
-    @State private var showNotesField = false
+    @State private var showNotesField: Bool
     @State private var showSplitBreakdown = false
     @State private var isLoading = false
     @State private var error: String?
@@ -891,18 +893,46 @@ struct AddExpenseSheet: View {
     @State private var groups: [ExpenseGroup] = []
     @State private var selectedGroupIndex: Int? = nil
     @State private var showGroupPicker = false
-    @State private var paidByUserId: String = SampleData.currentUser.id
+    @State private var paidByUserId: String
     @State private var showPaidByPicker = false
     @State private var selectedParticipantIds: Set<String>
     @State private var showParticipantPicker = false
     @State private var participantSearchText = ""
 
-    init(prefillFriend: Friend? = nil) {
+    init(prefillFriend: Friend? = nil, expense: Expense? = nil) {
         self.prefillFriend = prefillFriend
-        if let friend = prefillFriend {
-            _selectedParticipantIds = State(initialValue: [SampleData.currentUser.id, friend.id])
+        self.editExpense = expense
+        self.editingId = expense?.id
+
+        if let exp = expense {
+            _amountText = State(initialValue: String(format: "%.2f", Double(exp.amount) / 100.0))
+            _description = State(initialValue: exp.description)
+            _selectedCurrency = State(initialValue: exp.currency)
+            _selectedCategory = State(initialValue: ExpenseCategory(rawValue: exp.category ?? "other") ?? .other)
+            _splitMethod = State(initialValue: exp.splitMethod)
+            _note = State(initialValue: exp.note ?? "")
+            _showNotesField = State(initialValue: exp.note != nil && !exp.note!.isEmpty)
+            let iso = ISO8601DateFormatter()
+            _expenseDate = State(initialValue: iso.date(from: exp.createdAt) ?? Date())
+            _paidByUserId = State(initialValue: exp.paidBy?.id ?? SampleData.currentUser.id)
+            let splitIds = Set(exp.splits?.compactMap(\.userId) ?? [])
+            let participantIds = splitIds.isEmpty ? Set([SampleData.currentUser.id, exp.paidBy?.id ?? SampleData.currentUser.id]) : splitIds
+            _selectedParticipantIds = State(initialValue: participantIds)
         } else {
-            _selectedParticipantIds = State(initialValue: [])
+            _amountText = State(initialValue: "")
+            _description = State(initialValue: "")
+            _selectedCurrency = State(initialValue: "INR")
+            _selectedCategory = State(initialValue: .food)
+            _splitMethod = State(initialValue: "EQUAL")
+            _note = State(initialValue: "")
+            _showNotesField = State(initialValue: false)
+            _expenseDate = State(initialValue: Date())
+            _paidByUserId = State(initialValue: SampleData.currentUser.id)
+            if let friend = prefillFriend {
+                _selectedParticipantIds = State(initialValue: [SampleData.currentUser.id, friend.id])
+            } else {
+                _selectedParticipantIds = State(initialValue: [])
+            }
         }
     }
 
@@ -1002,7 +1032,7 @@ struct AddExpenseSheet: View {
                             .foregroundColor(.white)
                     }
                     Spacer()
-                    Text("New expense")
+                    Text(editExpense != nil ? "Edit expense" : "New expense")
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(.white)
                     Spacer()
@@ -1746,7 +1776,11 @@ struct AddExpenseSheet: View {
         if loaded.isEmpty { loaded = SampleData.groups }
         groups = loaded
 
-        if prefillFriend != nil {
+        if editExpense != nil {
+            if let gid = editExpense?.groupId, let idx = groups.firstIndex(where: { $0.id == gid }) {
+                selectedGroupIndex = idx
+            }
+        } else if prefillFriend != nil {
             // Already initialized in init — don't override
         } else if let firstGroup = groups.first {
             let memberIds = Set((firstGroup.members ?? []).map(\.id))
@@ -1826,13 +1860,13 @@ struct AddExpenseSheet: View {
             let splits = participantList.map { p in
                 ExpenseSplit(
                     userId: p.userId,
-                    user: members.first(where: { $0.id == p.userId }),
+                    user: allPeople.first(where: { $0.id == p.userId }),
                     shareAmount: p.shareAmount ?? (amount / participants.count),
                     percentageBps: p.percentageBps
                 )
             }
             savedExpense = Expense(
-                id: "e_\(UUID().uuidString.prefix(8))",
+                id: editingId ?? "e_\(UUID().uuidString.prefix(8))",
                 description: description,
                 amount: amount,
                 currency: selectedCurrency,
@@ -1850,7 +1884,11 @@ struct AddExpenseSheet: View {
             )
         }
         if let expense = savedExpense {
-            ExpenseStore.shared.addExpense(expense)
+            if editingId != nil {
+                ExpenseStore.shared.updateExpense(expense)
+            } else {
+                ExpenseStore.shared.addExpense(expense)
+            }
         }
         isLoading = false
         dismiss()
