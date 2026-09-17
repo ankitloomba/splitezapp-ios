@@ -78,7 +78,7 @@ struct GroupsListView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
 
-            // Content — scrollable
+            // Content — scrollable, with rounded top corners over dark bg
             ScrollView {
                 VStack(spacing: 0) {
                     if groups.isEmpty && !isLoading {
@@ -130,8 +130,17 @@ struct GroupsListView: View {
 
                     Spacer().frame(height: 80)
                 }
+                .background(Color(.systemBackground))
+                .clipShape(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 20,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 20
+                    )
+                )
             }
-            .background(Color(.systemBackground))
+            .background(SplitEZTheme.darkBg)
         }
         .navigationBarHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
