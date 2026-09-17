@@ -701,16 +701,8 @@ struct AddExpenseSheet: View {
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            // Dark background only covers top portion
-            VStack(spacing: 0) {
-                SplitEZTheme.darkBg.frame(height: 200)
-                Color(.systemBackground)
-            }
-            .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-            // Dark header – compact, fixed size
+        VStack(spacing: 0) {
+            // Dark header – pinned, not in scroll
             VStack(spacing: 16) {
                 HStack {
                     Button { dismiss() } label: {
@@ -757,8 +749,10 @@ struct AddExpenseSheet: View {
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 24)
+            .frame(maxWidth: .infinity)
+            .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
 
-            // Content – white card with rounded top
+            // Content – scrollable with save button
             ZStack(alignment: .bottom) {
             ScrollView {
                     VStack(spacing: 16) {
@@ -1019,16 +1013,7 @@ struct AddExpenseSheet: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 24)
                 }
-                .background(
-                    Color(.systemBackground)
-                        .clipShape(
-                            UnevenRoundedRectangle(
-                                topLeadingRadius: 24,
-                                topTrailingRadius: 24
-                            )
-                        )
-                )
-                .offset(y: -16)
+                .background(Color(.systemBackground))
 
             // Save button
             VStack(spacing: 0) {
@@ -1062,8 +1047,7 @@ struct AddExpenseSheet: View {
                     .ignoresSafeArea(edges: .bottom)
             )
             } // ZStack for scroll + save
-            } // inner VStack
-        } // outer ZStack
+        } // outer VStack
         .confirmationDialog("Select Currency", isPresented: $showCurrencyPicker) {
             ForEach(currencies, id: \.self) { currency in
                 Button("\(currencySymbols[currency] ?? "") \(currency)") {
