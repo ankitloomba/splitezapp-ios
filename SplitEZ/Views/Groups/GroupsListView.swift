@@ -130,6 +130,7 @@ struct GroupsListView: View {
 
                     Spacer().frame(height: 80)
                 }
+                .frame(maxWidth: .infinity, minHeight: UIScreen.main.bounds.height)
                 .background(Color(.systemBackground))
                 .clipShape(
                     UnevenRoundedRectangle(
