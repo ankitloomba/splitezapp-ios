@@ -237,7 +237,10 @@ struct HomeView: View {
         }
     }
 
-    private func groupBalance(_ groupId: String) -> Int { 0 } // TODO: from API
+    private func groupBalance(_ groupId: String) -> Int {
+        SampleData.groupBalances[groupId] ?? 0
+    }
+
     private func tripBalance(_ tripId: String) -> Int { 0 }
 
     // MARK: – Empty state
@@ -265,6 +268,12 @@ struct HomeView: View {
         trips = await t
         banners = await p
         dashboardElements = await d
+
+        // Use sample data when API returns nothing
+        if balances.isEmpty { balances = SampleData.balances }
+        if groups.isEmpty { groups = SampleData.groups }
+        if trips.isEmpty { trips = SampleData.trips }
+
         isLoading = false
         await AdManager.shared.loadPlacements(screen: "home")
     }

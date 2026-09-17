@@ -153,6 +153,7 @@ struct GroupsListView: View {
     private func loadGroups() async {
         isLoading = true
         groups = (try? await api.get("/groups")) ?? []
+        if groups.isEmpty { groups = SampleData.groups }
         isLoading = false
     }
 }

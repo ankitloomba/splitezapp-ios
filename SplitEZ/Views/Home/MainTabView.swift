@@ -341,6 +341,8 @@ struct FriendsTabView: View {
         friends = await f
         balances = await b
         pendingRequests = await r
+        if friends.isEmpty { friends = SampleData.friends }
+        if balances.isEmpty { balances = SampleData.balances }
         isLoading = false
     }
 
@@ -597,6 +599,7 @@ struct ActivityTabView: View {
             .task {
                 let feed: PaginatedResponse<Activity> = (try? await api.get("/activity/feed", query: ["limit": "50"])) ?? PaginatedResponse(items: [], nextCursor: nil)
                 activities = feed.items
+                if activities.isEmpty { activities = SampleData.activities }
             }
         }
     }
