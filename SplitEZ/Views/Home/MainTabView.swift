@@ -681,6 +681,7 @@ struct AddExpenseSheet: View {
     @State private var isLoading = false
     @State private var error: String?
     @State private var showCurrencyPicker = false
+    @State private var showValidation = false
     @State private var showSplitMethodPicker = false
 
     // Group & member selection
@@ -1077,10 +1078,18 @@ struct AddExpenseSheet: View {
                                 )
                         }
 
+                        if let msg = showValidation ? validationMessage : nil {
+                            Text(msg)
+                                .font(.caption)
+                                .foregroundColor(SplitEZTheme.negative)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+
                         if let error {
                             Text(error)
                                 .font(.caption)
                                 .foregroundColor(SplitEZTheme.negative)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
 
                         Spacer().frame(height: 80)
@@ -1093,7 +1102,11 @@ struct AddExpenseSheet: View {
                 // Save button
                 VStack(spacing: 0) {
                     Button {
-                        Task { await saveExpense() }
+                        if canSave {
+                            Task { await saveExpense() }
+                        } else {
+                            withAnimation { showValidation = true }
+                        }
                     } label: {
                         if isLoading {
                             ProgressView()
@@ -1112,7 +1125,7 @@ struct AddExpenseSheet: View {
                         RoundedRectangle(cornerRadius: 28, style: .continuous)
                             .fill(canSave ? SplitEZTheme.primary : SplitEZTheme.primary.opacity(0.4))
                     )
-                    .disabled(!canSave || isLoading)
+                    .disabled(isLoading)
                     .padding(.horizontal, 20)
                     .padding(.bottom, 8)
                 }
@@ -1272,20 +1285,24 @@ struct AddExpenseSheet: View {
         return fmt.string(from: expenseDate)
     }
 
-    private var canSave: Bool {
-        guard !description.isEmpty, let amt = Double(amountText), amt > 0, !participants.isEmpty else {
-            return false
-        }
+    private var validationMessage: String? {
+        let amt = Double(amountText) ?? 0
+        if amt <= 0 { return "Enter an amount" }
+        if description.trimmingCharacters(in: .whitespaces).isEmpty { return "Add a description" }
+        if paidByUser == nil { return "Select who paid" }
+        if participants.isEmpty { return "Select who to split with" }
         if splitMethod == "EXACT" {
             let total = participants.reduce(0.0) { $0 + (Double(exactAmounts[$1.id] ?? "0") ?? 0) }
-            return abs(total - amt) < 0.01
+            if abs(total - amt) >= 0.01 { return "Exact amounts must add up to \(currSymbol)\(amountText)" }
         }
         if splitMethod == "PERCENTAGE" {
             let total = participants.reduce(0.0) { $0 + (Double(percentages[$1.id] ?? "0") ?? 0) }
-            return abs(total - 100) < 0.01
+            if abs(total - 100) >= 0.01 { return "Percentages must add up to 100%" }
         }
-        return true
+        return nil
     }
+
+    private var canSave: Bool { validationMessage == nil }
 
     // MARK: – Data loading
 
