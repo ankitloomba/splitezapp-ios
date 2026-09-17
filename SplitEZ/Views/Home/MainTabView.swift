@@ -9,14 +9,16 @@ struct MainTabView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
-                HomeView()
-                    .tag(0)
-
                 FriendsTabView()
-                    .tag(1)
+                    .tag(0)
 
                 NavigationStack {
                     GroupsListView()
+                }
+                .tag(1)
+
+                NavigationStack {
+                    TripsListView()
                 }
                 .tag(2)
 
@@ -61,7 +63,7 @@ struct MainTabView: View {
                 .presentationDragIndicator(.visible)
         }
         .onChange(of: selectedTab) { oldTab, tab in
-            let screens = ["home", "friends", "groups", "activity"]
+            let screens = ["friends", "groups", "trips", "activity"]
             if tab < screens.count {
                 previousTab = oldTab
                 Task { await AnalyticsTracker.shared.trackScreen(screens[tab]) }
@@ -69,7 +71,7 @@ struct MainTabView: View {
         }
         .task {
             await AnalyticsTracker.shared.startSession()
-            await AnalyticsTracker.shared.trackScreen("home")
+            await AnalyticsTracker.shared.trackScreen("friends")
         }
     }
 
@@ -77,9 +79,9 @@ struct MainTabView: View {
 
     private var customTabBar: some View {
         HStack(spacing: 0) {
-            tabButton(activeIcon: "house.fill", inactiveIcon: "house", label: "Home", tag: 0)
-            tabButton(activeIcon: "person.2.fill", inactiveIcon: "person.2", label: "Friends", tag: 1)
-            tabButton(activeIcon: "person.3.fill", inactiveIcon: "person.3", label: "Groups", tag: 2)
+            tabButton(activeIcon: "person.2.fill", inactiveIcon: "person.2", label: "Friends", tag: 0)
+            tabButton(activeIcon: "person.3.fill", inactiveIcon: "person.3", label: "Groups", tag: 1)
+            tabButton(activeIcon: "paperplane.fill", inactiveIcon: "paperplane", label: "Trips", tag: 2)
             tabButton(activeIcon: "arrow.triangle.branch", inactiveIcon: "arrow.triangle.branch", label: "Activity", tag: 3)
 
             // More button — opens sheet overlay
