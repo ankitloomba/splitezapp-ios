@@ -21,6 +21,7 @@
 		A100000009 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000009; };
 		A100000010 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000010; };
 		A100000011 /* ExpenseViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000011; };
+		A100000030 /* ExpenseDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000030; };
 		A100000012 /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000012; };
 		A100000013 /* FinancesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000013; };
 		A100000014 /* GroupsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000014; };
@@ -48,6 +49,7 @@
 		B100000009 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		B100000010 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		B100000011 /* ExpenseViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseViews.swift; sourceTree = "<group>"; };
+		B100000030 /* ExpenseDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseDetailView.swift; sourceTree = "<group>"; };
 		B100000012 /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
 		B100000013 /* FinancesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancesView.swift; sourceTree = "<group>"; };
 		B100000014 /* GroupsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupsListView.swift; sourceTree = "<group>"; };
@@ -162,6 +164,7 @@
 			isa = PBXGroup;
 			children = (
 				B100000011 /* ExpenseViews.swift */,
+				B100000030 /* ExpenseDetailView.swift */,
 			);
 			path = Expenses;
 			sourceTree = "<group>";
@@ -329,6 +332,7 @@
 				A100000009 /* Theme.swift in Sources */,
 				A100000010 /* LoginView.swift in Sources */,
 				A100000011 /* ExpenseViews.swift in Sources */,
+				A100000030 /* ExpenseDetailView.swift in Sources */,
 				A100000012 /* ExportView.swift in Sources */,
 				A100000013 /* FinancesView.swift in Sources */,
 				A100000014 /* GroupsListView.swift in Sources */,

@@ -727,7 +727,14 @@ struct ActivityTabView: View {
                                         .padding(.bottom, 8)
 
                                     ForEach(items) { activity in
-                                        ActivityRow(activity: activity)
+                                        if let expense = store.expenses.first(where: { $0.id == activity.entityId }) {
+                                            NavigationLink(destination: ExpenseDetailView(expense: expense)) {
+                                                ActivityRow(activity: activity)
+                                            }
+                                            .buttonStyle(.plain)
+                                        } else {
+                                            ActivityRow(activity: activity)
+                                        }
                                         if activity.id != items.last?.id {
                                             Divider()
                                                 .padding(.leading, 72)

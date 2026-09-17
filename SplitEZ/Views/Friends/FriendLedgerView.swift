@@ -34,7 +34,12 @@ struct FriendLedgerView: View {
             entries.append((
                 id: expense.id,
                 date: expense.createdAt,
-                view: AnyView(expenseRow(expense))
+                view: AnyView(
+                    NavigationLink(destination: ExpenseDetailView(expense: expense)) {
+                        expenseRow(expense)
+                    }
+                    .buttonStyle(.plain)
+                )
             ))
         }
         for settlement in settlements {
