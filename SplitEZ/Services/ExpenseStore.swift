@@ -31,7 +31,7 @@ class ExpenseStore: ObservableObject {
         expenses.insert(expense, at: 0)
 
         // Update balances based on the new expense
-        let participantIds = expense.splits?.map(\.userId) ?? []
+        let participantIds = expense.splits?.compactMap(\.userId) ?? []
         let paidById = expense.paidBy?.id ?? SampleData.currentUser.id
         let splitCount = max(participantIds.count, 1)
         let perPersonShare = expense.amount / splitCount
