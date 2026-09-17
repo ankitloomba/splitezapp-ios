@@ -860,6 +860,8 @@ struct ActivityTabView: View {
 // MARK: - Add Expense Sheet
 
 struct AddExpenseSheet: View {
+    var prefillFriend: Friend? = nil
+
     @Environment(\.dismiss) var dismiss
     @State private var amountText = ""
     @State private var description = ""
@@ -1640,9 +1642,11 @@ struct AddExpenseSheet: View {
         var loaded: [ExpenseGroup] = (try? await api.get("/groups")) ?? []
         if loaded.isEmpty { loaded = SampleData.groups }
         groups = loaded
-        // Don't auto-select a group; default to "Select"
-        // Pre-populate participants from first group's members so split works
-        if let firstGroup = groups.first {
+
+        if let friend = prefillFriend {
+            selectedParticipantIds = [SampleData.currentUser.id, friend.id]
+            paidByUserId = SampleData.currentUser.id
+        } else if let firstGroup = groups.first {
             let memberIds = Set((firstGroup.members ?? []).map(\.id))
             selectedParticipantIds = memberIds
             if firstGroup.members?.contains(where: { $0.id == SampleData.currentUser.id }) == true {

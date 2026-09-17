@@ -13,6 +13,7 @@ struct FriendLedgerView: View {
     @State private var showSortPicker = false
     @State private var sortOrder = "newest"
     @State private var showMoreMenu = false
+    @State private var showAddExpense = false
     @State private var settleAmount = ""
     @Environment(\.dismiss) var dismiss
     private let api = APIClient.shared
@@ -59,15 +60,31 @@ struct FriendLedgerView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            Color(.systemBackground).ignoresSafeArea()
+        ZStack(alignment: .bottomTrailing) {
+            ZStack(alignment: .top) {
+                Color(.systemBackground).ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: 0) {
-                    ledgerHeader
-                    contentCard
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ledgerHeader
+                        contentCard
+                    }
                 }
             }
+
+            Button { showAddExpense = true } label: {
+                ZStack {
+                    Circle()
+                        .fill(SplitEZTheme.primary)
+                        .frame(width: 56, height: 56)
+                        .shadow(color: SplitEZTheme.primary.opacity(0.3), radius: 10, y: 4)
+                    Image(systemName: "plus")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.white)
+                }
+            }
+            .padding(.trailing, 20)
+            .padding(.bottom, 24)
         }
         .navigationBarHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
@@ -86,6 +103,9 @@ struct FriendLedgerView: View {
             Button("Send reminder") { showReminderShare = true }
             Button("Settle up") { showSettleUp = true }
             Button("Cancel", role: .cancel) {}
+        }
+        .fullScreenCover(isPresented: $showAddExpense) {
+            AddExpenseSheet(prefillFriend: friend)
         }
     }
 
