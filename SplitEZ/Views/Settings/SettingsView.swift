@@ -4,6 +4,7 @@ import LocalAuthentication
 struct SettingsView: View {
     @EnvironmentObject var auth: AuthService
     @State private var isPlusUser = false
+    @State private var showContactShare = false
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -39,25 +40,43 @@ struct SettingsView: View {
 
                         sectionLabel("HELP & SUPPORT")
 
-                        HStack(spacing: 12) {
-                            Image(systemName: "envelope")
-                                .font(.system(size: 16))
-                                .foregroundColor(SplitEZTheme.textSecondary)
-                            Text("Contact us")
-                                .font(.subheadline)
-                                .foregroundColor(SplitEZTheme.textPrimary)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(SplitEZTheme.textTertiary)
+                        Button { showContactShare = true } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "envelope")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(SplitEZTheme.textSecondary)
+                                Text("Contact us")
+                                    .font(.subheadline)
+                                    .foregroundColor(SplitEZTheme.textPrimary)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 14)
+                        .buttonStyle(.plain)
                         rowDivider
 
-                        settingsRow(label: "Rate SplitEZ") {
-                            Text("Rate SplitEZ coming soon").navigationTitle("Rate SplitEZ")
+                        Button {
+                            if let url = URL(string: "itms-apps://itunes.apple.com/app/id0000000000?action=write-review") {
+                                UIApplication.shared.open(url)
+                            }
+                        } label: {
+                            HStack {
+                                Text("Rate SplitEZ")
+                                    .font(.subheadline)
+                                    .foregroundColor(SplitEZTheme.textPrimary)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
                         }
+                        .buttonStyle(.plain)
 
                         Button {
                             Task { await auth.logout() }
@@ -109,6 +128,9 @@ struct SettingsView: View {
         }
         .navigationBarHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
+        .sheet(isPresented: $showContactShare) {
+            ShareSheetView(items: ["mailto:support@splitez.app"])
+        }
     }
 
     // MARK: - Header

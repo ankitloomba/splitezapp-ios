@@ -125,6 +125,11 @@ struct TripDetailView: View {
     @State private var balances: [Balance] = []
     @State private var showAddExpense = false
     @State private var isLoading = true
+    @State private var showRemindShare = false
+    @State private var showExportShare = false
+    @State private var showMoreMenu = false
+    @State private var showFilterPicker = false
+    @State private var filterCategory = "All"
     @Environment(\.dismiss) var dismiss
     private let api = APIClient.shared
 
@@ -206,7 +211,57 @@ struct TripDetailView: View {
                 onCreated: { await loadData() }
             )
         }
+        .sheet(isPresented: $showRemindShare) {
+            ShareSheetView(items: [remindAllText])
+        }
+        .sheet(isPresented: $showExportShare) {
+            ShareSheetView(items: [exportTripText()])
+        }
+        .confirmationDialog("Options", isPresented: $showMoreMenu) {
+            Button("Remind all") { showRemindShare = true }
+            Button("Export") { showExportShare = true }
+            Button("Cancel", role: .cancel) {}
+        }
+        .confirmationDialog("Filter by category", isPresented: $showFilterPicker) {
+            Button("All") { filterCategory = "All" }
+            Button("Food") { filterCategory = "Food" }
+            Button("Transport") { filterCategory = "Transport" }
+            Button("Stay") { filterCategory = "Stay" }
+            Button("Shopping") { filterCategory = "Shopping" }
+        }
         .task { await loadData() }
+    }
+
+    private var filteredExpenses: [Expense] {
+        if filterCategory == "All" { return expenses }
+        return expenses.filter { ($0.category ?? "").localizedCaseInsensitiveContains(filterCategory) }
+    }
+
+    private var remindAllText: String {
+        let members = (trip.members ?? []).map(\.firstName).joined(separator: ", ")
+        return "Hey everyone (\(members))! Please settle up your expenses for \(trip.name) on SplitEZ. Total spend: \(formatAmount(totalSpend))."
+    }
+
+    private func exportTripText() -> String {
+        var text = "Trip: \(trip.name)\n"
+        if let dest = trip.destination { text += "Destination: \(dest)\n" }
+        text += "Members: \(memberNames.joined(separator: ", "))\n"
+        text += "Total spend: \(formatAmount(totalSpend))\n\n"
+        text += "Expenses:\n"
+        for expense in expenses {
+            let payer = expense.paidBy?.firstName ?? "Someone"
+            text += "  \(expense.description) — \(expense.amountFormatted) (paid by \(payer))\n"
+        }
+        if !balances.isEmpty {
+            text += "\nBalances:\n"
+            for b in balances {
+                let name = b.user?.displayName ?? "Unknown"
+                let amt = formatAmount(abs(b.amount))
+                text += b.amount > 0 ? "  \(name) owes you \(amt)\n" : "  You owe \(name) \(amt)\n"
+            }
+        }
+        text += "\nExported from SplitEZ"
+        return text
     }
 
     private var tripHeader: some View {
@@ -218,7 +273,7 @@ struct TripDetailView: View {
                         .foregroundColor(.white)
                 }
                 Spacer()
-                Button(action: {}) {
+                Button { showExportShare = true } label: {
                     Image(systemName: "square.and.arrow.down")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.white)
@@ -230,7 +285,7 @@ struct TripDetailView: View {
                         .foregroundColor(.white)
                 }
                 .padding(.trailing, 8)
-                Button(action: {}) {
+                Button { showMoreMenu = true } label: {
                     Image(systemName: "ellipsis")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.white)
@@ -300,7 +355,7 @@ struct TripDetailView: View {
             }
 
             HStack(spacing: 12) {
-                Button(action: {}) {
+                Button { showRemindShare = true } label: {
                     Text("Remind all")
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(.white)
@@ -311,7 +366,7 @@ struct TripDetailView: View {
                                 .fill(SplitEZTheme.primary)
                         )
                 }
-                Button(action: {}) {
+                Button { showExportShare = true } label: {
                     Text("Export")
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(SplitEZTheme.textPrimary)
@@ -370,11 +425,11 @@ struct TripDetailView: View {
                     .font(.headline)
                     .foregroundColor(SplitEZTheme.textPrimary)
                 Spacer()
-                Button(action: {}) {
+                Button { showFilterPicker = true } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "line.3.horizontal.decrease")
                             .font(.caption)
-                        Text("Filter")
+                        Text(filterCategory == "All" ? "Filter" : filterCategory)
                             .font(.subheadline.weight(.medium))
                     }
                     .foregroundColor(SplitEZTheme.primary)
@@ -391,7 +446,7 @@ struct TripDetailView: View {
                     .padding(.horizontal, 20)
                     .padding(.vertical, 40)
             } else {
-                ForEach(Array(expenses.enumerated()), id: \.element.id) { index, expense in
+                ForEach(Array(filteredExpenses.enumerated()), id: \.element.id) { index, expense in
                     if index > 0 {
                         Divider().padding(.leading, 72)
                     }

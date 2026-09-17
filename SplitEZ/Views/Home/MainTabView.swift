@@ -150,12 +150,27 @@ struct FriendsTabView: View {
     @State private var balances: [Balance] = []
     @State private var searchText = ""
     @State private var isLoading = true
+    @State private var showSortPicker = false
+    @State private var sortOption = "name"
+    @State private var showAddFriend = false
+    @State private var showQRCode = false
+    @State private var addFriendPhone = ""
+    @State private var addFriendError: String?
+    @State private var isAddingFriend = false
     private let api = APIClient.shared
 
     private var filteredFriends: [Friend] {
-        if searchText.isEmpty { return friends }
-        return friends.filter {
-            $0.displayName.localizedCaseInsensitiveContains(searchText)
+        var result = friends
+        if !searchText.isEmpty {
+            result = result.filter { $0.displayName.localizedCaseInsensitiveContains(searchText) }
+        }
+        switch sortOption {
+        case "balance":
+            return result.sorted { abs(balanceFor($0.id)) > abs(balanceFor($1.id)) }
+        case "recent":
+            return result.sorted { ($0.lastActiveAt ?? "") > ($1.lastActiveAt ?? "") }
+        default:
+            return result.sorted { $0.displayName < $1.displayName }
         }
     }
 
@@ -190,8 +205,7 @@ struct FriendsTabView: View {
                                     .font(.headline)
                                     .foregroundColor(SplitEZTheme.textSecondary)
                                 Spacer()
-                                Button {
-                                } label: {
+                                Button { showSortPicker = true } label: {
                                     HStack(spacing: 4) {
                                         Image(systemName: "line.3.horizontal.decrease")
                                             .font(.caption)
@@ -240,7 +254,121 @@ struct FriendsTabView: View {
             .navigationBarHidden(true)
             .toolbarBackground(.hidden, for: .navigationBar)
             .task { await loadData() }
+            .confirmationDialog("Sort friends", isPresented: $showSortPicker) {
+                Button("Name (A–Z)") { sortOption = "name" }
+                Button("Highest balance") { sortOption = "balance" }
+                Button("Recently active") { sortOption = "recent" }
+            }
+            .sheet(isPresented: $showAddFriend) {
+                addFriendSheet
+            }
+            .sheet(isPresented: $showQRCode) {
+                qrCodeSheet
+            }
         }
+    }
+
+    // MARK: – Add Friend Sheet
+
+    private var addFriendSheet: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Text("Add a friend by phone number")
+                    .font(.subheadline)
+                    .foregroundColor(SplitEZTheme.textSecondary)
+
+                TextField("+91 98765 43210", text: $addFriendPhone)
+                    .keyboardType(.phonePad)
+                    .font(.title3)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(Color(.systemGray6))
+                    )
+
+                if let error = addFriendError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundColor(SplitEZTheme.negative)
+                }
+
+                Button {
+                    Task { await sendFriendRequest() }
+                } label: {
+                    if isAddingFriend {
+                        ProgressView().tint(.white)
+                            .frame(maxWidth: .infinity).padding(.vertical, 14)
+                    } else {
+                        Text("Send friend request")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                    }
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(addFriendPhone.isEmpty ? SplitEZTheme.primary.opacity(0.4) : SplitEZTheme.primary)
+                )
+                .disabled(addFriendPhone.isEmpty || isAddingFriend)
+
+                Spacer()
+            }
+            .padding(20)
+            .navigationTitle("Add Friend")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { showAddFriend = false }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private var qrCodeSheet: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                Image(systemName: "qrcode")
+                    .font(.system(size: 120))
+                    .foregroundColor(SplitEZTheme.primary)
+
+                Text("Share your QR code")
+                    .font(.headline)
+
+                Text("Friends can scan this to add you on SplitEZ")
+                    .font(.subheadline)
+                    .foregroundColor(SplitEZTheme.textSecondary)
+                    .multilineTextAlignment(.center)
+
+                Spacer()
+            }
+            .padding(20)
+            .padding(.top, 40)
+            .navigationTitle("My QR Code")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { showQRCode = false }
+                }
+            }
+        }
+    }
+
+    private func sendFriendRequest() async {
+        isAddingFriend = true
+        addFriendError = nil
+        struct AddFriendReq: Codable { let phone: String }
+        do {
+            let _: AnyCodable = try await api.post("/friend-requests", body: AddFriendReq(phone: addFriendPhone))
+            showAddFriend = false
+            addFriendPhone = ""
+            await loadData()
+        } catch {
+            addFriendError = "Could not send request. Check the phone number."
+        }
+        isAddingFriend = false
     }
 
     // MARK: – Pending Requests
@@ -288,13 +416,13 @@ struct FriendsTabView: View {
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.white)
                 Spacer()
-                Button(action: {}) {
+                Button { showQRCode = true } label: {
                     Image(systemName: "qrcode")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(.white)
                 }
                 .padding(.trailing, 12)
-                Button(action: {}) {
+                Button { showAddFriend = true } label: {
                     Image(systemName: "person.badge.plus")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(.white)
@@ -501,8 +629,37 @@ struct ActivityTabView: View {
     @State private var activities: [Activity] = []
     @State private var activeSort = "Date"
     @State private var searchText = ""
+    @State private var showSearch = false
+    @State private var showExportShare = false
     private let api = APIClient.shared
     private let sortOptions = ["Date", "Name", "Type", "Amount"]
+
+    private var sortedActivities: [Activity] {
+        var result = activities
+        if !searchText.isEmpty {
+            result = result.filter { activity in
+                let desc = (activity.metadata?["description"]?.value as? String) ?? ""
+                let name = activity.user?.firstName ?? ""
+                let groupName = (activity.metadata?["groupName"]?.value as? String) ?? ""
+                let query = searchText.lowercased()
+                return desc.lowercased().contains(query) || name.lowercased().contains(query) || groupName.lowercased().contains(query) || activity.type.lowercased().contains(query)
+            }
+        }
+        switch activeSort {
+        case "Name":
+            return result.sorted { ($0.user?.firstName ?? "") < ($1.user?.firstName ?? "") }
+        case "Type":
+            return result.sorted { $0.type < $1.type }
+        case "Amount":
+            return result.sorted {
+                let a = ($0.metadata?["amount"]?.value as? Int) ?? 0
+                let b = ($1.metadata?["amount"]?.value as? Int) ?? 0
+                return abs(a) > abs(b)
+            }
+        default:
+            return result.sorted { $0.createdAt > $1.createdAt }
+        }
+    }
 
     /// Group activities by day label (TODAY, YESTERDAY, or date)
     private var groupedActivities: [(String, [Activity])] {
@@ -513,7 +670,7 @@ struct ActivityTabView: View {
         var groups: [String: [Activity]] = [:]
         var order: [String] = []
 
-        for activity in activities {
+        for activity in sortedActivities {
             let label: String
             if let date = parseDate(activity.createdAt) {
                 let day = calendar.startOfDay(for: date)
@@ -601,7 +758,26 @@ struct ActivityTabView: View {
                 activities = feed.items
                 if activities.isEmpty { activities = SampleData.activities }
             }
+            .sheet(isPresented: $showExportShare) {
+                ShareSheetView(items: [exportActivityText()])
+            }
         }
+    }
+
+    private func exportActivityText() -> String {
+        var text = "SplitEZ Activity Export\n\n"
+        for (label, items) in groupedActivities {
+            text += "\(label)\n"
+            for activity in items {
+                let name = activity.user?.firstName ?? "Someone"
+                let desc = (activity.metadata?["description"]?.value as? String) ?? activity.type
+                let amt = activity.metadata?["amount"]?.value as? Int
+                let amtStr = amt != nil ? " — \(formatAmount(abs(amt!)))" : ""
+                text += "  \(name): \(desc)\(amtStr)\n"
+            }
+            text += "\n"
+        }
+        return text
     }
 
     // MARK: – Activity Header
@@ -614,17 +790,41 @@ struct ActivityTabView: View {
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(.white)
                 Spacer()
-                Button(action: {}) {
+                Button { withAnimation { showSearch.toggle(); if !showSearch { searchText = "" } } } label: {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(.white)
                 }
                 .padding(.trailing, 12)
-                Button(action: {}) {
+                Button { showExportShare = true } label: {
                     Image(systemName: "square.and.arrow.down")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(.white)
                 }
+            }
+
+            if showSearch {
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 14))
+                        .foregroundColor(SplitEZTheme.textTertiary)
+                    TextField("Search activity", text: $searchText)
+                        .font(.subheadline)
+                        .foregroundColor(.white)
+                    if !searchText.isEmpty {
+                        Button { searchText = "" } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(SplitEZTheme.textTertiary)
+                        }
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color.white.opacity(0.1))
+                )
             }
 
             // Sort pills

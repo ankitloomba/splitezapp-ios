@@ -224,9 +224,23 @@ struct HomeView: View {
 
     // MARK: – Filtering
 
-    private var filteredGroups: [ExpenseGroup] { groups } // TODO: filter by balance
+    private var filteredGroups: [ExpenseGroup] {
+        switch activeFilter {
+        case "Owed": return groups.filter { groupBalance($0.id) > 0 }
+        case "You owe": return groups.filter { groupBalance($0.id) < 0 }
+        case "Hide settled": return groups.filter { groupBalance($0.id) != 0 }
+        default: return groups
+        }
+    }
 
-    private var filteredTrips: [Trip] { trips }
+    private var filteredTrips: [Trip] {
+        switch activeFilter {
+        case "Owed": return trips.filter { tripBalance($0.id) > 0 }
+        case "You owe": return trips.filter { tripBalance($0.id) < 0 }
+        case "Hide settled": return trips.filter { tripBalance($0.id) != 0 }
+        default: return trips
+        }
+    }
 
     private var filteredBalances: [Balance] {
         switch activeFilter {

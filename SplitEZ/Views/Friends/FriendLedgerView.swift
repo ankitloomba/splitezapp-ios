@@ -6,6 +6,12 @@ struct FriendLedgerView: View {
     @State private var settlements: [Settlement] = []
     @State private var balance: Int = 0
     @State private var isLoading = true
+    @State private var showSettleUp = false
+    @State private var showReminderShare = false
+    @State private var showSortPicker = false
+    @State private var sortOrder = "newest"
+    @State private var showMoreMenu = false
+    @State private var settleAmount = ""
     @Environment(\.dismiss) var dismiss
     private let api = APIClient.shared
 
@@ -25,7 +31,7 @@ struct FriendLedgerView: View {
                 view: AnyView(settlementRow(settlement))
             ))
         }
-        return entries.sorted { $0.date > $1.date }
+        return entries.sorted { sortOrder == "newest" ? $0.date > $1.date : $0.date < $1.date }
     }
 
     private var groupedEntries: [(key: String, entries: [(id: String, date: String, view: AnyView)])] {
@@ -54,6 +60,114 @@ struct FriendLedgerView: View {
         .navigationBarHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
         .task { await loadData() }
+        .sheet(isPresented: $showSettleUp) {
+            settleUpSheet
+        }
+        .sheet(isPresented: $showReminderShare) {
+            ShareSheetView(items: [reminderText])
+        }
+        .confirmationDialog("Sort by", isPresented: $showSortPicker) {
+            Button("Newest first") { sortOrder = "newest" }
+            Button("Oldest first") { sortOrder = "oldest" }
+        }
+        .confirmationDialog("Options", isPresented: $showMoreMenu) {
+            Button("Send reminder") { showReminderShare = true }
+            Button("Settle up") { showSettleUp = true }
+            Button("Cancel", role: .cancel) {}
+        }
+    }
+
+    private var reminderText: String {
+        let amt = formatAmount(abs(balance))
+        if balance > 0 {
+            return "Hey \(friend.firstName), you owe me \(amt) on SplitEZ. Let's settle up!"
+        } else {
+            return "Hey \(friend.firstName), I owe you \(amt) on SplitEZ. Let's settle up!"
+        }
+    }
+
+    private var settleUpSheet: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                Text("Settle up with \(friend.firstName)")
+                    .font(.headline)
+
+                Text("Outstanding: \(formatAmount(abs(balance)))")
+                    .font(.subheadline)
+                    .foregroundColor(SplitEZTheme.textSecondary)
+
+                TextField("Amount", text: $settleAmount)
+                    .keyboardType(.numberPad)
+                    .font(.system(size: 32, weight: .bold))
+                    .multilineTextAlignment(.center)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(Color(.systemGray6))
+                    )
+
+                HStack(spacing: 12) {
+                    settlementMethodButton("UPI", icon: "indianrupeesign.circle")
+                    settlementMethodButton("Cash", icon: "banknote")
+                    settlementMethodButton("Bank", icon: "building.columns")
+                }
+
+                Button {
+                    Task { await recordSettlement() }
+                } label: {
+                    Text("Record payment")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                                .fill(settleAmount.isEmpty ? SplitEZTheme.primary.opacity(0.4) : SplitEZTheme.primary)
+                        )
+                }
+                .disabled(settleAmount.isEmpty)
+
+                Spacer()
+            }
+            .padding(20)
+            .navigationTitle("Settle Up")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { showSettleUp = false }
+                }
+            }
+            .onAppear {
+                settleAmount = String(format: "%.0f", Double(abs(balance)) / 100.0)
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    private func settlementMethodButton(_ label: String, icon: String) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundColor(SplitEZTheme.primary)
+            Text(label)
+                .font(.caption.weight(.medium))
+                .foregroundColor(SplitEZTheme.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color(.systemGray4), lineWidth: 1)
+        )
+    }
+
+    private func recordSettlement() async {
+        guard let amount = Double(settleAmount) else { return }
+        let amountMinor = Int(amount * 100)
+        struct SettleRequest: Codable { let amount: Int; let friendId: String; let method: String }
+        let _: Settlement? = try? await api.post("/settlements", body: SettleRequest(amount: amountMinor, friendId: friend.id, method: "upi"))
+        showSettleUp = false
+        await loadData()
     }
 
     // MARK: - Header
@@ -74,7 +188,7 @@ struct FriendLedgerView: View {
                         .foregroundColor(.white)
                 }
                 .padding(.trailing, 8)
-                Button(action: {}) {
+                Button { showMoreMenu = true } label: {
                     Image(systemName: "ellipsis")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(.white)
@@ -108,7 +222,7 @@ struct FriendLedgerView: View {
 
             // Action buttons
             HStack(spacing: 12) {
-                Button(action: {}) {
+                Button { showReminderShare = true } label: {
                     Text("Send reminder")
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(.white)
@@ -119,7 +233,7 @@ struct FriendLedgerView: View {
                                 .fill(SplitEZTheme.primary)
                         )
                 }
-                Button(action: {}) {
+                Button { showSettleUp = true } label: {
                     Text("Settle up")
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(SplitEZTheme.textPrimary)
@@ -148,7 +262,7 @@ struct FriendLedgerView: View {
                     .font(.headline)
                     .foregroundColor(SplitEZTheme.textPrimary)
                 Spacer()
-                Button(action: {}) {
+                Button { showSortPicker = true } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "line.3.horizontal.decrease")
                             .font(.caption)

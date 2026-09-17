@@ -5,10 +5,20 @@ struct GroupsListView: View {
     @State private var isLoading = true
     @State private var showCreate = false
     @State private var activeFilter = "All groups"
+    @State private var showSearch = false
+    @State private var searchText = ""
     @Environment(\.dismiss) var dismiss
     private let api = APIClient.shared
 
     private let filters = ["All groups", "Active", "Archived"]
+
+    private var filteredGroups: [ExpenseGroup] {
+        var result = groups
+        if !searchText.isEmpty {
+            result = result.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        }
+        return result
+    }
 
     private static let groupStyles: [(icon: String, color: Color)] = [
         ("house", Color(hex: "6366F1")),
@@ -32,7 +42,7 @@ struct GroupsListView: View {
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
                     Spacer()
-                    Button(action: {}) {
+                    Button { withAnimation { showSearch.toggle(); if !showSearch { searchText = "" } } } label: {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 18, weight: .medium))
                             .foregroundColor(.white)
@@ -71,6 +81,30 @@ struct GroupsListView: View {
                         }
                     }
                 }
+
+                if showSearch {
+                    HStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 14))
+                            .foregroundColor(SplitEZTheme.textTertiary)
+                        TextField("Search groups", text: $searchText)
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                        if !searchText.isEmpty {
+                            Button { searchText = "" } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color.white.opacity(0.1))
+                    )
+                }
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
@@ -95,7 +129,7 @@ struct GroupsListView: View {
                         }
                         .padding(.vertical, 60)
                     } else {
-                        ForEach(Array(groups.enumerated()), id: \.element.id) { index, group in
+                        ForEach(Array(filteredGroups.enumerated()), id: \.element.id) { index, group in
                             if index > 0 {
                                 Divider().padding(.leading, 76)
                             }
@@ -164,6 +198,11 @@ struct GroupDetailView: View {
     @State private var expenses: [Expense] = []
     @State private var balances: [Balance] = []
     @State private var simplifyDebts = true
+    @State private var showDeleteConfirm = false
+    @State private var showArchiveConfirm = false
+    @State private var showShareSheet = false
+    @State private var showInviteShare = false
+    @State private var isDeleting = false
     @Environment(\.dismiss) var dismiss
     private let api = APIClient.shared
 
@@ -234,13 +273,50 @@ struct GroupDetailView: View {
 
                         sectionLabel("MANAGE")
 
-                        manageRow(icon: "doc.on.doc", label: "Duplicate group", subtitle: "Copies members, categories, split rules")
+                        Button {
+                            Task { await duplicateGroup() }
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "doc.on.doc")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(SplitEZTheme.textSecondary)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Duplicate group")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundColor(SplitEZTheme.textPrimary)
+                                    Text("Copies members, categories, split rules")
+                                        .font(.caption)
+                                        .foregroundColor(SplitEZTheme.textTertiary)
+                                }
+                                Spacer()
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                        }
+                        .buttonStyle(.plain)
                         rowDivider
-                        manageRow(icon: "archivebox", label: "Archive group", subtitle: "Hidden from Home, ledger kept")
+                        Button { showArchiveConfirm = true } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "archivebox")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(SplitEZTheme.textSecondary)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Archive group")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundColor(SplitEZTheme.textPrimary)
+                                    Text("Hidden from Home, ledger kept")
+                                        .font(.caption)
+                                        .foregroundColor(SplitEZTheme.textTertiary)
+                                }
+                                Spacer()
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                        }
+                        .buttonStyle(.plain)
                         rowDivider
 
-                        Button {
-                        } label: {
+                        Button { showDeleteConfirm = true } label: {
                             HStack(spacing: 12) {
                                 Image(systemName: "trash")
                                     .font(.system(size: 16))
@@ -270,6 +346,60 @@ struct GroupDetailView: View {
             expenses = (try? await api.get("/expenses", query: ["groupId": group.id])) ?? []
             balances = (try? await api.get("/balances", query: ["groupId": group.id])) ?? []
         }
+        .alert("Delete Group", isPresented: $showDeleteConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                Task { await deleteGroup() }
+            }
+        } message: {
+            Text("This will permanently delete \"\(group.name)\" and all its expenses. This cannot be undone.")
+        }
+        .alert("Archive Group", isPresented: $showArchiveConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Archive") {
+                Task { await archiveGroup() }
+            }
+        } message: {
+            Text("This will hide \"\(group.name)\" from your Home screen. The ledger and history are kept.")
+        }
+        .sheet(isPresented: $showShareSheet) {
+            ShareSheetView(items: [generateShareText()])
+        }
+        .sheet(isPresented: $showInviteShare) {
+            ShareSheetView(items: ["Join my group \"\(group.name)\" on SplitEZ! Download the app and use invite code: \(group.id)"])
+        }
+    }
+
+    private func deleteGroup() async {
+        isDeleting = true
+        let _: AnyCodable? = try? await api.post("/groups/\(group.id)/delete")
+        isDeleting = false
+        dismiss()
+    }
+
+    private func archiveGroup() async {
+        let _: AnyCodable? = try? await api.put("/groups/\(group.id)", body: ["status": "archived"])
+        dismiss()
+    }
+
+    private func duplicateGroup() async {
+        let _: ExpenseGroup? = try? await api.post("/groups/\(group.id)/duplicate")
+        dismiss()
+    }
+
+    private func generateShareText() -> String {
+        var text = "\(group.name)\n"
+        text += "\(memberCount) members\n\n"
+        if !balances.isEmpty {
+            text += "Balances:\n"
+            for b in balances {
+                let name = b.user?.displayName ?? "Unknown"
+                let amt = formatAmount(abs(b.amount))
+                text += b.amount > 0 ? "  \(name) owes you \(amt)\n" : "  You owe \(name) \(amt)\n"
+            }
+        }
+        text += "\nShared via SplitEZ"
+        return text
     }
 
     private var groupHeader: some View {
@@ -309,7 +439,7 @@ struct GroupDetailView: View {
                 .foregroundColor(Color.white.opacity(0.6))
 
             HStack(spacing: 12) {
-                Button(action: {}) {
+                Button { showInviteShare = true } label: {
                     Text("Invite member")
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(.white)
@@ -320,7 +450,7 @@ struct GroupDetailView: View {
                                 .fill(SplitEZTheme.primary)
                         )
                 }
-                Button(action: {}) {
+                Button { showShareSheet = true } label: {
                     Text("Share sheet")
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(SplitEZTheme.textPrimary)
@@ -405,31 +535,19 @@ struct GroupDetailView: View {
         .padding(.vertical, 14)
     }
 
-    private func manageRow(icon: String, label: String, subtitle: String) -> some View {
-        Button(action: {}) {
-            HStack(spacing: 12) {
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(SplitEZTheme.textSecondary)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(label)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundColor(SplitEZTheme.textPrimary)
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundColor(SplitEZTheme.textTertiary)
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-        }
-        .buttonStyle(.plain)
-    }
-
     private var rowDivider: some View {
         Divider().padding(.leading, 20)
     }
+}
+
+struct ShareSheetView: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 struct CreateGroupView: View {
