@@ -2,14 +2,16 @@ import SwiftUI
 
 struct HomeView: View {
     @EnvironmentObject var auth: AuthService
+    @ObservedObject private var store = ExpenseStore.shared
     @State private var groups: [ExpenseGroup] = []
     @State private var trips: [Trip] = []
-    @State private var balances: [Balance] = []
     @State private var banners: [PromotionalBanner] = []
     @State private var dashboardElements: [DashboardElement] = []
     @State private var isLoading = true
 
     private let api = APIClient.shared
+
+    private var balances: [Balance] { store.balances }
 
     @State private var activeFilter = "All"
     private let filters = ["All", "Owed", "You owe", "Hide settled"]
@@ -272,22 +274,19 @@ struct HomeView: View {
 
     private func loadData() async {
         isLoading = true
-        async let b: [Balance] = (try? api.get("/balances")) ?? []
         async let g: [ExpenseGroup] = (try? api.get("/groups")) ?? []
         async let t: [Trip] = (try? api.get("/trips")) ?? []
         async let p: [PromotionalBanner] = (try? api.get("/promos", query: ["screen": "home"])) ?? []
         async let d: [DashboardElement] = (try? api.get("/dashboard/elements", query: ["screen": "home"])) ?? []
-        balances = await b
         groups = await g
         trips = await t
         banners = await p
         dashboardElements = await d
 
-        // Use sample data when API returns nothing
-        if balances.isEmpty { balances = SampleData.balances }
         if groups.isEmpty { groups = SampleData.groups }
         if trips.isEmpty { trips = SampleData.trips }
 
+        await store.reload()
         isLoading = false
         await AdManager.shared.loadPlacements(screen: "home")
     }

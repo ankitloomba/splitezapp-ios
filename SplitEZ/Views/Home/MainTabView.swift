@@ -145,9 +145,10 @@ struct MainTabView: View {
 // MARK: - Friends Tab
 
 struct FriendsTabView: View {
+    @ObservedObject private var store = ExpenseStore.shared
     @State private var friends: [Friend] = []
     @State private var pendingRequests: [FriendRequest] = []
-    @State private var balances: [Balance] = []
+    private var balances: [Balance] { store.balances }
     @State private var searchText = ""
     @State private var isLoading = true
     @State private var showSortPicker = false
@@ -464,13 +465,11 @@ struct FriendsTabView: View {
     private func loadData() async {
         isLoading = true
         async let f: [Friend] = (try? api.get("/people")) ?? []
-        async let b: [Balance] = (try? api.get("/balances")) ?? []
         async let r: [FriendRequest] = (try? api.get("/friend-requests", query: ["status": "pending"])) ?? []
         friends = await f
-        balances = await b
         pendingRequests = await r
         if friends.isEmpty { friends = SampleData.friends }
-        if balances.isEmpty { balances = SampleData.balances }
+        await store.reload()
         isLoading = false
     }
 
@@ -626,7 +625,8 @@ struct FriendListRow: View {
 // MARK: - Activity Tab
 
 struct ActivityTabView: View {
-    @State private var activities: [Activity] = []
+    @ObservedObject private var store = ExpenseStore.shared
+    private var activities: [Activity] { store.activities }
     @State private var activeSort = "Date"
     @State private var searchText = ""
     @State private var showSearch = false
@@ -754,9 +754,7 @@ struct ActivityTabView: View {
             .navigationBarHidden(true)
             .toolbarBackground(.hidden, for: .navigationBar)
             .task {
-                let feed: PaginatedResponse<Activity> = (try? await api.get("/activity/feed", query: ["limit": "50"])) ?? PaginatedResponse(items: [], nextCursor: nil)
-                activities = feed.items
-                if activities.isEmpty { activities = SampleData.activities }
+                await store.reload()
             }
             .sheet(isPresented: $showExportShare) {
                 ShareSheetView(items: [exportActivityText()])
@@ -1714,13 +1712,42 @@ struct AddExpenseSheet: View {
             participants: participantList
         )
 
+        var savedExpense: Expense?
         do {
-            let _: Expense = try await api.post("/expenses", body: req)
+            savedExpense = try await api.post("/expenses", body: req)
         } catch {
-            // API unavailable — continue with dismiss in demo mode
+            // API unavailable — build local expense for demo mode
+            let splits = participantList.map { p in
+                ExpenseSplit(
+                    userId: p.userId,
+                    user: members.first(where: { $0.id == p.userId }),
+                    shareAmount: p.shareAmount ?? (amount / participants.count),
+                    percentageBps: p.percentageBps
+                )
+            }
+            savedExpense = Expense(
+                id: "e_\(UUID().uuidString.prefix(8))",
+                description: description,
+                amount: amount,
+                currency: selectedCurrency,
+                splitMethod: splitMethod.lowercased(),
+                category: selectedCategory.label,
+                note: note.isEmpty ? nil : note,
+                date: dateFmt.string(from: expenseDate),
+                paidBy: paidByUser,
+                createdBy: SampleData.currentUser,
+                splits: splits,
+                groupId: selectedGroup?.id,
+                tripId: nil,
+                idempotencyKey: nil,
+                createdAt: ISO8601DateFormatter().string(from: Date())
+            )
         }
-        dismiss()
+        if let expense = savedExpense {
+            ExpenseStore.shared.addExpense(expense)
+        }
         isLoading = false
+        dismiss()
     }
 
     private func miniAvatar(initial: String, color: Color) -> some View {
