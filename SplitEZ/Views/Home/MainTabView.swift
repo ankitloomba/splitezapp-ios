@@ -752,8 +752,9 @@ struct AddExpenseSheet: View {
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 24)
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .center)
             .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
+            .fixedSize(horizontal: false, vertical: true)
 
             // Content – scrollable with save button
             ZStack(alignment: .bottom) {
