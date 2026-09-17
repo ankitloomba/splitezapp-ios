@@ -680,27 +680,74 @@ struct AddExpenseSheet: View {
     @State private var showSplitBreakdown = false
     @State private var isLoading = false
     @State private var error: String?
-    @State private var paidByIndex = 0
     @State private var showCurrencyPicker = false
+    @State private var showSplitMethodPicker = false
+
+    // Group & member selection
+    @State private var groups: [ExpenseGroup] = []
+    @State private var selectedGroupIndex: Int = 0
+    @State private var showGroupPicker = false
+    @State private var paidByUserId: String = SampleData.currentUser.id
+    @State private var showPaidByPicker = false
+    @State private var selectedParticipantIds: Set<String> = []
+    @State private var showParticipantPicker = false
+
+    // For exact/percentage splits
+    @State private var exactAmounts: [String: String] = [:]
+    @State private var percentages: [String: String] = [:]
 
     private let api = APIClient.shared
 
     private let currencies = ["INR", "USD", "EUR", "GBP"]
     private let currencySymbols: [String: String] = ["INR": "₹", "USD": "$", "EUR": "€", "GBP": "£"]
+    private let splitMethods = ["EQUAL", "EXACT", "PERCENTAGE"]
 
-    private var sampleMembers: [(initial: String, name: String, color: Color)] {
-        [
-            ("SK", "You", SplitEZTheme.primary),
-            ("R", "Rahul", Color.purple),
-            ("A", "Anita", Color(hex: "6366F1")),
-            ("P", "Priya", Color(hex: "6366F1").opacity(0.6)),
-        ]
+    private var selectedGroup: ExpenseGroup? {
+        guard !groups.isEmpty, selectedGroupIndex < groups.count else { return nil }
+        return groups[selectedGroupIndex]
+    }
+
+    private var members: [UserSummary] {
+        selectedGroup?.members ?? []
+    }
+
+    private var participants: [UserSummary] {
+        members.filter { selectedParticipantIds.contains($0.id) }
+    }
+
+    private var paidByUser: UserSummary? {
+        members.first { $0.id == paidByUserId }
+    }
+
+    private var currSymbol: String {
+        currencySymbols[selectedCurrency] ?? "₹"
+    }
+
+    private var amountMinor: Int {
+        Int((Double(amountText) ?? 0) * 100)
     }
 
     private var perPersonAmount: String {
-        guard let amount = Double(amountText), amount > 0 else { return "₹0" }
-        let share = amount / Double(sampleMembers.count)
-        return "\(currencySymbols[selectedCurrency] ?? "₹")\(Int(share).formatted())"
+        guard participants.count > 0, let amount = Double(amountText), amount > 0 else {
+            return "\(currSymbol)0"
+        }
+        let share = amount / Double(participants.count)
+        return "\(currSymbol)\(String(format: "%.0f", share))"
+    }
+
+    private func avatarColor(for user: UserSummary) -> Color {
+        if let hex = user.avatar?.backgroundColor {
+            return Color(hex: hex)
+        }
+        return SplitEZTheme.primary
+    }
+
+    private func avatarInitials(for user: UserSummary) -> String {
+        user.avatar?.initials ?? String(user.firstName.prefix(1))
+    }
+
+    private func displayName(for user: UserSummary) -> String {
+        user.id == SampleData.currentUser.id ? "You" : user.firstName
     }
 
     var body: some View {
@@ -722,7 +769,7 @@ struct AddExpenseSheet: View {
                 }
 
                 HStack(alignment: .center, spacing: 4) {
-                    Text(currencySymbols[selectedCurrency] ?? "₹")
+                    Text(currSymbol)
                         .font(.system(size: 22, weight: .medium))
                         .foregroundColor(Color.white.opacity(0.5))
 
@@ -758,7 +805,7 @@ struct AddExpenseSheet: View {
 
             // Content – scrollable with save button
             ZStack(alignment: .bottom) {
-            ScrollView {
+                ScrollView {
                     VStack(spacing: 16) {
                         // Category + Description
                         HStack(spacing: 12) {
@@ -787,21 +834,22 @@ struct AddExpenseSheet: View {
                                 .stroke(Color(.systemGray4), lineWidth: 1)
                         )
 
-                        // Paid By + Split
+                        // Paid By + Split participants
                         HStack(spacing: 16) {
-                            // Paid By
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("PAID BY")
                                     .font(.caption2.weight(.semibold))
                                     .foregroundColor(SplitEZTheme.textTertiary)
                                     .tracking(0.5)
 
-                                Button(action: {}) {
+                                Button { showPaidByPicker = true } label: {
                                     HStack(spacing: 8) {
-                                        miniAvatar(initial: sampleMembers[paidByIndex].initial, color: sampleMembers[paidByIndex].color)
-                                        Text(sampleMembers[paidByIndex].name)
-                                            .font(.subheadline.weight(.medium))
-                                            .foregroundColor(SplitEZTheme.textPrimary)
+                                        if let user = paidByUser {
+                                            miniAvatar(initial: avatarInitials(for: user), color: avatarColor(for: user))
+                                            Text(displayName(for: user))
+                                                .font(.subheadline.weight(.medium))
+                                                .foregroundColor(SplitEZTheme.textPrimary)
+                                        }
                                         Image(systemName: "chevron.down")
                                             .font(.system(size: 10, weight: .semibold))
                                             .foregroundColor(SplitEZTheme.textTertiary)
@@ -816,20 +864,19 @@ struct AddExpenseSheet: View {
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
 
-                            // Split
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("SPLIT")
                                     .font(.caption2.weight(.semibold))
                                     .foregroundColor(SplitEZTheme.textTertiary)
                                     .tracking(0.5)
 
-                                Button(action: {}) {
+                                Button { showParticipantPicker = true } label: {
                                     HStack(spacing: -6) {
-                                        ForEach(sampleMembers.prefix(2), id: \.name) { member in
-                                            miniAvatar(initial: member.initial, color: member.color)
+                                        ForEach(Array(participants.prefix(2)), id: \.id) { user in
+                                            miniAvatar(initial: avatarInitials(for: user), color: avatarColor(for: user))
                                         }
-                                        if sampleMembers.count > 2 {
-                                            Text("+\(sampleMembers.count - 2)")
+                                        if participants.count > 2 {
+                                            Text("+\(participants.count - 2)")
                                                 .font(.caption2.weight(.bold))
                                                 .foregroundColor(.white)
                                                 .frame(width: 24, height: 24)
@@ -851,36 +898,31 @@ struct AddExpenseSheet: View {
                             }
                         }
 
-                        // Split method + Group
+                        // Split method + Group picker
                         HStack(spacing: 12) {
-                            Button {
-                                splitMethod = "EQUAL"
-                            } label: {
+                            Button { showSplitMethodPicker = true } label: {
                                 HStack(spacing: 6) {
-                                    Text("Equally")
+                                    Text(splitMethodLabel)
                                         .font(.subheadline.weight(.semibold))
                                     Image(systemName: "chevron.down")
                                         .font(.system(size: 10, weight: .bold))
                                 }
-                                .foregroundColor(splitMethod == "EQUAL" ? .white : SplitEZTheme.textPrimary)
+                                .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(
                                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                        .fill(splitMethod == "EQUAL" ? SplitEZTheme.primary : Color.clear)
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                        .stroke(splitMethod == "EQUAL" ? Color.clear : Color(.systemGray4), lineWidth: 1)
+                                        .fill(SplitEZTheme.primary)
                                 )
                             }
 
-                            Button(action: {}) {
+                            Button { showGroupPicker = true } label: {
                                 HStack(spacing: 6) {
                                     Image(systemName: "person.2")
                                         .font(.system(size: 14, weight: .medium))
-                                    Text("Group")
+                                    Text(selectedGroup?.name ?? "Group")
                                         .font(.subheadline.weight(.medium))
+                                        .lineLimit(1)
                                     Image(systemName: "chevron.down")
                                         .font(.system(size: 10, weight: .bold))
                                 }
@@ -917,24 +959,57 @@ struct AddExpenseSheet: View {
                             }
 
                             if showSplitBreakdown {
-                                ForEach(Array(sampleMembers.enumerated()), id: \.element.name) { index, member in
+                                ForEach(Array(participants.enumerated()), id: \.element.id) { index, user in
                                     if index > 0 {
                                         Divider().padding(.leading, 52)
                                     }
                                     HStack(spacing: 10) {
-                                        miniAvatar(initial: member.initial, color: member.color)
-                                        Text(member.name)
+                                        miniAvatar(initial: avatarInitials(for: user), color: avatarColor(for: user))
+                                        Text(displayName(for: user))
                                             .font(.subheadline.weight(.medium))
                                             .foregroundColor(SplitEZTheme.textPrimary)
                                         Spacer()
-                                        Text(perPersonAmount)
-                                            .font(.subheadline.weight(.bold))
-                                            .foregroundColor(SplitEZTheme.textPrimary)
+
+                                        if splitMethod == "EXACT" {
+                                            HStack(spacing: 2) {
+                                                Text(currSymbol)
+                                                    .font(.caption.weight(.medium))
+                                                    .foregroundColor(SplitEZTheme.textTertiary)
+                                                TextField("0", text: exactBinding(for: user.id))
+                                                    .font(.subheadline.weight(.bold))
+                                                    .foregroundColor(SplitEZTheme.textPrimary)
+                                                    .keyboardType(.numberPad)
+                                                    .multilineTextAlignment(.trailing)
+                                                    .frame(width: 60)
+                                            }
+                                        } else if splitMethod == "PERCENTAGE" {
+                                            HStack(spacing: 2) {
+                                                TextField("0", text: percentBinding(for: user.id))
+                                                    .font(.subheadline.weight(.bold))
+                                                    .foregroundColor(SplitEZTheme.textPrimary)
+                                                    .keyboardType(.numberPad)
+                                                    .multilineTextAlignment(.trailing)
+                                                    .frame(width: 40)
+                                                Text("%")
+                                                    .font(.caption.weight(.medium))
+                                                    .foregroundColor(SplitEZTheme.textTertiary)
+                                            }
+                                        } else {
+                                            Text(perPersonAmount)
+                                                .font(.subheadline.weight(.bold))
+                                                .foregroundColor(SplitEZTheme.textPrimary)
+                                        }
                                     }
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 10)
                                 }
                                 .transition(.opacity.combined(with: .move(edge: .top)))
+
+                                if splitMethod == "EXACT" {
+                                    exactSplitWarning
+                                } else if splitMethod == "PERCENTAGE" {
+                                    percentageSplitWarning
+                                }
 
                                 Spacer().frame(height: 8)
                             }
@@ -947,9 +1022,7 @@ struct AddExpenseSheet: View {
 
                         // Date, Notes, Receipt row
                         HStack(spacing: 0) {
-                            Button {
-                                showDatePicker.toggle()
-                            } label: {
+                            Button { showDatePicker.toggle() } label: {
                                 HStack(spacing: 6) {
                                     Image(systemName: "calendar")
                                         .font(.system(size: 14))
@@ -961,9 +1034,7 @@ struct AddExpenseSheet: View {
 
                             Divider().frame(height: 20).padding(.horizontal, 16)
 
-                            Button {
-                                showNotesField.toggle()
-                            } label: {
+                            Button { showNotesField.toggle() } label: {
                                 HStack(spacing: 6) {
                                     Image(systemName: "doc.text")
                                         .font(.system(size: 14))
@@ -1019,39 +1090,40 @@ struct AddExpenseSheet: View {
                 }
                 .background(Color(.systemBackground))
 
-            // Save button
-            VStack(spacing: 0) {
-                Button {
-                    Task { await saveExpense() }
-                } label: {
-                    if isLoading {
-                        ProgressView()
-                            .tint(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                    } else {
-                        Text("Save expense")
-                            .font(.subheadline.weight(.bold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
+                // Save button
+                VStack(spacing: 0) {
+                    Button {
+                        Task { await saveExpense() }
+                    } label: {
+                        if isLoading {
+                            ProgressView()
+                                .tint(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                        } else {
+                            Text("Save expense")
+                                .font(.subheadline.weight(.bold))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                        }
                     }
+                    .background(
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .fill(canSave ? SplitEZTheme.primary : SplitEZTheme.primary.opacity(0.4))
+                    )
+                    .disabled(!canSave || isLoading)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 8)
                 }
                 .background(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .fill(canSave ? SplitEZTheme.primary : SplitEZTheme.primary.opacity(0.4))
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .ignoresSafeArea(edges: .bottom)
                 )
-                .disabled(!canSave || isLoading)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 8)
-            }
-            .background(
-                Rectangle()
-                    .fill(.ultraThinMaterial)
-                    .ignoresSafeArea(edges: .bottom)
-            )
             } // ZStack for scroll + save
         } // outer VStack
+        .task { await loadGroups() }
         .confirmationDialog("Select Currency", isPresented: $showCurrencyPicker) {
             ForEach(currencies, id: \.self) { currency in
                 Button("\(currencySymbols[currency] ?? "") \(currency)") {
@@ -1061,28 +1133,184 @@ struct AddExpenseSheet: View {
         }
         .confirmationDialog("Select Category", isPresented: $showCategoryPicker) {
             ForEach(ExpenseCategory.allCases, id: \.self) { cat in
-                Button(cat.label) {
-                    selectedCategory = cat
-                }
+                Button(cat.label) { selectedCategory = cat }
             }
+        }
+        .confirmationDialog("Split Method", isPresented: $showSplitMethodPicker) {
+            Button("Equally") { splitMethod = "EQUAL" }
+            Button("Exact amounts") { splitMethod = "EXACT"; showSplitBreakdown = true }
+            Button("By percentage") { splitMethod = "PERCENTAGE"; showSplitBreakdown = true }
+        }
+        .confirmationDialog("Select Group", isPresented: $showGroupPicker) {
+            ForEach(Array(groups.enumerated()), id: \.element.id) { index, group in
+                Button(group.name) { selectGroup(index) }
+            }
+        }
+        .confirmationDialog("Paid By", isPresented: $showPaidByPicker) {
+            ForEach(members, id: \.id) { user in
+                Button(displayName(for: user)) { paidByUserId = user.id }
+            }
+        }
+        .sheet(isPresented: $showParticipantPicker) {
+            participantPickerSheet
         }
     }
 
+    // MARK: – Split method label
+
+    private var splitMethodLabel: String {
+        switch splitMethod {
+        case "EXACT": return "Exact"
+        case "PERCENTAGE": return "Percentage"
+        default: return "Equally"
+        }
+    }
+
+    // MARK: – Exact/Percentage bindings
+
+    private func exactBinding(for userId: String) -> Binding<String> {
+        Binding(
+            get: { exactAmounts[userId] ?? "" },
+            set: { exactAmounts[userId] = $0 }
+        )
+    }
+
+    private func percentBinding(for userId: String) -> Binding<String> {
+        Binding(
+            get: { percentages[userId] ?? "" },
+            set: { percentages[userId] = $0 }
+        )
+    }
+
+    // MARK: – Split warnings
+
+    @ViewBuilder
+    private var exactSplitWarning: some View {
+        let total = participants.reduce(0.0) { $0 + (Double(exactAmounts[$1.id] ?? "0") ?? 0) }
+        let target = Double(amountText) ?? 0
+        if target > 0 && abs(total - target) > 0.01 {
+            HStack {
+                Image(systemName: total > target ? "exclamationmark.triangle" : "info.circle")
+                    .font(.caption)
+                Text(total > target
+                     ? "Total exceeds by \(currSymbol)\(String(format: "%.0f", total - target))"
+                     : "\(currSymbol)\(String(format: "%.0f", target - total)) remaining")
+                    .font(.caption)
+            }
+            .foregroundColor(total > target ? SplitEZTheme.negative : SplitEZTheme.textTertiary)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 4)
+        }
+    }
+
+    @ViewBuilder
+    private var percentageSplitWarning: some View {
+        let total = participants.reduce(0.0) { $0 + (Double(percentages[$1.id] ?? "0") ?? 0) }
+        if abs(total - 100) > 0.01 {
+            HStack {
+                Image(systemName: total > 100 ? "exclamationmark.triangle" : "info.circle")
+                    .font(.caption)
+                Text(total > 100
+                     ? "Total exceeds 100% by \(String(format: "%.0f", total - 100))%"
+                     : "\(String(format: "%.0f", 100 - total))% remaining")
+                    .font(.caption)
+            }
+            .foregroundColor(total > 100 ? SplitEZTheme.negative : SplitEZTheme.textTertiary)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 4)
+        }
+    }
+
+    // MARK: – Participant picker sheet
+
+    private var participantPickerSheet: some View {
+        NavigationStack {
+            List {
+                ForEach(members, id: \.id) { user in
+                    Button {
+                        if selectedParticipantIds.contains(user.id) {
+                            selectedParticipantIds.remove(user.id)
+                        } else {
+                            selectedParticipantIds.insert(user.id)
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            miniAvatar(initial: avatarInitials(for: user), color: avatarColor(for: user))
+                            Text(displayName(for: user))
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(SplitEZTheme.textPrimary)
+                            Spacer()
+                            if selectedParticipantIds.contains(user.id) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(SplitEZTheme.primary)
+                            } else {
+                                Image(systemName: "circle")
+                                    .foregroundColor(Color(.systemGray3))
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Split with")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { showParticipantPicker = false }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    // MARK: – Helpers
+
     private var dateLabel: String {
-        if Calendar.current.isDateInToday(expenseDate) {
-            return "Today"
-        }
-        if Calendar.current.isDateInYesterday(expenseDate) {
-            return "Yesterday"
-        }
+        if Calendar.current.isDateInToday(expenseDate) { return "Today" }
+        if Calendar.current.isDateInYesterday(expenseDate) { return "Yesterday" }
         let fmt = DateFormatter()
         fmt.dateFormat = "d MMM"
         return fmt.string(from: expenseDate)
     }
 
     private var canSave: Bool {
-        !description.isEmpty && !amountText.isEmpty && (Double(amountText) ?? 0) > 0
+        guard !description.isEmpty, let amt = Double(amountText), amt > 0, !participants.isEmpty else {
+            return false
+        }
+        if splitMethod == "EXACT" {
+            let total = participants.reduce(0.0) { $0 + (Double(exactAmounts[$1.id] ?? "0") ?? 0) }
+            return abs(total - amt) < 0.01
+        }
+        if splitMethod == "PERCENTAGE" {
+            let total = participants.reduce(0.0) { $0 + (Double(percentages[$1.id] ?? "0") ?? 0) }
+            return abs(total - 100) < 0.01
+        }
+        return true
     }
+
+    // MARK: – Data loading
+
+    private func loadGroups() async {
+        var loaded: [ExpenseGroup] = (try? await api.get("/groups")) ?? []
+        if loaded.isEmpty { loaded = SampleData.groups }
+        groups = loaded
+        if !groups.isEmpty { selectGroup(0) }
+    }
+
+    private func selectGroup(_ index: Int) {
+        selectedGroupIndex = index
+        guard let group = groups[safe: index] else { return }
+        let memberIds = Set((group.members ?? []).map(\.id))
+        selectedParticipantIds = memberIds
+        if let firstMember = group.members?.first(where: { $0.id == SampleData.currentUser.id }) {
+            paidByUserId = firstMember.id
+        } else if let first = group.members?.first {
+            paidByUserId = first.id
+        }
+        exactAmounts = [:]
+        percentages = [:]
+    }
+
+    // MARK: – Save
 
     private func saveExpense() async {
         guard let amountDouble = Double(amountText) else {
@@ -1096,6 +1324,20 @@ struct AddExpenseSheet: View {
         let dateFmt = DateFormatter()
         dateFmt.dateFormat = "yyyy-MM-dd"
 
+        let participantList: [SplitParticipant] = participants.map { user in
+            switch splitMethod {
+            case "EXACT":
+                let share = Int((Double(exactAmounts[user.id] ?? "0") ?? 0) * 100)
+                return SplitParticipant(userId: user.id, shareAmount: share)
+            case "PERCENTAGE":
+                let pct = Int((Double(percentages[user.id] ?? "0") ?? 0) * 100)
+                return SplitParticipant(userId: user.id, percentageBps: pct)
+            default:
+                let share = amount / participants.count
+                return SplitParticipant(userId: user.id, shareAmount: share)
+            }
+        }
+
         let req = CreateExpenseRequest(
             description: description,
             amount: amount,
@@ -1104,7 +1346,9 @@ struct AddExpenseSheet: View {
             category: selectedCategory.label,
             note: note.isEmpty ? nil : note,
             date: dateFmt.string(from: expenseDate),
-            participants: []
+            paidById: paidByUserId,
+            groupId: selectedGroup?.id,
+            participants: participantList
         )
 
         do {
@@ -1122,6 +1366,12 @@ struct AddExpenseSheet: View {
             .foregroundColor(.white)
             .frame(width: 28, height: 28)
             .background(Circle().fill(color))
+    }
+}
+
+private extension Collection {
+    subscript(safe index: Index) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }
 
