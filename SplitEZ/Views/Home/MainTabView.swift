@@ -982,8 +982,7 @@ struct AddExpenseSheet: View {
     }
 
     private var participants: [UserSummary] {
-        let ids = selectedParticipantIds.union([paidByUserId])
-        return allPeople.filter { ids.contains($0.id) }
+        return allPeople.filter { selectedParticipantIds.contains($0.id) }
     }
 
     private var paidByUser: UserSummary? {
@@ -1780,17 +1779,8 @@ struct AddExpenseSheet: View {
             if let gid = editExpense?.groupId, let idx = groups.firstIndex(where: { $0.id == gid }) {
                 selectedGroupIndex = idx
             }
-        } else if prefillFriend != nil {
-            // Already initialized in init — don't override
-        } else if let firstGroup = groups.first {
-            let memberIds = Set((firstGroup.members ?? []).map(\.id))
-            selectedParticipantIds = memberIds
-            if firstGroup.members?.contains(where: { $0.id == SampleData.currentUser.id }) == true {
-                paidByUserId = SampleData.currentUser.id
-            } else if let first = firstGroup.members?.first {
-                paidByUserId = first.id
-            }
         }
+        // prefillFriend and default: already initialized in init, don't override
     }
 
     private func selectGroup(_ index: Int) {
