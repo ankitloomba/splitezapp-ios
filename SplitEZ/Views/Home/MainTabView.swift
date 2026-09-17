@@ -905,10 +905,24 @@ struct AddExpenseSheet: View {
     }
 
     private var members: [UserSummary] {
+        if let friend = prefillFriend {
+            let friendUser = UserSummary(
+                id: friend.id,
+                firstName: friend.firstName,
+                lastName: friend.lastName,
+                phone: friend.phone,
+                profilePicture: friend.profilePicture,
+                avatar: friend.avatar
+            )
+            var result = [SampleData.currentUser]
+            if friend.id != SampleData.currentUser.id {
+                result.append(friendUser)
+            }
+            return result
+        }
         if let group = selectedGroup {
             return group.members ?? []
         }
-        // When no group selected, gather members from all groups
         var seen = Set<String>()
         var result: [UserSummary] = []
         for group in groups {
