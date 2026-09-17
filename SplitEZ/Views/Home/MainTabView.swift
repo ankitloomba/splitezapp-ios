@@ -713,7 +713,8 @@ struct AddExpenseSheet: View {
     }
 
     private var participants: [UserSummary] {
-        members.filter { selectedParticipantIds.contains($0.id) }
+        let ids = selectedParticipantIds.union([paidByUserId])
+        return members.filter { ids.contains($0.id) }
     }
 
     private var paidByUser: UserSummary? {
