@@ -136,11 +136,7 @@ struct GroupsListView: View {
 
                         Spacer().frame(height: 80)
                     }
-                    .background(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color(.systemBackground))
-                    )
-                    .offset(y: -16)
+                    .background(Color(.systemBackground))
                 }
             }
         }
