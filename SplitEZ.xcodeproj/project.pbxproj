@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		A100000001 /* SplitEZApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000001; };
 		A100000002 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000002; };
+		A100000023 /* SampleData.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000023; };
 		A100000003 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000003; };
 		A100000004 /* AdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000004; };
 		A100000022 /* AppSettingsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000022; };
@@ -34,6 +35,7 @@
 /* Begin PBXFileReference section */
 		B100000001 /* SplitEZApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplitEZApp.swift; sourceTree = "<group>"; };
 		B100000002 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		B100000023 /* SampleData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleData.swift; sourceTree = "<group>"; };
 		B100000003 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		B100000004 /* AdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdManager.swift; sourceTree = "<group>"; };
 		B100000022 /* AppSettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsManager.swift; sourceTree = "<group>"; };
@@ -100,6 +102,7 @@
 			isa = PBXGroup;
 			children = (
 				B100000002 /* Models.swift */,
+				B100000023 /* SampleData.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -311,6 +314,7 @@
 			files = (
 				A100000001 /* SplitEZApp.swift in Sources */,
 				A100000002 /* Models.swift in Sources */,
+			A100000023 /* SampleData.swift in Sources */,
 				A100000003 /* APIClient.swift in Sources */,
 				A100000004 /* AdManager.swift in Sources */,
 				A100000005 /* AnalyticsTracker.swift in Sources */,
