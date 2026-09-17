@@ -4,7 +4,7 @@ struct HomeView: View {
     @EnvironmentObject var auth: AuthService
     @ObservedObject private var store = ExpenseStore.shared
     @State private var groups: [ExpenseGroup] = []
-    @State private var trips: [Trip] = []
+
     @State private var banners: [PromotionalBanner] = []
     @State private var dashboardElements: [DashboardElement] = []
     @State private var isLoading = true
@@ -121,11 +121,11 @@ struct HomeView: View {
                 .padding(.bottom, 16)
 
             // Groups & Trips
-            sectionHeader(title: "Groups & trips", destination: AnyView(GroupsListView()))
+            sectionHeader(title: "Groups", destination: AnyView(GroupsListView()))
                 .padding(.horizontal, 20)
 
-            if groups.isEmpty && trips.isEmpty {
-                emptyRow("No groups or trips yet")
+            if groups.isEmpty {
+                emptyRow("No groups yet")
             } else {
                 VStack(spacing: 0) {
                     ForEach(filteredGroups) { group in
@@ -135,18 +135,6 @@ struct HomeView: View {
                                 name: group.name,
                                 subtitle: "\(group.memberCount ?? 0) people · Group",
                                 amount: groupBalance(group.id),
-                                currency: currency
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    ForEach(filteredTrips) { trip in
-                        NavigationLink(destination: TripsListView()) {
-                            GroupTripRow(
-                                icon: "paperplane",
-                                name: trip.name,
-                                subtitle: "\(trip.memberCount ?? 0) people · Trip",
-                                amount: tripBalance(trip.id),
                                 currency: currency
                             )
                         }
@@ -235,14 +223,6 @@ struct HomeView: View {
         }
     }
 
-    private var filteredTrips: [Trip] {
-        switch activeFilter {
-        case "Owed": return trips.filter { tripBalance($0.id) > 0 }
-        case "You owe": return trips.filter { tripBalance($0.id) < 0 }
-        case "Hide settled": return trips.filter { tripBalance($0.id) != 0 }
-        default: return trips
-        }
-    }
 
     private var filteredBalances: [Balance] {
         switch activeFilter {
@@ -257,7 +237,7 @@ struct HomeView: View {
         SampleData.groupBalances[groupId] ?? 0
     }
 
-    private func tripBalance(_ tripId: String) -> Int { 0 }
+
 
     // MARK: – Empty state
 
@@ -275,16 +255,15 @@ struct HomeView: View {
     private func loadData() async {
         isLoading = true
         async let g: [ExpenseGroup] = (try? api.get("/groups")) ?? []
-        async let t: [Trip] = (try? api.get("/trips")) ?? []
         async let p: [PromotionalBanner] = (try? api.get("/promos", query: ["screen": "home"])) ?? []
         async let d: [DashboardElement] = (try? api.get("/dashboard/elements", query: ["screen": "home"])) ?? []
         groups = await g
-        trips = await t
+
         banners = await p
         dashboardElements = await d
 
         if groups.isEmpty { groups = SampleData.groups }
-        if trips.isEmpty { trips = SampleData.trips }
+
 
         await store.reload()
         isLoading = false

@@ -467,6 +467,18 @@ struct FriendLedgerView: View {
         settlements = await s
         let balances = await b
         balance = balances.first?.amount ?? 0
+
+        if expenses.isEmpty {
+            expenses = SampleData.recentExpenses.filter { expense in
+                expense.paidBy?.id == friend.id || expense.createdBy?.id == friend.id
+            }
+            if expenses.isEmpty {
+                expenses = Array(SampleData.recentExpenses.prefix(2))
+            }
+        }
+        if balance == 0 {
+            balance = ExpenseStore.shared.balanceForUser(friend.id)
+        }
         isLoading = false
     }
 }

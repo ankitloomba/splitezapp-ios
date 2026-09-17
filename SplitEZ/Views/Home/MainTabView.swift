@@ -17,13 +17,8 @@ struct MainTabView: View {
                 }
                 .tag(1)
 
-                NavigationStack {
-                    TripsListView()
-                }
-                .tag(2)
-
                 ActivityTabView()
-                    .tag(3)
+                    .tag(2)
             }
 
             // Bottom bar: floating + button, ad banner, tab bar
@@ -63,7 +58,7 @@ struct MainTabView: View {
                 .presentationDragIndicator(.visible)
         }
         .onChange(of: selectedTab) { oldTab, tab in
-            let screens = ["friends", "groups", "trips", "activity"]
+            let screens = ["friends", "groups", "activity"]
             if tab < screens.count {
                 previousTab = oldTab
                 Task { await AnalyticsTracker.shared.trackScreen(screens[tab]) }
@@ -81,8 +76,7 @@ struct MainTabView: View {
         HStack(spacing: 0) {
             tabButton(activeIcon: "person.2.fill", inactiveIcon: "person.2", label: "Friends", tag: 0)
             tabButton(activeIcon: "person.3.fill", inactiveIcon: "person.3", label: "Groups", tag: 1)
-            tabButton(activeIcon: "paperplane.fill", inactiveIcon: "paperplane", label: "Trips", tag: 2)
-            tabButton(activeIcon: "arrow.triangle.branch", inactiveIcon: "arrow.triangle.branch", label: "Activity", tag: 3)
+            tabButton(activeIcon: "arrow.triangle.branch", inactiveIcon: "arrow.triangle.branch", label: "Activity", tag: 2)
 
             // More button — opens sheet overlay
             Button {
@@ -1907,29 +1901,25 @@ struct ActivityRow: View {
     private var activityTitle: AttributedString {
         let name = activity.user?.firstName ?? "Someone"
         var result = AttributedString()
-        switch activity.type {
-        case "EXPENSE_CREATED":
-            var bold = AttributedString(name)
-            bold.font = .subheadline.weight(.bold)
+        let type = activity.type.lowercased()
+        var bold = AttributedString(name)
+        bold.font = .subheadline.weight(.bold)
+        switch type {
+        case "expense_created":
             let desc = activity.metadata?["description"]
             let expName = (desc?.value as? String) ?? "an expense"
             result = bold + AttributedString(" added \(expName)")
-        case "SETTLEMENT_COMPLETED":
-            var bold = AttributedString(name)
-            bold.font = .subheadline.weight(.bold)
-            result = bold + AttributedString(" paid you back")
-        case "GROUP_CREATED":
-            var bold = AttributedString("You")
-            bold.font = .subheadline.weight(.bold)
-            result = bold + AttributedString(" created a group")
-        case "TRIP_CREATED":
-            var bold = AttributedString("You")
-            bold.font = .subheadline.weight(.bold)
-            result = bold + AttributedString(" created a trip")
+        case "settlement_created", "settlement_completed":
+            let toName = (activity.metadata?["toName"]?.value as? String) ?? "someone"
+            result = bold + AttributedString(" settled up with \(toName)")
+        case "group_created":
+            let groupName = (activity.metadata?["name"]?.value as? String) ?? "a group"
+            result = bold + AttributedString(" created \(groupName)")
+        case "friend_added":
+            let friendName = (activity.metadata?["name"]?.value as? String) ?? "a friend"
+            result = bold + AttributedString(" added \(friendName)")
         default:
-            var bold = AttributedString(name)
-            bold.font = .subheadline.weight(.bold)
-            result = bold + AttributedString(" did something")
+            result = bold + AttributedString(" updated an activity")
         }
         return result
     }
@@ -1938,10 +1928,11 @@ struct ActivityRow: View {
         let groupName = (activity.metadata?["groupName"]?.value as? String)
             ?? (activity.metadata?["tripName"]?.value as? String)
             ?? ""
-        switch activity.type {
-        case "SETTLEMENT_COMPLETED":
+        let type = activity.type.lowercased()
+        switch type {
+        case "settlement_completed", "settlement_created":
             return groupName.isEmpty ? "settlement" : "\(groupName) · settlement"
-        case "EXPENSE_CREATED":
+        case "expense_created":
             let share = activity.metadata?["shareAmount"]?.value
             let shareStr = share != nil ? " · your share \(formatAmount(share as? Int ?? 0))" : ""
             return groupName.isEmpty ? "expense\(shareStr)" : "\(groupName)\(shareStr)"
@@ -2008,10 +1999,6 @@ struct MoreOverlaySheet: View {
 
                 // Menu items
                 VStack(spacing: 0) {
-                    moreMenuRow(icon: "suitcase", iconColor: SplitEZTheme.primary, label: "Trips") {
-                        TripsListView()
-                    }
-                    Divider().padding(.leading, 68)
                     moreMenuRow(icon: "person.crop.circle", iconColor: SplitEZTheme.primary, label: "Account") {
                         EditProfileView()
                     }
