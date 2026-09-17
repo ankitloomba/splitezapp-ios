@@ -136,7 +136,7 @@ struct GroupsListView: View {
 
                         Spacer().frame(height: 80)
                     }
-                    .background(Color(.systemBackground))
+                    .padding(.top, 8)
                 }
             }
         }
