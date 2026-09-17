@@ -2,9 +2,11 @@ import SwiftUI
 
 struct FriendLedgerView: View {
     let friend: Friend
+    @ObservedObject private var store = ExpenseStore.shared
     @State private var expenses: [Expense] = []
     @State private var settlements: [Settlement] = []
-    @State private var balance: Int = 0
+    @State private var loadedBalance: Int = 0
+    private var balance: Int { store.balanceForUser(friend.id) != 0 ? store.balanceForUser(friend.id) : loadedBalance }
     @State private var isLoading = true
     @State private var showSettleUp = false
     @State private var showReminderShare = false
@@ -15,9 +17,19 @@ struct FriendLedgerView: View {
     @Environment(\.dismiss) var dismiss
     private let api = APIClient.shared
 
+    private var combinedExpenses: [Expense] {
+        let existingIds = Set(expenses.map(\.id))
+        let storeExpenses = store.expenses.filter { exp in
+            !existingIds.contains(exp.id) &&
+            (exp.paidBy?.id == friend.id || exp.createdBy?.id == friend.id ||
+             exp.splits?.contains(where: { $0.userId == friend.id }) == true)
+        }
+        return (expenses + storeExpenses).sorted { ($0.createdAt) > ($1.createdAt) }
+    }
+
     private var allEntries: [(id: String, date: String, view: AnyView)] {
         var entries: [(id: String, date: String, view: AnyView)] = []
-        for expense in expenses {
+        for expense in combinedExpenses {
             entries.append((
                 id: expense.id,
                 date: expense.createdAt,
@@ -303,21 +315,6 @@ struct FriendLedgerView: View {
                 }
             }
 
-            // Net balance
-            if !allEntries.isEmpty {
-                Divider().padding(.top, 12)
-                HStack {
-                    Text("Net balance")
-                        .font(.subheadline.weight(.bold))
-                        .foregroundColor(SplitEZTheme.textPrimary)
-                    Spacer()
-                    Text(formatAmount(abs(balance)))
-                        .font(.subheadline.weight(.bold))
-                        .foregroundColor(balance >= 0 ? SplitEZTheme.positive : SplitEZTheme.negative)
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 14)
-            }
 
             Spacer().frame(height: 80)
         }
@@ -466,7 +463,7 @@ struct FriendLedgerView: View {
         expenses = await e
         settlements = await s
         let balances = await b
-        balance = balances.first?.amount ?? 0
+        loadedBalance = balances.first?.amount ?? 0
 
         if expenses.isEmpty {
             expenses = SampleData.recentExpenses.filter { expense in
@@ -475,9 +472,6 @@ struct FriendLedgerView: View {
             if expenses.isEmpty {
                 expenses = Array(SampleData.recentExpenses.prefix(2))
             }
-        }
-        if balance == 0 {
-            balance = ExpenseStore.shared.balanceForUser(friend.id)
         }
         isLoading = false
     }
