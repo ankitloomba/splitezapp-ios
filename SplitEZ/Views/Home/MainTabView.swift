@@ -888,6 +888,7 @@ struct AddExpenseSheet: View {
     @State private var showPaidByPicker = false
     @State private var selectedParticipantIds: Set<String> = []
     @State private var showParticipantPicker = false
+    @State private var participantSearchText = ""
 
     // For exact/percentage splits
     @State private var exactAmounts: [String: String] = [:]
@@ -904,27 +905,19 @@ struct AddExpenseSheet: View {
         return groups[index]
     }
 
-    private var members: [UserSummary] {
-        if let friend = prefillFriend {
-            let friendUser = UserSummary(
-                id: friend.id,
-                firstName: friend.firstName,
-                lastName: friend.lastName,
-                phone: friend.phone,
-                profilePicture: friend.profilePicture,
-                avatar: friend.avatar
-            )
-            var result = [SampleData.currentUser]
-            if friend.id != SampleData.currentUser.id {
-                result.append(friendUser)
-            }
-            return result
-        }
-        if let group = selectedGroup {
-            return group.members ?? []
-        }
+    private var allPeople: [UserSummary] {
         var seen = Set<String>()
         var result: [UserSummary] = []
+        result.append(SampleData.currentUser)
+        seen.insert(SampleData.currentUser.id)
+        for friend in SampleData.friends {
+            if seen.insert(friend.id).inserted {
+                result.append(UserSummary(
+                    id: friend.id, firstName: friend.firstName, lastName: friend.lastName,
+                    phone: friend.phone, profilePicture: friend.profilePicture, avatar: friend.avatar
+                ))
+            }
+        }
         for group in groups {
             for member in group.members ?? [] {
                 if seen.insert(member.id).inserted {
@@ -935,13 +928,20 @@ struct AddExpenseSheet: View {
         return result
     }
 
+    private var members: [UserSummary] {
+        if let group = selectedGroup {
+            return group.members ?? []
+        }
+        return allPeople
+    }
+
     private var participants: [UserSummary] {
         let ids = selectedParticipantIds.union([paidByUserId])
-        return members.filter { ids.contains($0.id) }
+        return allPeople.filter { ids.contains($0.id) }
     }
 
     private var paidByUser: UserSummary? {
-        members.first { $0.id == paidByUserId }
+        allPeople.first { $0.id == paidByUserId }
     }
 
     private var currSymbol: String {
@@ -1385,7 +1385,7 @@ struct AddExpenseSheet: View {
             }
         }
         .confirmationDialog("Paid By", isPresented: $showPaidByPicker) {
-            ForEach(members, id: \.id) { user in
+            ForEach(participants, id: \.id) { user in
                 Button(displayName(for: user)) { paidByUserId = user.id }
             }
         }
@@ -1461,43 +1461,116 @@ struct AddExpenseSheet: View {
 
     // MARK: – Participant picker sheet
 
+    private var searchFilteredPeople: [UserSummary] {
+        let query = participantSearchText.trimmingCharacters(in: .whitespaces)
+        if query.isEmpty { return allPeople }
+        return allPeople.filter { $0.displayName.localizedCaseInsensitiveContains(query) || ($0.phone ?? "").contains(query) }
+    }
+
+    private var selectedPeople: [UserSummary] {
+        allPeople.filter { selectedParticipantIds.contains($0.id) }
+    }
+
     private var participantPickerSheet: some View {
         NavigationStack {
-            List {
-                ForEach(members, id: \.id) { user in
-                    Button {
-                        if selectedParticipantIds.contains(user.id) {
-                            selectedParticipantIds.remove(user.id)
-                        } else {
-                            selectedParticipantIds.insert(user.id)
+            VStack(spacing: 0) {
+                // Selected chips
+                if !selectedPeople.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(selectedPeople, id: \.id) { user in
+                                HStack(spacing: 6) {
+                                    miniAvatar(initial: avatarInitials(for: user), color: avatarColor(for: user))
+                                    Text(user.firstName)
+                                        .font(.caption.weight(.medium))
+                                        .foregroundColor(SplitEZTheme.textPrimary)
+                                    Button {
+                                        selectedParticipantIds.remove(user.id)
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(SplitEZTheme.textTertiary)
+                                    }
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(
+                                    Capsule().fill(SplitEZTheme.secondaryBackground)
+                                )
+                            }
                         }
-                    } label: {
-                        HStack(spacing: 12) {
-                            miniAvatar(initial: avatarInitials(for: user), color: avatarColor(for: user))
-                            Text(displayName(for: user))
-                                .font(.subheadline.weight(.medium))
-                                .foregroundColor(SplitEZTheme.textPrimary)
-                            Spacer()
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                    }
+                    Divider()
+                }
+
+                // Search bar
+                HStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(SplitEZTheme.textTertiary)
+                    TextField("Search by name or phone", text: $participantSearchText)
+                        .font(.subheadline)
+                        .autocorrectionDisabled()
+                    if !participantSearchText.isEmpty {
+                        Button { participantSearchText = "" } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(SplitEZTheme.textTertiary)
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(Color(.systemGray6))
+
+                // People list
+                List {
+                    ForEach(searchFilteredPeople, id: \.id) { user in
+                        Button {
                             if selectedParticipantIds.contains(user.id) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(SplitEZTheme.primary)
+                                selectedParticipantIds.remove(user.id)
                             } else {
-                                Image(systemName: "circle")
-                                    .foregroundColor(Color(.systemGray3))
+                                selectedParticipantIds.insert(user.id)
+                            }
+                        } label: {
+                            HStack(spacing: 12) {
+                                miniAvatar(initial: avatarInitials(for: user), color: avatarColor(for: user))
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(displayName(for: user))
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundColor(SplitEZTheme.textPrimary)
+                                    if let phone = user.phone, !phone.isEmpty {
+                                        Text(phone)
+                                            .font(.caption)
+                                            .foregroundColor(SplitEZTheme.textTertiary)
+                                    }
+                                }
+                                Spacer()
+                                if selectedParticipantIds.contains(user.id) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(SplitEZTheme.primary)
+                                } else {
+                                    Image(systemName: "circle")
+                                        .foregroundColor(Color(.systemGray3))
+                                }
                             }
                         }
                     }
                 }
+                .listStyle(.plain)
             }
             .navigationTitle("Split with")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { showParticipantPicker = false }
+                    Button("Done") {
+                        participantSearchText = ""
+                        showParticipantPicker = false
+                    }
                 }
             }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
     }
 
     // MARK: – Split method sheet
