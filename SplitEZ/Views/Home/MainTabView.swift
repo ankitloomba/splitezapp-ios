@@ -52,7 +52,7 @@ struct MainTabView: View {
         .onAppear {
             UITabBar.appearance().isHidden = true
         }
-        .sheet(isPresented: $showAddSheet) {
+        .fullScreenCover(isPresented: $showAddSheet) {
             AddExpenseSheet()
         }
         .sheet(isPresented: $showMoreSheet) {
