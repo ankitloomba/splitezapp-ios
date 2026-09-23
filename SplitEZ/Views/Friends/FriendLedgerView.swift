@@ -12,7 +12,7 @@ struct FriendLedgerView: View {
     @State private var showReminderShare = false
     @State private var showSortPicker = false
     @State private var sortOrder = "newest"
-    @State private var showMoreMenu = false
+    @State private var showFriendSettings = false
     @State private var showAddExpense = false
     @State private var settleAmount = ""
     @Environment(\.dismiss) var dismiss
@@ -109,10 +109,8 @@ struct FriendLedgerView: View {
             Button("Newest first") { sortOrder = "newest" }
             Button("Oldest first") { sortOrder = "oldest" }
         }
-        .confirmationDialog("Options", isPresented: $showMoreMenu) {
-            Button("Send reminder") { showReminderShare = true }
-            Button("Settle up") { showSettleUp = true }
-            Button("Cancel", role: .cancel) {}
+        .navigationDestination(isPresented: $showFriendSettings) {
+            FriendSettingsView(friend: friend)
         }
         .fullScreenCover(isPresented: $showAddExpense) {
             AddExpenseSheet(prefillFriend: friend)
@@ -230,8 +228,8 @@ struct FriendLedgerView: View {
                         .foregroundColor(.white)
                 }
                 .padding(.trailing, 8)
-                Button { showMoreMenu = true } label: {
-                    Image(systemName: "ellipsis")
+                NavigationLink(destination: FriendSettingsView(friend: friend)) {
+                    Image(systemName: "gearshape")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(.white)
                 }
