@@ -6,7 +6,7 @@ struct FriendSettingsView: View {
     @State private var showRemoveConfirm = false
     @State private var showBlockConfirm = false
 
-    private var commonGroups: [Group] {
+    private var commonGroups: [ExpenseGroup] {
         SampleData.groups.filter { group in
             group.members?.contains(where: { $0.id == friend.id }) == true
         }
