@@ -90,32 +90,47 @@ struct FriendSettingsView: View {
     private var content: some View {
         VStack(spacing: 0) {
             // Ad-free upgrade card
-            HStack(spacing: 12) {
-                Image(systemName: "crown.fill")
-                    .font(.system(size: 20))
-                    .foregroundColor(.orange)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Go Ad-Free")
-                        .font(.subheadline.weight(.semibold))
-                    Text("Remove ads · ₹99/mo")
+            ZStack(alignment: .trailing) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Get SplitEZ Ad Free")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                    Text("No ads · priority support · exports")
                         .font(.caption)
-                        .foregroundColor(SplitEZTheme.textSecondary)
+                        .foregroundColor(.white.opacity(0.7))
                 }
-                Spacer()
-                Button("Upgrade") {}
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(SplitEZTheme.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.trailing, 80)
+
+                Text("₹99/mo")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.black.opacity(0.8))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(SplitEZTheme.primary, lineWidth: 1.5)
+                    .background(
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(red: 0.95, green: 0.75, blue: 0.3), Color(red: 0.85, green: 0.65, blue: 0.2)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
                     )
             }
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color.orange.opacity(0.08))
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.3, green: 0.25, blue: 0.7),
+                                Color(red: 0.45, green: 0.35, blue: 0.85)
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
             )
             .padding(.horizontal, 20)
             .padding(.top, 20)
@@ -185,7 +200,7 @@ struct FriendSettingsView: View {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(SplitEZTheme.primary.opacity(0.12))
                     .frame(width: 40, height: 40)
-                Text("🏠")
+                Text(groupEmoji(for: group.name))
                     .font(.system(size: 18))
             }
             VStack(alignment: .leading, spacing: 2) {
@@ -232,5 +247,11 @@ struct FriendSettingsView: View {
         let colors: [Color] = [.red, .orange, .green, .blue, .purple, .pink, .teal]
         let index = abs(name.hashValue) % colors.count
         return colors[index]
+    }
+
+    private func groupEmoji(for name: String) -> String {
+        let emojis = ["🏠", "🍽️", "✈️", "🎮", "🏢", "🎓", "⚽️", "🎵"]
+        let index = abs(name.hashValue) % emojis.count
+        return emojis[index]
     }
 }
