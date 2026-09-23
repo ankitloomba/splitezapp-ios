@@ -4,7 +4,6 @@ struct MainTabView: View {
     @State private var selectedTab = 0
     @State private var previousTab = 0
     @State private var showAddSheet = false
-    @State private var showMoreSheet = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -52,11 +51,6 @@ struct MainTabView: View {
         .fullScreenCover(isPresented: $showAddSheet) {
             AddExpenseSheet()
         }
-        .sheet(isPresented: $showMoreSheet) {
-            MoreOverlaySheet()
-                .presentationDetents([.height(380), .large])
-                .presentationDragIndicator(.visible)
-        }
         .onChange(of: selectedTab) { oldTab, tab in
             let screens = ["friends", "groups", "activity"]
             if tab < screens.count {
@@ -78,28 +72,6 @@ struct MainTabView: View {
             tabButton(activeIcon: "person.3.fill", inactiveIcon: "person.3", label: "Groups", tag: 1)
             tabButton(activeIcon: "arrow.triangle.branch", inactiveIcon: "arrow.triangle.branch", label: "Activity", tag: 2)
 
-            // More button — opens sheet overlay
-            Button {
-                showMoreSheet = true
-            } label: {
-                VStack(spacing: 4) {
-                    ZStack {
-                        if showMoreSheet {
-                            Circle()
-                                .fill(SplitEZTheme.primary)
-                                .frame(width: 36, height: 36)
-                        }
-                        Image(systemName: "ellipsis")
-                            .font(.system(size: 18))
-                            .foregroundColor(showMoreSheet ? .white : SplitEZTheme.textTertiary)
-                    }
-                    .frame(height: 36)
-                    Text("More")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(showMoreSheet ? SplitEZTheme.primary : SplitEZTheme.textTertiary)
-                }
-                .frame(maxWidth: .infinity)
-            }
         }
         .padding(.horizontal, 8)
         .padding(.top, 8)
@@ -155,6 +127,11 @@ struct FriendsTabView: View {
     @State private var addFriendError: String?
     @State private var isAddingFriend = false
     @State private var activeFilter = "All"
+    @State private var showOverflowMenu = false
+    @State private var navToAccount = false
+    @State private var navToSecurity = false
+    @State private var navToExport = false
+    @State private var navToImport = false
     private let filterOptions = ["All", "Owes you", "You owe", "Settled"]
     private let api = APIClient.shared
 
@@ -272,6 +249,18 @@ struct FriendsTabView: View {
             }
             .sheet(isPresented: $showQRCode) {
                 qrCodeSheet
+            }
+            .navigationDestination(isPresented: $navToAccount) {
+                SettingsView()
+            }
+            .navigationDestination(isPresented: $navToSecurity) {
+                SecuritySettingsView()
+            }
+            .navigationDestination(isPresented: $navToExport) {
+                ExportView()
+            }
+            .navigationDestination(isPresented: $navToImport) {
+                ImportView()
             }
         }
     }
@@ -434,6 +423,33 @@ struct FriendsTabView: View {
                     Image(systemName: "person.badge.plus")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(.white)
+                }
+                .padding(.trailing, 8)
+                Menu {
+                    Button { navToAccount = true } label: {
+                        Label("Account", systemImage: "person.crop.circle")
+                    }
+                    Button { navToSecurity = true } label: {
+                        Label("Security", systemImage: "lock.shield")
+                    }
+                    Divider()
+                    Button { navToExport = true } label: {
+                        Label("Export data", systemImage: "square.and.arrow.up")
+                    }
+                    Button { navToImport = true } label: {
+                        Label("Import data", systemImage: "square.and.arrow.down")
+                    }
+                    Divider()
+                    Button(role: .destructive) {
+                        Task { await AuthService.shared.logout() }
+                    } label: {
+                        Label("Log out", systemImage: "rectangle.portrait.and.arrow.right")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                        .rotationEffect(.degrees(90))
                 }
             }
 
