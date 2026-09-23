@@ -128,6 +128,7 @@ struct FriendsTabView: View {
     @State private var isAddingFriend = false
     @State private var activeFilter = "All"
     @State private var showOverflowMenu = false
+    @State private var isSearchExpanded = false
     @State private var navToAccount = false
     @State private var navToSecurity = false
     @State private var navToExport = false
@@ -201,7 +202,7 @@ struct FriendsTabView: View {
                                 }
                             }
                             .padding(.horizontal, 20)
-                            .padding(.top, pendingRequests.isEmpty ? 20 : 8)
+                            .padding(.top, pendingRequests.isEmpty ? 14 : 8)
                             .padding(.bottom, 12)
 
                             if filteredFriends.isEmpty {
@@ -440,7 +441,7 @@ struct FriendsTabView: View {
     // MARK: – Friends Header
 
     private var friendsHeader: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("Friends")
                     .font(.system(size: 24, weight: .bold))
@@ -451,13 +452,30 @@ struct FriendsTabView: View {
                         .font(.system(size: 20, weight: .medium))
                         .foregroundColor(.white)
                 }
-                .padding(.trailing, 8)
+                .padding(.trailing, 4)
+                Button(action: {}) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                .padding(.trailing, 4)
                 Button { showAddFriend = true } label: {
                     Image(systemName: "person.badge.plus")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(.white)
                 }
-                .padding(.trailing, 8)
+                .padding(.trailing, 4)
+                Button {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        isSearchExpanded.toggle()
+                        if !isSearchExpanded { searchText = "" }
+                    }
+                } label: {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                .padding(.trailing, 4)
                 Menu {
                     Button { navToSecurity = true } label: {
                         Label("Security", systemImage: "lock.shield")
@@ -483,29 +501,42 @@ struct FriendsTabView: View {
                 }
             }
 
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 14))
-                    .foregroundColor(SplitEZTheme.textTertiary)
-                TextField("Search friends", text: $searchText)
-                    .font(.subheadline)
-                    .foregroundColor(.white)
-                if !searchText.isEmpty {
+            if isSearchExpanded {
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 14))
+                        .foregroundColor(SplitEZTheme.textTertiary)
+                    TextField("Search friends", text: $searchText)
+                        .font(.subheadline)
+                        .foregroundColor(.white)
+                    if !searchText.isEmpty {
+                        Button {
+                            searchText = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(SplitEZTheme.textTertiary)
+                        }
+                    }
                     Button {
-                        searchText = ""
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            isSearchExpanded = false
+                            searchText = ""
+                        }
                     } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(SplitEZTheme.textTertiary)
+                        Text("Cancel")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.7))
                     }
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color.white.opacity(0.1))
+                )
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.white.opacity(0.1))
-            )
 
             // Filter pills – liquid glass style
             ScrollView(.horizontal, showsIndicators: false) {
@@ -565,7 +596,7 @@ struct FriendsTabView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
-        .padding(.bottom, 14)
+        .padding(.bottom, 10)
         .background(SplitEZTheme.darkBg)
     }
 
