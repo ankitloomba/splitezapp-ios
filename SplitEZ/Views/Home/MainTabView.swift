@@ -310,6 +310,39 @@ struct FriendsTabView: View {
                 )
                 .disabled(addFriendPhone.isEmpty || isAddingFriend)
 
+                HStack {
+                    Rectangle()
+                        .fill(Color(.systemGray4))
+                        .frame(height: 1)
+                    Text("or")
+                        .font(.caption)
+                        .foregroundColor(SplitEZTheme.textTertiary)
+                    Rectangle()
+                        .fill(Color(.systemGray4))
+                        .frame(height: 1)
+                }
+
+                Button {
+                    showAddFriend = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        showQRCode = true
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "qrcode")
+                            .font(.system(size: 16))
+                        Text("Scan QR Code")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .foregroundColor(SplitEZTheme.primary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .stroke(SplitEZTheme.primary, lineWidth: 1.5)
+                    )
+                }
+
                 Spacer()
             }
             .padding(20)
@@ -413,12 +446,12 @@ struct FriendsTabView: View {
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.white)
                 Spacer()
-                Button { showQRCode = true } label: {
-                    Image(systemName: "qrcode")
-                        .font(.system(size: 18, weight: .medium))
+                Button { navToAccount = true } label: {
+                    Image(systemName: "person.crop.circle")
+                        .font(.system(size: 20, weight: .medium))
                         .foregroundColor(.white)
                 }
-                .padding(.trailing, 12)
+                .padding(.trailing, 8)
                 Button { showAddFriend = true } label: {
                     Image(systemName: "person.badge.plus")
                         .font(.system(size: 18, weight: .medium))
@@ -426,9 +459,6 @@ struct FriendsTabView: View {
                 }
                 .padding(.trailing, 8)
                 Menu {
-                    Button { navToAccount = true } label: {
-                        Label("Account", systemImage: "person.crop.circle")
-                    }
                     Button { navToSecurity = true } label: {
                         Label("Security", systemImage: "lock.shield")
                     }
