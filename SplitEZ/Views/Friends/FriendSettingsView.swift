@@ -139,12 +139,12 @@ struct FriendSettingsView: View {
             if !commonGroups.isEmpty {
                 sectionLabel("GROUPS IN COMMON")
 
-                ForEach(commonGroups, id: \.id) { group in
+                ForEach(Array(commonGroups.enumerated()), id: \.element.id) { index, group in
                     NavigationLink(destination: EmptyView()) {
                         groupRow(group)
                     }
                     .buttonStyle(.plain)
-                    if group.id != commonGroups.last?.id {
+                    if index < commonGroups.count - 1 {
                         rowDivider
                     }
                 }
