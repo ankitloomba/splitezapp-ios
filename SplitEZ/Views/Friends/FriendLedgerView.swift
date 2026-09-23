@@ -67,7 +67,12 @@ struct FriendLedgerView: View {
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             ZStack(alignment: .top) {
-                Color(.systemBackground).ignoresSafeArea()
+                VStack(spacing: 0) {
+                    SplitEZTheme.darkBg
+                        .frame(height: 300)
+                    Color(.systemBackground)
+                }
+                .ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 0) {
