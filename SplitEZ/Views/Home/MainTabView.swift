@@ -154,12 +154,23 @@ struct FriendsTabView: View {
     @State private var addFriendPhone = ""
     @State private var addFriendError: String?
     @State private var isAddingFriend = false
+    @State private var activeFilter = "All"
+    private let filterOptions = ["All", "Owes you", "You owe", "Settled"]
     private let api = APIClient.shared
 
     private var filteredFriends: [Friend] {
         var result = friends
         if !searchText.isEmpty {
             result = result.filter { $0.displayName.localizedCaseInsensitiveContains(searchText) }
+        }
+        switch activeFilter {
+        case "Owes you":
+            result = result.filter { balanceFor($0.id) > 0 }
+        case "You owe":
+            result = result.filter { balanceFor($0.id) < 0 }
+        case "Settled":
+            result = result.filter { balanceFor($0.id) == 0 }
+        default: break
         }
         switch sortOption {
         case "balance":
@@ -449,6 +460,27 @@ struct FriendsTabView: View {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(Color.white.opacity(0.1))
             )
+
+            // Filter pills
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(filterOptions, id: \.self) { option in
+                        Button {
+                            activeFilter = option
+                        } label: {
+                            Text(option)
+                                .font(.subheadline)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 6)
+                                .background(
+                                    Capsule()
+                                        .fill(activeFilter == option ? SplitEZTheme.primary : Color.white.opacity(0.12))
+                                )
+                                .foregroundColor(activeFilter == option ? .white : .white.opacity(0.7))
+                        }
+                    }
+                }
+            }
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
