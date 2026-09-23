@@ -179,7 +179,7 @@ struct FriendSettingsView: View {
         }
     }
 
-    private func groupRow(_ group: Group) -> some View {
+    private func groupRow(_ group: ExpenseGroup) -> some View {
         HStack(spacing: 14) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
