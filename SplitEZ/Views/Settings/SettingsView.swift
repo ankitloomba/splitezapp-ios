@@ -335,7 +335,7 @@ struct NotificationSettingsView: View {
     var body: some View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
-                SplitEZTheme.darkBg.frame(height: 100)
+                SplitEZTheme.darkBg.frame(height: 160)
                 Color(.systemBackground)
             }
             .ignoresSafeArea()
@@ -445,7 +445,7 @@ struct SecuritySettingsView: View {
     var body: some View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
-                SplitEZTheme.darkBg.frame(height: 100)
+                SplitEZTheme.darkBg.frame(height: 160)
                 Color(.systemBackground)
             }
             .ignoresSafeArea()
