@@ -42,18 +42,30 @@ struct GroupsListView: View {
                         .font(.system(size: 28, weight: .bold))
                         .foregroundColor(.white)
                     Spacer()
+                    Button { } label: {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                    Button { showCreate = true } label: {
+                        Image(systemName: "plus.circle")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(.white)
+                    }
                     Button { withAnimation { showSearch.toggle(); if !showSearch { searchText = "" } } } label: {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 18, weight: .medium))
                             .foregroundColor(.white)
                     }
-                    .padding(.trailing, 8)
-                    Button { showCreate = true } label: {
-                        Image(systemName: "plus")
-                            .font(.system(size: 16, weight: .bold))
+                    Menu {
+                        Button { } label: { Label("Security", systemImage: "lock.shield") }
+                        Button { } label: { Label("Export data", systemImage: "square.and.arrow.up") }
+                        Button { } label: { Label("Import data", systemImage: "square.and.arrow.down") }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 18, weight: .medium))
                             .foregroundColor(.white)
-                            .frame(width: 36, height: 36)
-                            .background(Circle().fill(SplitEZTheme.primary))
+                            .frame(width: 32, height: 32)
                     }
                 }
 
