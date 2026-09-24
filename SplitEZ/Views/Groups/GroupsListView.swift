@@ -49,7 +49,7 @@ struct GroupsListView: View {
                     }
                     .padding(.trailing, 4)
                     Button { showCreate = true } label: {
-                        Image(systemName: "person.badge.plus")
+                        Image(systemName: "plus.circle")
                             .font(.system(size: 18, weight: .medium))
                             .foregroundColor(.white)
                     }
