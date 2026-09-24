@@ -1090,7 +1090,7 @@ struct AddExpenseSheet: View {
             if let friend = prefillFriend {
                 _selectedParticipantIds = State(initialValue: [SampleData.currentUser.id, friend.id])
             } else {
-                _selectedParticipantIds = State(initialValue: [])
+                _selectedParticipantIds = State(initialValue: [SampleData.currentUser.id])
             }
         }
     }
@@ -1589,7 +1589,14 @@ struct AddExpenseSheet: View {
             }
         }
         .confirmationDialog("Paid By", isPresented: $showPaidByPicker) {
-            ForEach(participants, id: \.id) { user in
+            let paidByOptions: [UserSummary] = {
+                var options = participants
+                if !options.contains(where: { $0.id == SampleData.currentUser.id }) {
+                    options.insert(SampleData.currentUser, at: 0)
+                }
+                return options
+            }()
+            ForEach(paidByOptions, id: \.id) { user in
                 Button(displayName(for: user)) { paidByUserId = user.id }
             }
         }
