@@ -79,12 +79,12 @@ struct MainTabView: View {
             tabButton(activeIcon: "person.crop.circle.fill", inactiveIcon: "person.crop.circle", label: "Account", tag: 3)
         }
         .padding(.horizontal, 8)
-        .padding(.top, 8)
-        .padding(.bottom, 4)
+        .padding(.top, 10)
+        .padding(.bottom, 6)
         .background(
             Rectangle()
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.06), radius: 8, y: -2)
+                .fill(.ultraThinMaterial)
+                .shadow(color: .black.opacity(0.08), radius: 10, y: -2)
                 .ignoresSafeArea(edges: .bottom)
         )
     }
@@ -92,20 +92,36 @@ struct MainTabView: View {
     private func tabButton(activeIcon: String, inactiveIcon: String, label: String, tag: Int) -> some View {
         let isActive = selectedTab == tag
         return Button {
-            selectedTab = tag
+            withAnimation(.easeInOut(duration: 0.2)) {
+                selectedTab = tag
+            }
         } label: {
             VStack(spacing: 4) {
                 ZStack {
                     if isActive {
-                        Circle()
-                            .fill(SplitEZTheme.primary)
-                            .frame(width: 36, height: 36)
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color(red: 0.2, green: 0.4, blue: 0.9).opacity(0.85),
+                                        Color(red: 0.3, green: 0.5, blue: 1.0).opacity(0.7)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
+                            )
+                            .shadow(color: Color(red: 0.2, green: 0.4, blue: 0.9).opacity(0.35), radius: 6, y: 2)
+                            .frame(width: 56, height: 32)
                     }
                     Image(systemName: isActive ? activeIcon : inactiveIcon)
                         .font(.system(size: 18))
                         .foregroundColor(isActive ? .white : SplitEZTheme.textTertiary)
                 }
-                .frame(height: 36)
+                .frame(height: 32)
                 Text(label)
                     .font(.system(size: 10, weight: .medium))
                     .foregroundColor(isActive ? SplitEZTheme.primary : SplitEZTheme.textTertiary)
