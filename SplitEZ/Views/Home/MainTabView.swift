@@ -143,8 +143,8 @@ struct FriendsTabView: View {
     @State private var showSortPicker = false
     @State private var sortOption = "name"
     @State private var showAddFriend = false
-    @State private var showQRCode = false
-    @State private var addFriendPhone = ""
+    @State private var showShareInvite = false
+    @State private var addFriendEmail = ""
     @State private var addFriendError: String?
     @State private var isAddingFriend = false
     @State private var activeFilter = "All"
@@ -269,8 +269,9 @@ struct FriendsTabView: View {
             .sheet(isPresented: $showAddFriend) {
                 addFriendSheet
             }
-            .sheet(isPresented: $showQRCode) {
-                qrCodeSheet
+            .sheet(isPresented: $showShareInvite) {
+                let message = "Join me on SplitEZ! Use my invite code: \(inviteCode)\n\nDownload SplitEZ and enter this code to connect."
+                ShareSheetView(items: [message])
             }
             .navigationDestination(isPresented: $navToAccount) {
                 SettingsView()
@@ -289,15 +290,30 @@ struct FriendsTabView: View {
 
     // MARK: – Add Friend Sheet
 
+    private var inviteCode: String {
+        let chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        let id = AuthService.shared.currentUser?.id ?? UUID().uuidString
+        let seed = id.hashValue
+        var code = ""
+        var s = abs(seed)
+        for _ in 0..<6 {
+            code.append(chars[chars.index(chars.startIndex, offsetBy: s % chars.count)])
+            s /= chars.count
+        }
+        return code
+    }
+
     private var addFriendSheet: some View {
         NavigationStack {
             VStack(spacing: 20) {
-                Text("Add a friend by phone number")
+                Text("Add a friend by email")
                     .font(.subheadline)
                     .foregroundColor(SplitEZTheme.textSecondary)
 
-                TextField("+91 98765 43210", text: $addFriendPhone)
-                    .keyboardType(.phonePad)
+                TextField("friend@example.com", text: $addFriendEmail)
+                    .keyboardType(.emailAddress)
+                    .autocapitalization(.none)
+                    .autocorrectionDisabled()
                     .font(.title3)
                     .multilineTextAlignment(.center)
                     .padding()
@@ -328,9 +344,9 @@ struct FriendsTabView: View {
                 }
                 .background(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(addFriendPhone.isEmpty ? SplitEZTheme.primary.opacity(0.4) : SplitEZTheme.primary)
+                        .fill(addFriendEmail.isEmpty ? SplitEZTheme.primary.opacity(0.4) : SplitEZTheme.primary)
                 )
-                .disabled(addFriendPhone.isEmpty || isAddingFriend)
+                .disabled(addFriendEmail.isEmpty || isAddingFriend)
 
                 HStack {
                     Rectangle()
@@ -344,25 +360,41 @@ struct FriendsTabView: View {
                         .frame(height: 1)
                 }
 
-                Button {
-                    showAddFriend = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        showQRCode = true
+                // Invite code section
+                VStack(spacing: 12) {
+                    Text("Share your invite code")
+                        .font(.subheadline.weight(.medium))
+
+                    Text(inviteCode)
+                        .font(.system(size: 28, weight: .bold, design: .monospaced))
+                        .foregroundColor(SplitEZTheme.primary)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(SplitEZTheme.primary.opacity(0.08))
+                        )
+
+                    Button {
+                        showAddFriend = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            showShareInvite = true
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 16))
+                            Text("Share invite link")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .foregroundColor(SplitEZTheme.primary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                .stroke(SplitEZTheme.primary, lineWidth: 1.5)
+                        )
                     }
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "qrcode")
-                            .font(.system(size: 16))
-                        Text("Scan QR Code")
-                            .font(.subheadline.weight(.semibold))
-                    }
-                    .foregroundColor(SplitEZTheme.primary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .stroke(SplitEZTheme.primary, lineWidth: 1.5)
-                    )
                 }
 
                 Spacer()
@@ -376,49 +408,20 @@ struct FriendsTabView: View {
                 }
             }
         }
-        .presentationDetents([.medium])
-    }
-
-    private var qrCodeSheet: some View {
-        NavigationStack {
-            VStack(spacing: 24) {
-                Image(systemName: "qrcode")
-                    .font(.system(size: 120))
-                    .foregroundColor(SplitEZTheme.primary)
-
-                Text("Share your QR code")
-                    .font(.headline)
-
-                Text("Friends can scan this to add you on SplitEZ")
-                    .font(.subheadline)
-                    .foregroundColor(SplitEZTheme.textSecondary)
-                    .multilineTextAlignment(.center)
-
-                Spacer()
-            }
-            .padding(20)
-            .padding(.top, 40)
-            .navigationTitle("My QR Code")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { showQRCode = false }
-                }
-            }
-        }
+        .presentationDetents([.medium, .large])
     }
 
     private func sendFriendRequest() async {
         isAddingFriend = true
         addFriendError = nil
-        struct AddFriendReq: Codable { let phone: String }
+        struct AddFriendReq: Codable { let email: String }
         do {
-            let _: AnyCodable = try await api.post("/friend-requests", body: AddFriendReq(phone: addFriendPhone))
+            let _: AnyCodable = try await api.post("/friend-requests", body: AddFriendReq(email: addFriendEmail))
             showAddFriend = false
-            addFriendPhone = ""
+            addFriendEmail = ""
             await loadData()
         } catch {
-            addFriendError = "Could not send request. Check the phone number."
+            addFriendError = "Could not send request. Check the email address."
         }
         isAddingFriend = false
     }
