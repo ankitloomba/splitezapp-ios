@@ -18,6 +18,11 @@ struct MainTabView: View {
 
                 ActivityTabView()
                     .tag(2)
+
+                NavigationStack {
+                    SettingsView()
+                }
+                .tag(3)
             }
 
             // Bottom bar: floating + button, ad banner, tab bar
@@ -52,7 +57,7 @@ struct MainTabView: View {
             AddExpenseSheet()
         }
         .onChange(of: selectedTab) { oldTab, tab in
-            let screens = ["friends", "groups", "activity"]
+            let screens = ["friends", "groups", "activity", "account"]
             if tab < screens.count {
                 previousTab = oldTab
                 Task { await AnalyticsTracker.shared.trackScreen(screens[tab]) }
@@ -71,7 +76,7 @@ struct MainTabView: View {
             tabButton(activeIcon: "person.2.fill", inactiveIcon: "person.2", label: "Friends", tag: 0)
             tabButton(activeIcon: "person.3.fill", inactiveIcon: "person.3", label: "Groups", tag: 1)
             tabButton(activeIcon: "arrow.triangle.branch", inactiveIcon: "arrow.triangle.branch", label: "Activity", tag: 2)
-
+            tabButton(activeIcon: "person.crop.circle.fill", inactiveIcon: "person.crop.circle", label: "Account", tag: 3)
         }
         .padding(.horizontal, 8)
         .padding(.top, 8)
@@ -168,7 +173,7 @@ struct FriendsTabView: View {
         NavigationStack {
             ZStack(alignment: .top) {
                 VStack(spacing: 0) {
-                    SplitEZTheme.darkBg.frame(height: 160)
+                    SplitEZTheme.darkBg.frame(height: 220)
                     Color(.systemBackground)
                 }
                 .ignoresSafeArea()
@@ -447,12 +452,6 @@ struct FriendsTabView: View {
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.white)
                 Spacer()
-                Button { navToAccount = true } label: {
-                    Image(systemName: "person.crop.circle")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(.white)
-                }
-                .padding(.trailing, 4)
                 Button(action: {}) {
                     Image(systemName: "sparkles")
                         .font(.system(size: 18, weight: .medium))
@@ -596,7 +595,7 @@ struct FriendsTabView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
-        .padding(.bottom, 10)
+        .padding(.bottom, 16)
         .background(SplitEZTheme.darkBg)
     }
 
