@@ -1113,30 +1113,230 @@ struct CurrencyLanguageView: View {
 
 struct EditProfileView: View {
     @EnvironmentObject var auth: AuthService
-    @State private var firstName = ""
-    @State private var lastName = ""
+    @State private var fullName = ""
+    @State private var email = ""
+    @State private var phone = ""
     @State private var isSaving = false
+    @State private var showDeleteConfirm = false
+    @Environment(\.dismiss) var dismiss
     private let api = APIClient.shared
 
+    private var isEmailVerified: Bool {
+        email == auth.currentUser?.email && auth.currentUser?.email != nil
+    }
+
+    private var isPhoneVerified: Bool {
+        phone == auth.currentUser?.phone && auth.currentUser?.phone != nil
+    }
+
     var body: some View {
-        Form {
-            TextField("First Name", text: $firstName)
-            TextField("Last Name", text: $lastName)
-            Button("Save") {
-                Task {
-                    isSaving = true
-                    let _: UserProfile? = try? await api.put("/users/me", body: UpdateUserRequest(
-                        firstName: firstName, lastName: lastName.isEmpty ? nil : lastName))
-                    await auth.checkAuth()
-                    isSaving = false
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 300)
+                Color(.systemBackground)
+            }
+            .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Header
+                    VStack(spacing: 0) {
+                        HStack {
+                            Button { dismiss() } label: {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(.white)
+                            }
+                            Spacer()
+                            Text("Edit profile")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundColor(.white)
+                            Spacer()
+                            Color.clear.frame(width: 20)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 60)
+
+                        // Avatar with camera
+                        ZStack(alignment: .bottomTrailing) {
+                            Circle()
+                                .fill(SplitEZTheme.primary)
+                                .frame(width: 88, height: 88)
+                                .overlay(
+                                    Text(auth.currentUser?.firstName.prefix(1).uppercased() ?? "A")
+                                        .font(.system(size: 36, weight: .bold))
+                                        .foregroundColor(.white)
+                                )
+
+                            ZStack {
+                                Circle()
+                                    .fill(SplitEZTheme.darkBg)
+                                    .frame(width: 30, height: 30)
+                                Image(systemName: "camera.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.white)
+                            }
+                            .offset(x: 2, y: 2)
+                        }
+                        .padding(.top, 20)
+
+                        Text("Change photo")
+                            .font(.caption)
+                            .foregroundColor(SplitEZTheme.textSecondary)
+                            .padding(.top, 8)
+                            .padding(.bottom, 24)
+                    }
+
+                    // White content card
+                    VStack(spacing: 0) {
+                        VStack(alignment: .leading, spacing: 20) {
+                            // Full Name
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("FULL NAME")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(SplitEZTheme.primary)
+                                    .tracking(0.5)
+                                TextField("Full name", text: $fullName)
+                                    .font(.system(size: 16))
+                                    .padding(14)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .stroke(SplitEZTheme.primary.opacity(0.3), lineWidth: 1)
+                                    )
+                            }
+
+                            // Email
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("EMAIL")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(SplitEZTheme.primary)
+                                    .tracking(0.5)
+                                HStack {
+                                    TextField("Email address", text: $email)
+                                        .font(.system(size: 16))
+                                        .keyboardType(.emailAddress)
+                                        .textContentType(.emailAddress)
+                                        .autocapitalization(.none)
+                                    if !isEmailVerified {
+                                        Button("Verify") {}
+                                            .font(.system(size: 14, weight: .semibold))
+                                            .foregroundColor(SplitEZTheme.primary)
+                                    }
+                                }
+                                .padding(14)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(isEmailVerified ? Color(.systemGray4) : Color.orange.opacity(0.5), lineWidth: 1)
+                                )
+                                if !isEmailVerified {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "exclamationmark.circle")
+                                            .font(.system(size: 12))
+                                        Text("Not verified · we'll send a link to this email")
+                                            .font(.system(size: 12))
+                                    }
+                                    .foregroundColor(.orange)
+                                }
+                            }
+
+                            // Phone
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("PHONE")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(SplitEZTheme.primary)
+                                    .tracking(0.5)
+                                HStack(spacing: 0) {
+                                    Text("+91")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(SplitEZTheme.textSecondary)
+                                        .padding(.leading, 14)
+                                    Divider()
+                                        .frame(height: 20)
+                                        .padding(.horizontal, 10)
+                                    TextField("Phone number", text: $phone)
+                                        .font(.system(size: 16))
+                                        .keyboardType(.phonePad)
+                                    if isPhoneVerified {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "checkmark")
+                                                .font(.system(size: 12, weight: .semibold))
+                                            Text("Verified")
+                                                .font(.system(size: 13, weight: .semibold))
+                                        }
+                                        .foregroundColor(SplitEZTheme.positive)
+                                        .padding(.trailing, 14)
+                                    }
+                                }
+                                .padding(.vertical, 14)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(Color(.systemGray4), lineWidth: 1)
+                                )
+                                Text("Changing your number needs an OTP")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 24)
+
+                        Spacer().frame(height: 40)
+
+                        // Save button
+                        Button {
+                            Task {
+                                isSaving = true
+                                let parts = fullName.split(separator: " ", maxSplits: 1)
+                                let first = String(parts.first ?? "")
+                                let last = parts.count > 1 ? String(parts[1]) : nil
+                                let _: UserProfile? = try? await api.put("/users/me", body: UpdateUserRequest(
+                                    firstName: first, lastName: last))
+                                await auth.checkAuth()
+                                isSaving = false
+                                dismiss()
+                            }
+                        } label: {
+                            Text(isSaving ? "Saving..." : "Save changes")
+                                .font(.subheadline.weight(.bold))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                                        .fill(fullName.isEmpty ? SplitEZTheme.primary.opacity(0.4) : SplitEZTheme.primary)
+                                )
+                        }
+                        .disabled(fullName.isEmpty || isSaving)
+                        .padding(.horizontal, 20)
+
+                        // Delete account
+                        Button { showDeleteConfirm = true } label: {
+                            Text("Delete account")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundColor(SplitEZTheme.negative)
+                        }
+                        .padding(.top, 16)
+                        .padding(.bottom, 32)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color(.systemBackground))
+                    )
                 }
             }
-            .disabled(firstName.isEmpty || isSaving)
         }
-        .navigationTitle("Edit Profile")
+        .navigationBarHidden(true)
+        .alert("Delete Account", isPresented: $showDeleteConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {}
+        } message: {
+            Text("This action cannot be undone. All your data will be permanently deleted.")
+        }
         .onAppear {
-            firstName = auth.currentUser?.firstName ?? ""
-            lastName = auth.currentUser?.lastName ?? ""
+            let user = auth.currentUser
+            fullName = user?.displayName ?? ""
+            email = user?.email ?? ""
+            phone = user?.phone ?? ""
         }
     }
 }
