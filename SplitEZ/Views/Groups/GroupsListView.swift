@@ -4,13 +4,13 @@ struct GroupsListView: View {
     @State private var groups: [ExpenseGroup] = []
     @State private var isLoading = true
     @State private var showCreate = false
-    @State private var activeFilter = "All groups"
+    @State private var activeFilter = "All"
     @State private var showSearch = false
     @State private var searchText = ""
     @Environment(\.dismiss) var dismiss
     private let api = APIClient.shared
 
-    private let filters = ["All groups", "Active", "Archived"]
+    private let filters = ["All", "Active", "Settled"]
 
     private var filteredGroups: [ExpenseGroup] {
         var result = groups
@@ -36,61 +36,45 @@ struct GroupsListView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Dark header — pinned, not in scroll
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text("Groups")
-                        .font(.system(size: 28, weight: .bold))
+                        .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                     Spacer()
-                    Button { } label: {
+                    Button(action: {}) {
                         Image(systemName: "sparkles")
                             .font(.system(size: 18, weight: .medium))
                             .foregroundColor(.white)
                     }
+                    .padding(.trailing, 4)
                     Button { showCreate = true } label: {
-                        Image(systemName: "plus.circle")
-                            .font(.system(size: 20, weight: .medium))
+                        Image(systemName: "person.badge.plus")
+                            .font(.system(size: 18, weight: .medium))
                             .foregroundColor(.white)
                     }
-                    Button { withAnimation { showSearch.toggle(); if !showSearch { searchText = "" } } } label: {
+                    .padding(.trailing, 4)
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            showSearch.toggle()
+                            if !showSearch { searchText = "" }
+                        }
+                    } label: {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 18, weight: .medium))
                             .foregroundColor(.white)
                     }
+                    .padding(.trailing, 4)
                     Menu {
                         Button { } label: { Label("Security", systemImage: "lock.shield") }
+                        Divider()
                         Button { } label: { Label("Export data", systemImage: "square.and.arrow.up") }
                         Button { } label: { Label("Import data", systemImage: "square.and.arrow.down") }
                     } label: {
                         Image(systemName: "ellipsis")
                             .font(.system(size: 18, weight: .medium))
                             .foregroundColor(.white)
-                            .frame(width: 32, height: 32)
-                    }
-                }
-
-                // Filter pills
-                HStack(spacing: 8) {
-                    ForEach(filters, id: \.self) { filter in
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) { activeFilter = filter }
-                        } label: {
-                            Text(filter)
-                                .font(.subheadline.weight(.medium))
-                                .foregroundColor(activeFilter == filter ? .white : Color.white.opacity(0.7))
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .background(
-                                    Capsule()
-                                        .fill(activeFilter == filter
-                                              ? Color.white.opacity(0.2)
-                                              : Color.clear)
-                                )
-                                .overlay(
-                                    Capsule()
-                                        .stroke(Color.white.opacity(activeFilter == filter ? 0 : 0.3), lineWidth: 1)
-                                )
-                        }
+                            .rotationEffect(.degrees(90))
                     }
                 }
 
@@ -109,6 +93,16 @@ struct GroupsListView: View {
                                     .foregroundColor(SplitEZTheme.textTertiary)
                             }
                         }
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                showSearch = false
+                                searchText = ""
+                            }
+                        } label: {
+                            Text("Cancel")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.7))
+                        }
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 10)
@@ -116,6 +110,63 @@ struct GroupsListView: View {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .fill(Color.white.opacity(0.1))
                     )
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+
+                // Filter pills – liquid glass style
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(filters, id: \.self) { option in
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    activeFilter = option
+                                }
+                            } label: {
+                                Text(option)
+                                    .font(.subheadline.weight(activeFilter == option ? .semibold : .regular))
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        Capsule()
+                                            .fill(
+                                                activeFilter == option
+                                                    ? LinearGradient(
+                                                        colors: [
+                                                            Color(red: 0.2, green: 0.4, blue: 0.9).opacity(0.85),
+                                                            Color(red: 0.3, green: 0.5, blue: 1.0).opacity(0.7)
+                                                        ],
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
+                                                    : LinearGradient(
+                                                        colors: [
+                                                            Color.white.opacity(0.15),
+                                                            Color.white.opacity(0.08)
+                                                        ],
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
+                                            )
+                                    )
+                                    .background(
+                                        Capsule()
+                                            .stroke(
+                                                activeFilter == option
+                                                    ? Color.white.opacity(0.35)
+                                                    : Color.white.opacity(0.15),
+                                                lineWidth: 0.5
+                                            )
+                                    )
+                                    .shadow(
+                                        color: activeFilter == option
+                                            ? Color(red: 0.2, green: 0.4, blue: 0.9).opacity(0.4)
+                                            : Color.clear,
+                                        radius: 8, x: 0, y: 2
+                                    )
+                                    .foregroundColor(activeFilter == option ? .white : .white.opacity(0.65))
+                            }
+                        }
+                    }
                 }
             }
             .padding(.horizontal, 20)
@@ -127,6 +178,28 @@ struct GroupsListView: View {
             // Content — scrollable, with rounded top corners over dark bg
             ScrollView {
                 VStack(spacing: 0) {
+                    // All groups header
+                    HStack {
+                        Text("All groups")
+                            .font(.headline)
+                        Text("· \(filteredGroups.count)")
+                            .font(.headline)
+                            .foregroundColor(SplitEZTheme.textSecondary)
+                        Spacer()
+                        Button { } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "line.3.horizontal.decrease")
+                                    .font(.caption)
+                                Text("Sort")
+                                    .font(.subheadline.weight(.medium))
+                            }
+                            .foregroundColor(SplitEZTheme.primary)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 14)
+                    .padding(.bottom, 12)
+
                     if groups.isEmpty && !isLoading {
                         VStack(spacing: 12) {
                             Image(systemName: "person.3")
