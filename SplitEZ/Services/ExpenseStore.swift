@@ -75,6 +75,34 @@ class ExpenseStore: ObservableObject {
         balances.first(where: { $0.userId == userId })?.amount ?? 0
     }
 
+    func recordSettlement(friendId: String, amount: Int, method: String) {
+        // Reduce balance toward zero
+        if let index = balances.firstIndex(where: { $0.userId == friendId }) {
+            let old = balances[index]
+            let newAmount: Int
+            if old.amount > 0 {
+                newAmount = max(0, old.amount - amount)
+            } else {
+                newAmount = min(0, old.amount + amount)
+            }
+            balances[index] = Balance(userId: old.userId, user: old.user, amount: newAmount)
+        }
+
+        let activity = Activity(
+            id: "a_\(UUID().uuidString.prefix(8))",
+            type: "settlement_created",
+            entityType: "settlement",
+            entityId: "s_\(UUID().uuidString.prefix(8))",
+            metadata: [
+                "amount": AnyCodable(amount),
+                "method": AnyCodable(method)
+            ],
+            user: SampleData.currentUser,
+            createdAt: ISO8601DateFormatter().string(from: Date())
+        )
+        activities.insert(activity, at: 0)
+    }
+
     private func updateBalance(userId: String, delta: Int) {
         if let index = balances.firstIndex(where: { $0.userId == userId }) {
             let old = balances[index]

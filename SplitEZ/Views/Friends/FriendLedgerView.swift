@@ -15,6 +15,7 @@ struct FriendLedgerView: View {
     @State private var showFriendSettings = false
     @State private var showAddExpense = false
     @State private var settleAmount = ""
+    @State private var selectedPaymentMethod = "UPI"
     @Environment(\.dismiss) var dismiss
     private let api = APIClient.shared
 
@@ -127,87 +128,133 @@ struct FriendLedgerView: View {
     }
 
     private var settleUpSheet: some View {
-        NavigationStack {
-            VStack(spacing: 24) {
-                Text("Settle up with \(friend.firstName)")
-                    .font(.headline)
+        VStack(spacing: 0) {
+            // Handle bar
+            RoundedRectangle(cornerRadius: 3)
+                .fill(Color(.systemGray4))
+                .frame(width: 40, height: 5)
+                .padding(.top, 10)
 
-                Text("Outstanding: \(formatAmount(abs(balance)))")
-                    .font(.subheadline)
-                    .foregroundColor(SplitEZTheme.textSecondary)
-
-                TextField("Amount", text: $settleAmount)
-                    .keyboardType(.numberPad)
-                    .font(.system(size: 32, weight: .bold))
-                    .multilineTextAlignment(.center)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(Color(.systemGray6))
-                    )
-
-                HStack(spacing: 12) {
-                    settlementMethodButton("UPI", icon: "indianrupeesign.circle")
-                    settlementMethodButton("Cash", icon: "banknote")
-                    settlementMethodButton("Bank", icon: "building.columns")
-                }
-
-                Button {
-                    Task { await recordSettlement() }
-                } label: {
-                    Text("Record payment")
-                        .font(.subheadline.weight(.bold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                                .fill(settleAmount.isEmpty ? SplitEZTheme.primary.opacity(0.4) : SplitEZTheme.primary)
-                        )
-                }
-                .disabled(settleAmount.isEmpty)
-
+            // Close button
+            HStack {
                 Spacer()
-            }
-            .padding(20)
-            .navigationTitle("Settle Up")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { showSettleUp = false }
+                Button { showSettleUp = false } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(SplitEZTheme.textSecondary)
+                        .frame(width: 30, height: 30)
+                        .background(Circle().fill(Color(.systemGray6)))
                 }
             }
-            .onAppear {
-                settleAmount = String(format: "%.0f", Double(abs(balance)) / 100.0)
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+
+            // Title
+            Text("Settle with \(friend.firstName)")
+                .font(.system(size: 20, weight: .bold))
+                .padding(.top, 4)
+
+            // Avatar
+            AvatarView(user: UserSummary(id: friend.id, firstName: friend.firstName, lastName: friend.lastName, phone: friend.phone, profilePicture: friend.profilePicture, avatar: friend.avatar), size: 72)
+                .padding(.top, 16)
+
+            // Outstanding label
+            Text("Outstanding \(formatAmount(abs(balance)))")
+                .font(.subheadline)
+                .foregroundColor(SplitEZTheme.textSecondary)
+                .padding(.top, 8)
+
+            // Editable amount
+            HStack(spacing: 4) {
+                Text("₹")
+                    .font(.system(size: 20))
+                    .foregroundColor(SplitEZTheme.textSecondary)
+                TextField("0", text: $settleAmount)
+                    .keyboardType(.numberPad)
+                    .font(.system(size: 36, weight: .bold))
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 200)
+                Image(systemName: "pencil")
+                    .font(.system(size: 16))
+                    .foregroundColor(SplitEZTheme.textTertiary)
             }
+            .padding(.vertical, 16)
+            .padding(.horizontal, 24)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(SplitEZTheme.primary.opacity(0.3), lineWidth: 1.5)
+            )
+            .padding(.horizontal, 40)
+            .padding(.top, 16)
+
+            // Payment method selector
+            Text("PAID VIA")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(SplitEZTheme.textTertiary)
+                .tracking(0.5)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 24)
+                .padding(.top, 20)
+
+            HStack(spacing: 12) {
+                settlementMethodButton("UPI", icon: "indianrupeesign.circle")
+                settlementMethodButton("Cash", icon: "banknote")
+                settlementMethodButton("Bank", icon: "building.columns")
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 8)
+
+            Spacer()
+
+            // Record payment button
+            Button {
+                recordSettlement()
+            } label: {
+                Text("Record payment")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .fill(settleAmount.isEmpty ? SplitEZTheme.primary.opacity(0.4) : SplitEZTheme.primary)
+                    )
+            }
+            .disabled(settleAmount.isEmpty)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 32)
         }
         .presentationDetents([.medium])
+        .onAppear {
+            settleAmount = String(format: "%.0f", Double(abs(balance)) / 100.0)
+            selectedPaymentMethod = "UPI"
+        }
     }
 
     private func settlementMethodButton(_ label: String, icon: String) -> some View {
-        VStack(spacing: 6) {
+        let isSelected = selectedPaymentMethod == label
+        return VStack(spacing: 6) {
             Image(systemName: icon)
                 .font(.system(size: 24))
-                .foregroundColor(SplitEZTheme.primary)
+                .foregroundColor(isSelected ? SplitEZTheme.primary : SplitEZTheme.textSecondary)
             Text(label)
                 .font(.caption.weight(.medium))
-                .foregroundColor(SplitEZTheme.textSecondary)
+                .foregroundColor(isSelected ? SplitEZTheme.primary : SplitEZTheme.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 16)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Color(.systemGray4), lineWidth: 1)
+                .stroke(isSelected ? SplitEZTheme.primary : Color(.systemGray4), lineWidth: isSelected ? 2 : 1)
         )
+        .onTapGesture { selectedPaymentMethod = label }
     }
 
-    private func recordSettlement() async {
+    private func recordSettlement() {
         guard let amount = Double(settleAmount) else { return }
         let amountMinor = Int(amount * 100)
-        struct SettleRequest: Codable { let amount: Int; let friendId: String; let method: String }
-        let _: Settlement? = try? await api.post("/settlements", body: SettleRequest(amount: amountMinor, friendId: friend.id, method: "upi"))
+        ExpenseStore.shared.recordSettlement(friendId: friend.id, amount: amountMinor, method: selectedPaymentMethod.lowercased())
         showSettleUp = false
-        await loadData()
     }
 
     // MARK: - Header
