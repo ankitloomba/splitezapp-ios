@@ -595,7 +595,7 @@ struct FriendsTabView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
-        .padding(.bottom, 16)
+        .padding(.bottom, 22)
         .background(SplitEZTheme.darkBg)
     }
 
