@@ -130,62 +130,60 @@ struct FriendLedgerView: View {
     private var settleUpSheet: some View {
         VStack(spacing: 0) {
             // Handle bar
-            RoundedRectangle(cornerRadius: 3)
+            Capsule()
                 .fill(Color(.systemGray4))
-                .frame(width: 40, height: 5)
-                .padding(.top, 10)
-
-            // Close button
-            HStack {
-                Spacer()
-                Button { showSettleUp = false } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(SplitEZTheme.textSecondary)
-                        .frame(width: 30, height: 30)
-                        .background(Circle().fill(Color(.systemGray6)))
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
+                .frame(width: 36, height: 4)
+                .padding(.top, 12)
+                .padding(.bottom, 20)
 
             // Title
             Text("Settle with \(friend.firstName)")
                 .font(.system(size: 20, weight: .bold))
-                .padding(.top, 4)
+                .foregroundColor(SplitEZTheme.textPrimary)
 
             // Avatar
             AvatarView(user: UserSummary(id: friend.id, firstName: friend.firstName, lastName: friend.lastName, phone: friend.phone, profilePicture: friend.profilePicture, avatar: friend.avatar), size: 72)
-                .padding(.top, 16)
+                .padding(.top, 20)
 
             // Outstanding label
             Text("Outstanding \(formatAmount(abs(balance)))")
                 .font(.subheadline)
                 .foregroundColor(SplitEZTheme.textSecondary)
-                .padding(.top, 8)
+                .padding(.top, 10)
 
-            // Editable amount
-            HStack(spacing: 4) {
+            // Editable amount box
+            HStack(spacing: 0) {
+                Spacer()
                 Text("₹")
-                    .font(.system(size: 20))
+                    .font(.system(size: 22, weight: .medium))
                     .foregroundColor(SplitEZTheme.textSecondary)
+                    .padding(.trailing, 4)
                 TextField("0", text: $settleAmount)
                     .keyboardType(.numberPad)
-                    .font(.system(size: 36, weight: .bold))
+                    .font(.system(size: 40, weight: .bold))
+                    .foregroundColor(SplitEZTheme.textPrimary)
                     .multilineTextAlignment(.center)
-                    .frame(maxWidth: 200)
-                Image(systemName: "pencil")
-                    .font(.system(size: 16))
-                    .foregroundColor(SplitEZTheme.textTertiary)
+                    .fixedSize()
+                Spacer()
+                Button {
+                    // focus the text field
+                } label: {
+                    Image(systemName: "pencil")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(SplitEZTheme.primary)
+                        .frame(width: 32, height: 32)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(SplitEZTheme.primary.opacity(0.1)))
+                }
+                .padding(.trailing, 16)
             }
-            .padding(.vertical, 16)
-            .padding(.horizontal, 24)
+            .padding(.vertical, 18)
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(SplitEZTheme.primary.opacity(0.3), lineWidth: 1.5)
+                    .stroke(SplitEZTheme.primary.opacity(0.25), lineWidth: 1.5)
+                    .background(RoundedRectangle(cornerRadius: 16).fill(Color(.systemBackground)))
             )
-            .padding(.horizontal, 40)
-            .padding(.top, 16)
+            .padding(.horizontal, 24)
+            .padding(.top, 20)
 
             // Payment method selector
             Text("PAID VIA")
@@ -194,7 +192,7 @@ struct FriendLedgerView: View {
                 .tracking(0.5)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 24)
-                .padding(.top, 20)
+                .padding(.top, 24)
 
             HStack(spacing: 12) {
                 settlementMethodButton("UPI", icon: "indianrupeesign.circle")
@@ -202,7 +200,7 @@ struct FriendLedgerView: View {
                 settlementMethodButton("Bank", icon: "building.columns")
             }
             .padding(.horizontal, 24)
-            .padding(.top, 8)
+            .padding(.top, 10)
 
             Spacer()
 
@@ -214,15 +212,27 @@ struct FriendLedgerView: View {
                     .font(.subheadline.weight(.bold))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
+                    .padding(.vertical, 18)
                     .background(
-                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        RoundedRectangle(cornerRadius: 32, style: .continuous)
                             .fill(settleAmount.isEmpty ? SplitEZTheme.primary.opacity(0.4) : SplitEZTheme.primary)
                     )
             }
             .disabled(settleAmount.isEmpty)
             .padding(.horizontal, 24)
             .padding(.bottom, 32)
+        }
+        // X button as overlay so it's never clipped
+        .overlay(alignment: .topTrailing) {
+            Button { showSettleUp = false } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(SplitEZTheme.textSecondary)
+                    .frame(width: 30, height: 30)
+                    .background(Circle().fill(Color(.systemGray6)))
+            }
+            .padding(.top, 16)
+            .padding(.trailing, 20)
         }
         .presentationDetents([.medium])
         .onAppear {
