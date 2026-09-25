@@ -38,8 +38,8 @@ struct SettingsView: View {
                             AppearanceSettingsView()
                         }
                         rowDivider
-                        settingsRowWithValue(label: "Currency & language", value: "\(auth.currentUser?.currency ?? "INR") · EN") {
-                            CurrencyLanguageView()
+                        settingsRowWithValue(label: "Currency", value: auth.currentUser?.currency ?? "INR") {
+                            CurrencyPickerView()
                         }
 
                         sectionLabel("HELP & SUPPORT")
@@ -1012,141 +1012,249 @@ struct AppearanceSettingsView: View {
 
 // MARK: - Currency & Language
 
-struct CurrencyLanguageView: View {
-    @State private var selectedCurrency = 0
-    @State private var selectedLanguage = 0
+struct CurrencyItem: Identifiable {
+    let id = UUID()
+    let name: String
+    let symbol: String
+    let code: String
+}
 
-    private let currencies: [(flag: String, name: String, symbol: String, code: String)] = [
-        ("\u{1F1EE}\u{1F1F3}", "Indian Rupee", "₹", "INR"),
-        ("\u{1F1FA}\u{1F1F8}", "US Dollar", "$", "USD"),
-        ("\u{1F1EA}\u{1F1FA}", "Euro", "€", "EUR"),
-        ("\u{1F1EC}\u{1F1E7}", "British Pound", "£", "GBP"),
-    ]
+struct CurrencyPickerView: View {
+    @EnvironmentObject var auth: AuthService
+    @State private var selectedCode: String = "INR"
+    @State private var search = ""
+    private let api = APIClient.shared
 
-    private let languages: [(name: String, native: String, code: String)] = [
-        ("English", "English", "EN"),
-        ("Hindi", "हिन्दी", "HI"),
-        ("Spanish", "Español", "ES"),
-    ]
+    private static let allCurrencies: [CurrencyItem] = {
+        let rest: [CurrencyItem] = [
+            CurrencyItem(name: "Afghan Afghani", symbol: "؋", code: "AFN"),
+            CurrencyItem(name: "Albanian Lek", symbol: "L", code: "ALL"),
+            CurrencyItem(name: "Algerian Dinar", symbol: "د.ج", code: "DZD"),
+            CurrencyItem(name: "Angolan Kwanza", symbol: "Kz", code: "AOA"),
+            CurrencyItem(name: "Argentine Peso", symbol: "$", code: "ARS"),
+            CurrencyItem(name: "Armenian Dram", symbol: "֏", code: "AMD"),
+            CurrencyItem(name: "Australian Dollar", symbol: "A$", code: "AUD"),
+            CurrencyItem(name: "Azerbaijani Manat", symbol: "₼", code: "AZN"),
+            CurrencyItem(name: "Bahamian Dollar", symbol: "B$", code: "BSD"),
+            CurrencyItem(name: "Bahraini Dinar", symbol: ".د.ب", code: "BHD"),
+            CurrencyItem(name: "Bangladeshi Taka", symbol: "৳", code: "BDT"),
+            CurrencyItem(name: "Barbadian Dollar", symbol: "Bds$", code: "BBD"),
+            CurrencyItem(name: "Belarusian Ruble", symbol: "Br", code: "BYN"),
+            CurrencyItem(name: "Belize Dollar", symbol: "BZ$", code: "BZD"),
+            CurrencyItem(name: "Bhutanese Ngultrum", symbol: "Nu", code: "BTN"),
+            CurrencyItem(name: "Bolivian Boliviano", symbol: "Bs.", code: "BOB"),
+            CurrencyItem(name: "Bosnia-Herzegovina Mark", symbol: "KM", code: "BAM"),
+            CurrencyItem(name: "Botswanan Pula", symbol: "P", code: "BWP"),
+            CurrencyItem(name: "Brazilian Real", symbol: "R$", code: "BRL"),
+            CurrencyItem(name: "British Pound", symbol: "£", code: "GBP"),
+            CurrencyItem(name: "Brunei Dollar", symbol: "B$", code: "BND"),
+            CurrencyItem(name: "Bulgarian Lev", symbol: "лв", code: "BGN"),
+            CurrencyItem(name: "Burundian Franc", symbol: "Fr", code: "BIF"),
+            CurrencyItem(name: "Cambodian Riel", symbol: "៛", code: "KHR"),
+            CurrencyItem(name: "Canadian Dollar", symbol: "CA$", code: "CAD"),
+            CurrencyItem(name: "Cape Verdean Escudo", symbol: "Esc", code: "CVE"),
+            CurrencyItem(name: "CFA Franc BCEAO", symbol: "Fr", code: "XOF"),
+            CurrencyItem(name: "CFA Franc BEAC", symbol: "Fr", code: "XAF"),
+            CurrencyItem(name: "Chilean Peso", symbol: "$", code: "CLP"),
+            CurrencyItem(name: "Chinese Yuan", symbol: "¥", code: "CNY"),
+            CurrencyItem(name: "Colombian Peso", symbol: "$", code: "COP"),
+            CurrencyItem(name: "Comorian Franc", symbol: "Fr", code: "KMF"),
+            CurrencyItem(name: "Congolese Franc", symbol: "Fr", code: "CDF"),
+            CurrencyItem(name: "Costa Rican Colón", symbol: "₡", code: "CRC"),
+            CurrencyItem(name: "Croatian Kuna", symbol: "kn", code: "HRK"),
+            CurrencyItem(name: "Cuban Peso", symbol: "$", code: "CUP"),
+            CurrencyItem(name: "Czech Koruna", symbol: "Kč", code: "CZK"),
+            CurrencyItem(name: "Danish Krone", symbol: "kr", code: "DKK"),
+            CurrencyItem(name: "Djiboutian Franc", symbol: "Fr", code: "DJF"),
+            CurrencyItem(name: "Dominican Peso", symbol: "RD$", code: "DOP"),
+            CurrencyItem(name: "Egyptian Pound", symbol: "£", code: "EGP"),
+            CurrencyItem(name: "Eritrean Nakfa", symbol: "Nfk", code: "ERN"),
+            CurrencyItem(name: "Ethiopian Birr", symbol: "Br", code: "ETB"),
+            CurrencyItem(name: "Euro", symbol: "€", code: "EUR"),
+            CurrencyItem(name: "Fijian Dollar", symbol: "FJ$", code: "FJD"),
+            CurrencyItem(name: "Gambian Dalasi", symbol: "D", code: "GMD"),
+            CurrencyItem(name: "Georgian Lari", symbol: "₾", code: "GEL"),
+            CurrencyItem(name: "Ghanaian Cedi", symbol: "₵", code: "GHS"),
+            CurrencyItem(name: "Guatemalan Quetzal", symbol: "Q", code: "GTQ"),
+            CurrencyItem(name: "Guinean Franc", symbol: "Fr", code: "GNF"),
+            CurrencyItem(name: "Haitian Gourde", symbol: "G", code: "HTG"),
+            CurrencyItem(name: "Honduran Lempira", symbol: "L", code: "HNL"),
+            CurrencyItem(name: "Hong Kong Dollar", symbol: "HK$", code: "HKD"),
+            CurrencyItem(name: "Hungarian Forint", symbol: "Ft", code: "HUF"),
+            CurrencyItem(name: "Icelandic Króna", symbol: "kr", code: "ISK"),
+            CurrencyItem(name: "Indonesian Rupiah", symbol: "Rp", code: "IDR"),
+            CurrencyItem(name: "Iranian Rial", symbol: "﷼", code: "IRR"),
+            CurrencyItem(name: "Iraqi Dinar", symbol: "ع.د", code: "IQD"),
+            CurrencyItem(name: "Israeli New Shekel", symbol: "₪", code: "ILS"),
+            CurrencyItem(name: "Jamaican Dollar", symbol: "J$", code: "JMD"),
+            CurrencyItem(name: "Japanese Yen", symbol: "¥", code: "JPY"),
+            CurrencyItem(name: "Jordanian Dinar", symbol: "د.ا", code: "JOD"),
+            CurrencyItem(name: "Kazakhstani Tenge", symbol: "₸", code: "KZT"),
+            CurrencyItem(name: "Kenyan Shilling", symbol: "KSh", code: "KES"),
+            CurrencyItem(name: "Kuwaiti Dinar", symbol: "د.ك", code: "KWD"),
+            CurrencyItem(name: "Kyrgyzstani Som", symbol: "с", code: "KGS"),
+            CurrencyItem(name: "Lao Kip", symbol: "₭", code: "LAK"),
+            CurrencyItem(name: "Lebanese Pound", symbol: "ل.ل", code: "LBP"),
+            CurrencyItem(name: "Lesotho Loti", symbol: "L", code: "LSL"),
+            CurrencyItem(name: "Liberian Dollar", symbol: "L$", code: "LRD"),
+            CurrencyItem(name: "Libyan Dinar", symbol: "ل.د", code: "LYD"),
+            CurrencyItem(name: "Macanese Pataca", symbol: "P", code: "MOP"),
+            CurrencyItem(name: "Macedonian Denar", symbol: "ден", code: "MKD"),
+            CurrencyItem(name: "Malagasy Ariary", symbol: "Ar", code: "MGA"),
+            CurrencyItem(name: "Malawian Kwacha", symbol: "MK", code: "MWK"),
+            CurrencyItem(name: "Malaysian Ringgit", symbol: "RM", code: "MYR"),
+            CurrencyItem(name: "Maldivian Rufiyaa", symbol: "Rf", code: "MVR"),
+            CurrencyItem(name: "Mauritanian Ouguiya", symbol: "UM", code: "MRU"),
+            CurrencyItem(name: "Mauritian Rupee", symbol: "₨", code: "MUR"),
+            CurrencyItem(name: "Mexican Peso", symbol: "$", code: "MXN"),
+            CurrencyItem(name: "Moldovan Leu", symbol: "L", code: "MDL"),
+            CurrencyItem(name: "Mongolian Tögrög", symbol: "₮", code: "MNT"),
+            CurrencyItem(name: "Moroccan Dirham", symbol: "د.م.", code: "MAD"),
+            CurrencyItem(name: "Mozambican Metical", symbol: "MT", code: "MZN"),
+            CurrencyItem(name: "Myanmar Kyat", symbol: "K", code: "MMK"),
+            CurrencyItem(name: "Namibian Dollar", symbol: "N$", code: "NAD"),
+            CurrencyItem(name: "Nepalese Rupee", symbol: "₨", code: "NPR"),
+            CurrencyItem(name: "New Taiwan Dollar", symbol: "NT$", code: "TWD"),
+            CurrencyItem(name: "New Zealand Dollar", symbol: "NZ$", code: "NZD"),
+            CurrencyItem(name: "Nicaraguan Córdoba", symbol: "C$", code: "NIO"),
+            CurrencyItem(name: "Nigerian Naira", symbol: "₦", code: "NGN"),
+            CurrencyItem(name: "Norwegian Krone", symbol: "kr", code: "NOK"),
+            CurrencyItem(name: "Omani Rial", symbol: "ر.ع.", code: "OMR"),
+            CurrencyItem(name: "Pakistani Rupee", symbol: "₨", code: "PKR"),
+            CurrencyItem(name: "Panamanian Balboa", symbol: "B/.", code: "PAB"),
+            CurrencyItem(name: "Papua New Guinean Kina", symbol: "K", code: "PGK"),
+            CurrencyItem(name: "Paraguayan Guaraní", symbol: "₲", code: "PYG"),
+            CurrencyItem(name: "Peruvian Sol", symbol: "S/.", code: "PEN"),
+            CurrencyItem(name: "Philippine Peso", symbol: "₱", code: "PHP"),
+            CurrencyItem(name: "Polish Złoty", symbol: "zł", code: "PLN"),
+            CurrencyItem(name: "Qatari Riyal", symbol: "ر.ق", code: "QAR"),
+            CurrencyItem(name: "Romanian Leu", symbol: "lei", code: "RON"),
+            CurrencyItem(name: "Russian Ruble", symbol: "₽", code: "RUB"),
+            CurrencyItem(name: "Rwandan Franc", symbol: "Fr", code: "RWF"),
+            CurrencyItem(name: "São Tomé Dobra", symbol: "Db", code: "STN"),
+            CurrencyItem(name: "Saudi Riyal", symbol: "ر.س", code: "SAR"),
+            CurrencyItem(name: "Serbian Dinar", symbol: "din", code: "RSD"),
+            CurrencyItem(name: "Seychellois Rupee", symbol: "₨", code: "SCR"),
+            CurrencyItem(name: "Sierra Leonean Leone", symbol: "Le", code: "SLL"),
+            CurrencyItem(name: "Singapore Dollar", symbol: "S$", code: "SGD"),
+            CurrencyItem(name: "Somali Shilling", symbol: "Sh", code: "SOS"),
+            CurrencyItem(name: "South African Rand", symbol: "R", code: "ZAR"),
+            CurrencyItem(name: "South Korean Won", symbol: "₩", code: "KRW"),
+            CurrencyItem(name: "South Sudanese Pound", symbol: "£", code: "SSP"),
+            CurrencyItem(name: "Sri Lankan Rupee", symbol: "₨", code: "LKR"),
+            CurrencyItem(name: "Sudanese Pound", symbol: "£", code: "SDG"),
+            CurrencyItem(name: "Swazi Lilangeni", symbol: "L", code: "SZL"),
+            CurrencyItem(name: "Swedish Krona", symbol: "kr", code: "SEK"),
+            CurrencyItem(name: "Swiss Franc", symbol: "Fr", code: "CHF"),
+            CurrencyItem(name: "Syrian Pound", symbol: "£", code: "SYP"),
+            CurrencyItem(name: "Tajikistani Somoni", symbol: "SM", code: "TJS"),
+            CurrencyItem(name: "Tanzanian Shilling", symbol: "Sh", code: "TZS"),
+            CurrencyItem(name: "Thai Baht", symbol: "฿", code: "THB"),
+            CurrencyItem(name: "Tongan Paʻanga", symbol: "T$", code: "TOP"),
+            CurrencyItem(name: "Trinidad & Tobago Dollar", symbol: "TT$", code: "TTD"),
+            CurrencyItem(name: "Tunisian Dinar", symbol: "د.ت", code: "TND"),
+            CurrencyItem(name: "Turkish Lira", symbol: "₺", code: "TRY"),
+            CurrencyItem(name: "Turkmenistani Manat", symbol: "T", code: "TMT"),
+            CurrencyItem(name: "Ugandan Shilling", symbol: "Sh", code: "UGX"),
+            CurrencyItem(name: "Ukrainian Hryvnia", symbol: "₴", code: "UAH"),
+            CurrencyItem(name: "United Arab Emirates Dirham", symbol: "د.إ", code: "AED"),
+            CurrencyItem(name: "Uruguayan Peso", symbol: "$U", code: "UYU"),
+            CurrencyItem(name: "US Dollar", symbol: "$", code: "USD"),
+            CurrencyItem(name: "Uzbekistani Som", symbol: "сўм", code: "UZS"),
+            CurrencyItem(name: "Vanuatu Vatu", symbol: "Vt", code: "VUV"),
+            CurrencyItem(name: "Venezuelan Bolívar", symbol: "Bs.S", code: "VES"),
+            CurrencyItem(name: "Vietnamese Đồng", symbol: "₫", code: "VND"),
+            CurrencyItem(name: "Yemeni Rial", symbol: "﷼", code: "YER"),
+            CurrencyItem(name: "Zambian Kwacha", symbol: "ZK", code: "ZMW"),
+            CurrencyItem(name: "Zimbabwean Dollar", symbol: "Z$", code: "ZWL"),
+        ].sorted { $0.name < $1.name }
+        return rest
+    }()
+
+    private var pinnedINR: CurrencyItem {
+        CurrencyItem(name: "Indian Rupee", symbol: "₹", code: "INR")
+    }
+
+    private var filtered: [CurrencyItem] {
+        let q = search.trimmingCharacters(in: .whitespaces)
+        if q.isEmpty { return Self.allCurrencies }
+        return Self.allCurrencies.filter {
+            $0.name.localizedCaseInsensitiveContains(q) ||
+            $0.code.localizedCaseInsensitiveContains(q) ||
+            $0.symbol.contains(q)
+        }
+    }
+
+    private var showPinned: Bool {
+        search.trimmingCharacters(in: .whitespaces).isEmpty
+    }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            VStack(spacing: 0) {
-                SplitEZTheme.darkBg.frame(height: 100)
-                Color(.systemBackground)
-            }
-            .ignoresSafeArea()
-
-            ScrollView {
-                VStack(spacing: 0) {
-                    Spacer().frame(height: 8)
-
-                    VStack(spacing: 0) {
-                        sectionLabel("DEFAULT CURRENCY")
-
-                        ForEach(Array(currencies.enumerated()), id: \.offset) { index, currency in
-                            if index > 0 {
-                                Divider().padding(.leading, 20)
-                            }
-                            Button {
-                                selectedCurrency = index
-                            } label: {
-                                HStack(spacing: 12) {
-                                    Text(currency.flag)
-                                        .font(.title2)
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(currency.name)
-                                            .font(.subheadline.weight(.medium))
-                                            .foregroundColor(SplitEZTheme.textPrimary)
-                                        Text("\(currency.symbol) · \(currency.code)")
-                                            .font(.caption)
-                                            .foregroundColor(SplitEZTheme.textTertiary)
-                                    }
-                                    Spacer()
-                                    Circle()
-                                        .fill(selectedCurrency == index ? SplitEZTheme.primary : Color.clear)
-                                        .frame(width: 12, height: 12)
-                                        .overlay(
-                                            Circle()
-                                                .stroke(selectedCurrency == index ? SplitEZTheme.primary : Color(.systemGray3), lineWidth: 1.5)
-                                                .frame(width: 18, height: 18)
-                                        )
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 14)
-                            }
-                            .buttonStyle(.plain)
-                        }
-
-                        Divider().padding(.leading, 20)
-
-                        Button(action: {}) {
-                            Text("+ Add more currencies")
-                                .font(.subheadline.weight(.medium))
-                                .foregroundColor(SplitEZTheme.primary)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
-                        }
-
-                        sectionLabel("LANGUAGE")
-
-                        ForEach(Array(languages.enumerated()), id: \.offset) { index, lang in
-                            if index > 0 {
-                                Divider().padding(.leading, 20)
-                            }
-                            Button {
-                                selectedLanguage = index
-                            } label: {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(index == 0 ? lang.name : lang.native)
-                                            .font(.subheadline.weight(.medium))
-                                            .foregroundColor(SplitEZTheme.textPrimary)
-                                        Text(index == 0 ? "\(lang.code) · default" : lang.name)
-                                            .font(.caption)
-                                            .foregroundColor(SplitEZTheme.textTertiary)
-                                    }
-                                    Spacer()
-                                    Circle()
-                                        .fill(selectedLanguage == index ? SplitEZTheme.primary : Color.clear)
-                                        .frame(width: 12, height: 12)
-                                        .overlay(
-                                            Circle()
-                                                .stroke(selectedLanguage == index ? SplitEZTheme.primary : Color(.systemGray3), lineWidth: 1.5)
-                                                .frame(width: 18, height: 18)
-                                        )
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 14)
-                            }
-                            .buttonStyle(.plain)
-                        }
-
-                        Spacer().frame(height: 40)
-                    }
-                    .background(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color(.systemBackground))
-                    )
+        List {
+            if showPinned {
+                Section {
+                    currencyRow(pinnedINR)
+                } header: {
+                    Text("DEFAULT")
+                        .font(.caption.weight(.semibold))
+                        .foregroundColor(SplitEZTheme.textTertiary)
+                        .tracking(0.5)
                 }
             }
+
+            Section {
+                ForEach(filtered) { currency in
+                    currencyRow(currency)
+                }
+            } header: {
+                Text("ALL CURRENCIES")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(SplitEZTheme.textTertiary)
+                    .tracking(0.5)
+            }
         }
-        .navigationTitle("Currency & language")
+        .listStyle(.insetGrouped)
+        .searchable(text: $search, prompt: "Search currency or code")
+        .navigationTitle("Currency")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .onAppear {
+            selectedCode = auth.currentUser?.currency ?? "INR"
+        }
     }
 
-    private func sectionLabel(_ title: String) -> some View {
-        Text(title)
-            .font(.caption.weight(.semibold))
-            .foregroundColor(SplitEZTheme.textTertiary)
-            .tracking(0.5)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 20)
-            .padding(.top, 24)
-            .padding(.bottom, 12)
+    private func currencyRow(_ currency: CurrencyItem) -> some View {
+        Button {
+            selectedCode = currency.code
+            Task {
+                let _: AnyCodable? = try? await api.put("/users/me", body: ["currency": currency.code])
+                await auth.checkAuth()
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Text(currency.symbol)
+                    .font(.system(size: 20, weight: .medium, design: .rounded))
+                    .frame(width: 32, alignment: .center)
+                    .foregroundColor(SplitEZTheme.primary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(currency.name)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(SplitEZTheme.textPrimary)
+                    Text(currency.code)
+                        .font(.caption)
+                        .foregroundColor(SplitEZTheme.textTertiary)
+                }
+                Spacer()
+                if selectedCode == currency.code {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(SplitEZTheme.primary)
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 
