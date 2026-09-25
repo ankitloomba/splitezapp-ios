@@ -650,6 +650,7 @@ private var dividerOr: some View {
     }
 }
 
+@MainActor
 enum InviteCodeHelper {
     static var code: String {
         let chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
