@@ -1190,31 +1190,76 @@ struct CurrencyPickerView: View {
     }
 
     var body: some View {
-        List {
-            if showPinned {
-                Section {
-                    currencyRow(pinnedINR)
-                } header: {
-                    Text("DEFAULT")
-                        .font(.caption.weight(.semibold))
-                        .foregroundColor(SplitEZTheme.textTertiary)
-                        .tracking(0.5)
-                }
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 160)
+                Color(.systemGroupedBackground)
             }
+            .ignoresSafeArea()
 
-            Section {
-                ForEach(filtered) { currency in
-                    currencyRow(currency)
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Search bar
+                    HStack(spacing: 10) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 15))
+                            .foregroundColor(SplitEZTheme.textTertiary)
+                        TextField("Search currency, code or symbol", text: $search)
+                            .font(.system(size: 15))
+                            .foregroundColor(SplitEZTheme.textPrimary)
+                            .autocorrectionDisabled()
+                            .autocapitalization(.none)
+                        if !search.isEmpty {
+                            Button { search = "" } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 11)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color(.systemGray5))
+                    )
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
+
+                    // Card
+                    VStack(spacing: 0) {
+                        if showPinned {
+                            sectionHeader("DEFAULT")
+                            currencyRow(pinnedINR)
+                            Divider().padding(.leading, 68)
+                        }
+
+                        if !filtered.isEmpty {
+                            if showPinned {
+                                sectionHeader("ALL CURRENCIES")
+                            }
+                            ForEach(Array(filtered.enumerated()), id: \.element.id) { idx, currency in
+                                if idx > 0 { Divider().padding(.leading, 68) }
+                                currencyRow(currency)
+                            }
+                        } else {
+                            Text("No results for "\(search)"")
+                                .font(.subheadline)
+                                .foregroundColor(SplitEZTheme.textTertiary)
+                                .padding(32)
+                                .frame(maxWidth: .infinity)
+                        }
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(Color(.systemBackground))
+                    )
+                    .padding(.top, 4)
+
+                    Spacer().frame(height: 40)
                 }
-            } header: {
-                Text("ALL CURRENCIES")
-                    .font(.caption.weight(.semibold))
-                    .foregroundColor(SplitEZTheme.textTertiary)
-                    .tracking(0.5)
             }
         }
-        .listStyle(.insetGrouped)
-        .searchable(text: $search, prompt: "Search currency or code")
         .navigationTitle("Currency")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
@@ -1225,6 +1270,17 @@ struct CurrencyPickerView: View {
         }
     }
 
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundColor(SplitEZTheme.textTertiary)
+            .tracking(0.5)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 6)
+    }
+
     private func currencyRow(_ currency: CurrencyItem) -> some View {
         Button {
             selectedCode = currency.code
@@ -1233,26 +1289,48 @@ struct CurrencyPickerView: View {
                 await auth.checkAuth()
             }
         } label: {
-            HStack(spacing: 12) {
-                Text(currency.symbol)
-                    .font(.system(size: 20, weight: .medium, design: .rounded))
-                    .frame(width: 32, alignment: .center)
-                    .foregroundColor(SplitEZTheme.primary)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(currency.name)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundColor(SplitEZTheme.textPrimary)
-                    Text(currency.code)
-                        .font(.caption)
-                        .foregroundColor(SplitEZTheme.textTertiary)
-                }
-                Spacer()
-                if selectedCode == currency.code {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 14, weight: .semibold))
+            HStack(spacing: 14) {
+                // Symbol badge
+                ZStack {
+                    Circle()
+                        .fill(SplitEZTheme.primary.opacity(0.12))
+                        .frame(width: 40, height: 40)
+                    Text(currency.symbol)
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
                         .foregroundColor(SplitEZTheme.primary)
+                        .minimumScaleFactor(0.5)
+                        .lineLimit(1)
+                        .frame(width: 36)
+                }
+
+                // Name
+                Text(currency.name)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundColor(SplitEZTheme.textPrimary)
+
+                Spacer()
+
+                // Code
+                Text(currency.code)
+                    .font(.system(size: 13, weight: .medium, design: .monospaced))
+                    .foregroundColor(SplitEZTheme.textTertiary)
+                    .padding(.trailing, 6)
+
+                // Radio
+                ZStack {
+                    Circle()
+                        .stroke(selectedCode == currency.code ? SplitEZTheme.primary : Color(.systemGray3), lineWidth: 1.5)
+                        .frame(width: 20, height: 20)
+                    if selectedCode == currency.code {
+                        Circle()
+                            .fill(SplitEZTheme.primary)
+                            .frame(width: 12, height: 12)
+                    }
                 }
             }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
