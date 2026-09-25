@@ -53,7 +53,7 @@ struct FriendSettingsView: View {
                     .onTapGesture { dismiss() }
                     .frame(width: 44, height: 44)
                 Spacer()
-                Text("Friend Settings")
+                Text("Friend settings")
                     .font(.headline)
                     .foregroundColor(.white)
                 Spacer()
@@ -64,6 +64,10 @@ struct FriendSettingsView: View {
             // Friend info
             HStack(spacing: 14) {
                 ZStack {
+                    Circle()
+                        .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+                        .foregroundColor(.white.opacity(0.4))
+                        .frame(width: 72, height: 72)
                     Circle()
                         .fill(avatarColor(for: friend.firstName))
                         .frame(width: 60, height: 60)
@@ -84,14 +88,8 @@ struct FriendSettingsView: View {
                 Spacer()
             }
             .padding(.horizontal, 20)
-        }
-        .padding(.top, 8)
-        .padding(.bottom, 28)
-    }
 
-    private var content: some View {
-        VStack(spacing: 0) {
-            // Ad-free upgrade card
+            // Ad-free upgrade card (in dark header)
             ZStack(alignment: .trailing) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Get SplitEZ Ad Free")
@@ -135,9 +133,13 @@ struct FriendSettingsView: View {
                     )
             )
             .padding(.horizontal, 20)
-            .padding(.top, 20)
-            .padding(.bottom, 16)
+        }
+        .padding(.top, 8)
+        .padding(.bottom, 20)
+    }
 
+    private var content: some View {
+        VStack(spacing: 0) {
             // Actions
             sectionLabel("ACTIONS")
 
@@ -170,8 +172,7 @@ struct FriendSettingsView: View {
             Spacer().frame(height: 40)
         }
         .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .padding(.top, 12)
+        .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 24, style: .continuous))
     }
 
     private func actionRow(icon: String, title: String, color: Color, action: @escaping () -> Void) -> some View {
