@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 struct MainTabView: View {
     @State private var selectedTab = 0
@@ -920,6 +921,9 @@ struct AddExpenseSheet: View {
     @State private var showCurrencyPicker = false
     @State private var showValidation = false
     @State private var showSplitMethodPicker = false
+    @State private var showReceiptPicker = false
+    @State private var receiptPhotoItem: PhotosPickerItem?
+    @State private var receiptImage: Image?
 
     // Group & member selection
     @State private var groups: [ExpenseGroup] = []
@@ -1361,14 +1365,27 @@ struct AddExpenseSheet: View {
 
                             Divider().frame(height: 20).padding(.horizontal, 16)
 
-                            Button(action: {}) {
+                            PhotosPicker(
+                                selection: $receiptPhotoItem,
+                                matching: .images,
+                                photoLibrary: .shared()
+                            ) {
                                 HStack(spacing: 6) {
-                                    Image(systemName: "camera")
+                                    Image(systemName: receiptImage != nil ? "checkmark.circle.fill" : "camera")
                                         .font(.system(size: 14))
+                                        .foregroundColor(receiptImage != nil ? SplitEZTheme.primary : SplitEZTheme.textSecondary)
                                     Text("Receipt")
                                         .font(.subheadline)
+                                        .foregroundColor(receiptImage != nil ? SplitEZTheme.primary : SplitEZTheme.textSecondary)
                                 }
-                                .foregroundColor(SplitEZTheme.textSecondary)
+                            }
+                            .onChange(of: receiptPhotoItem) { _, item in
+                                Task {
+                                    if let data = try? await item?.loadTransferable(type: Data.self),
+                                       let uiImage = UIImage(data: data) {
+                                        receiptImage = Image(uiImage: uiImage)
+                                    }
+                                }
                             }
 
                             Spacer()
@@ -1390,6 +1407,26 @@ struct AddExpenseSheet: View {
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                                         .fill(Color(.systemGray6))
                                 )
+                        }
+
+                        if let img = receiptImage {
+                            ZStack(alignment: .topTrailing) {
+                                img
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 160)
+                                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                Button {
+                                    receiptImage = nil
+                                    receiptPhotoItem = nil
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 22))
+                                        .foregroundStyle(.white, Color.black.opacity(0.5))
+                                }
+                                .padding(6)
+                            }
                         }
 
                         if let msg = showValidation ? validationMessage : nil {
