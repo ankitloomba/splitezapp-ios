@@ -23,6 +23,9 @@ struct SplitEZApp: App {
             .tint(appSettings.accentColor)
             .task { await auth.checkAuth() }
             .onAppear {
+                // Force light mode at UIKit level so UIKit components (tab bar,
+                // nav bar, system backgrounds) also stay light regardless of device setting.
+                forceLight()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     PushNotificationManager.shared.requestPermission()
                 }
@@ -30,13 +33,21 @@ struct SplitEZApp: App {
             .onChange(of: scenePhase) {
                 if scenePhase == .active {
                     interstitialAd.showIfReady()
+                    forceLight()
                 }
             }
         }
     }
+
+    private func forceLight() {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .forEach { $0.overrideUserInterfaceStyle = .light }
+    }
 }
 
-// MARK: - AppDelegate for push notification callbacks
+// MARK: - AppDelegate
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
@@ -46,27 +57,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         UNUserNotificationCenter.current().delegate = PushNotificationManager.shared
         InterstitialAdManager.shared.configure()
         return true
-    }
-
-    func application(
-        _ application: UIApplication,
-        configurationForConnecting connectingSceneSession: UISceneSession,
-        options: UIScene.ConnectionOptions
-    ) -> UISceneConfiguration {
-        let config = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
-        config.delegateClass = SceneDelegate.self
-        return config
-    }
-}
-
-class SceneDelegate: NSObject, UIWindowSceneDelegate {
-    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        guard let windowScene = scene as? UIWindowScene else { return }
-        // Force light mode at the UIKit level — SwiftUI's preferredColorScheme alone
-        // doesn't override UIKit components (tab bar, nav bar, system backgrounds).
-        for window in windowScene.windows {
-            window.overrideUserInterfaceStyle = .light
-        }
     }
 
     func application(
