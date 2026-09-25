@@ -19,7 +19,7 @@ struct SplitEZApp: App {
             }
             .environmentObject(auth)
             .environmentObject(appSettings)
-            .preferredColorScheme(appSettings.preferredColorScheme)
+            .preferredColorScheme(.light)
             .tint(appSettings.accentColor)
             .task { await auth.checkAuth() }
             .onAppear {
