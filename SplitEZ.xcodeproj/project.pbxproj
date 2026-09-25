@@ -33,6 +33,7 @@
 		A100000020 /* TripsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000020; };
 		A100000021 /* FriendLedgerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000021; };
 		A100000031 /* FriendSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000031; };
+		A100000099 /* AddFriendView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000099; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +63,7 @@
 		B100000020 /* TripsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripsListView.swift; sourceTree = "<group>"; };
 		B100000021 /* FriendLedgerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendLedgerView.swift; sourceTree = "<group>"; };
 		B100000031 /* FriendSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendSettingsView.swift; sourceTree = "<group>"; };
+		B100000099 /* AddFriendView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddFriendView.swift; sourceTree = "<group>"; };
 		C100000001 /* SplitEZ.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SplitEZ.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -247,6 +249,7 @@
 		E100000013 /* Friends */ = {
 			isa = PBXGroup;
 			children = (
+				B100000099 /* AddFriendView.swift */,
 				B100000021 /* FriendLedgerView.swift */,
 				B100000031 /* FriendSettingsView.swift */,
 			);
@@ -345,6 +348,7 @@
 				A100000018 /* NotificationsListView.swift in Sources */,
 				A100000019 /* SettingsView.swift in Sources */,
 				A100000020 /* TripsListView.swift in Sources */,
+				A100000099 /* AddFriendView.swift in Sources */,
 				A100000021 /* FriendLedgerView.swift in Sources */,
 				A100000031 /* FriendSettingsView.swift in Sources */,
 			);
