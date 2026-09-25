@@ -1280,16 +1280,28 @@ struct CurrencyPickerView: View {
     }
 
     private func currencyRow(_ currency: CurrencyItem) -> some View {
-        let isSelected = selectedCode == currency.code
-        return Button {
-            selectedCode = currency.code
-            Task {
-                let _: AnyCodable? = try? await api.put("/users/me", body: ["currency": currency.code])
-                await auth.checkAuth()
+        CurrencyRowView(
+            currency: currency,
+            isSelected: selectedCode == currency.code,
+            onTap: {
+                selectedCode = currency.code
+                Task {
+                    let _: AnyCodable? = try? await api.put("/users/me", body: ["currency": currency.code])
+                    await auth.checkAuth()
+                }
             }
-        } label: {
+        )
+    }
+}
+
+private struct CurrencyRowView: View {
+    let currency: CurrencyItem
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
             HStack(spacing: 14) {
-                // Symbol badge
                 ZStack {
                     Circle()
                         .fill(SplitEZTheme.primary.opacity(isSelected ? 0.18 : 0.1))
@@ -1301,15 +1313,11 @@ struct CurrencyPickerView: View {
                         .lineLimit(1)
                         .frame(width: 34)
                 }
-
-                // Name
                 Text(currency.name)
-                    .font(.subheadline.weight(isSelected ? .semibold : .medium))
+                    .font(.subheadline)
+                    .fontWeight(isSelected ? .semibold : .medium)
                     .foregroundColor(SplitEZTheme.textPrimary)
-
                 Spacer()
-
-                // Code
                 Text(currency.code)
                     .font(.system(size: 13, weight: .medium, design: .monospaced))
                     .foregroundColor(isSelected ? SplitEZTheme.primary : SplitEZTheme.textTertiary)
