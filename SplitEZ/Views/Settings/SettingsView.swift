@@ -1669,12 +1669,11 @@ struct OTPVerificationSheet: View {
             // 6-box OTP input
             HStack(spacing: 10) {
                 ForEach(0..<6, id: \.self) { i in
-                    let char = code.count > i ? String(Array(code)[i]) : ""
                     ZStack {
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .stroke(code.count == i ? SplitEZTheme.primary : Color(.systemGray4), lineWidth: code.count == i ? 2 : 1)
                             .frame(width: 44, height: 52)
-                        Text(char)
+                        Text(code.count > i ? String(Array(code)[i]) : "")
                             .font(.title2.weight(.bold))
                             .foregroundColor(SplitEZTheme.textPrimary)
                     }
