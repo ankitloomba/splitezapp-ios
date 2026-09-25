@@ -16,7 +16,7 @@ struct FriendSettingsView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg
-                Color(.systemBackground)
+                Color.white
             }
             .ignoresSafeArea()
 

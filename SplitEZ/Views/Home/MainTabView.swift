@@ -84,7 +84,7 @@ struct MainTabView: View {
         .padding(.bottom, 8)
         .background(
             Rectangle()
-                .fill(Color(.systemBackground))
+                .fill(Color.white)
                 .shadow(color: .black.opacity(0.08), radius: 10, y: -2)
                 .ignoresSafeArea(edges: .bottom)
         )
@@ -188,7 +188,7 @@ struct FriendsTabView: View {
             ZStack(alignment: .top) {
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg.frame(height: 220)
-                    Color(.systemBackground)
+                    Color.white
                 }
                 .ignoresSafeArea()
 
@@ -250,7 +250,7 @@ struct FriendsTabView: View {
                         }
                         .background(
                             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .fill(Color(.systemBackground))
+                                .fill(Color.white)
                         )
                         .offset(y: -16)
                     }
@@ -731,7 +731,7 @@ struct ActivityTabView: View {
             ZStack(alignment: .top) {
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg.frame(height: 160)
-                    Color(.systemBackground)
+                    Color.white
                 }
                 .ignoresSafeArea()
 
@@ -782,7 +782,7 @@ struct ActivityTabView: View {
                         }
                         .background(
                             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .fill(Color(.systemBackground))
+                                .fill(Color.white)
                         )
                         .offset(y: -16)
                     }
@@ -1870,7 +1870,7 @@ struct AddExpenseSheet: View {
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(.systemBackground))
+                    .fill(Color.white)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -2188,7 +2188,7 @@ struct ExpenseCurrencySheet: View {
                     .padding(.top, 12)
                     .padding(.bottom, 8)
                 }
-                .background(Color(.systemBackground))
+                .background(Color.white)
             }
         }
         .onAppear { pendingCode = selectedCode }
@@ -2535,7 +2535,7 @@ struct HelpView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 120)
-                Color(.systemBackground)
+                Color.white
             }
             .ignoresSafeArea()
 
@@ -2566,7 +2566,7 @@ struct HelpView: View {
                     .padding(20)
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color(.systemBackground))
+                            .fill(Color.white)
                     )
                     .offset(y: -16)
                 }
@@ -2614,7 +2614,7 @@ struct FAQView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 120)
-                Color(.systemBackground)
+                Color.white
             }
             .ignoresSafeArea()
 
@@ -2657,7 +2657,7 @@ struct FAQView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color(.systemBackground))
+                            .fill(Color.white)
                     )
                     .offset(y: -16)
                 }

@@ -13,7 +13,7 @@ enum SplitEZTheme {
     static let muted = Color(hex: "5A6B82")          // Inactive/secondary
 
     // Surfaces
-    static let cardBackground = Color(.systemBackground)
+    static let cardBackground = Color.white
     static let secondaryBackground = Color(hex: "F5F7FA")
     static let surfaceAlt = Color(hex: "EDF1F7")
     static let pillActive = Color(hex: "4F46E5")

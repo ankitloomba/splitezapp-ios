@@ -1947,7 +1947,7 @@ struct ManageSubscriptionSheet: View {
                 Divider().padding(.leading, 20)
                 infoRow(label: "Status", value: "Active")
             }
-            .background(RoundedRectangle(cornerRadius: 16).fill(Color(.secondarySystemBackground)))
+            .background(RoundedRectangle(cornerRadius: 16).fill(Color(red: 0.95, green: 0.95, blue: 0.97)))
             .padding(.horizontal, 24)
 
             VStack(alignment: .leading, spacing: 10) {

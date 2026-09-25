@@ -86,7 +86,7 @@ struct ExportView: View {
             .disabled(exporting)
         }
         .padding()
-        .background(Color(.secondarySystemBackground))
+        .background(Color(red: 0.95, green: 0.95, blue: 0.97))
         .cornerRadius(12)
     }
 
