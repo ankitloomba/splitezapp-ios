@@ -1411,9 +1411,6 @@ struct AddExpenseSheet: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 24)
                 }
-                .background(Color(.systemBackground))
-                .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 24, style: .continuous))
-
                 // Save button
                 VStack(spacing: 0) {
                     Button {
@@ -1450,6 +1447,8 @@ struct AddExpenseSheet: View {
                         .ignoresSafeArea(edges: .bottom)
                 )
             } // ZStack for scroll + save
+            .background(Color(.systemBackground))
+            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 24, style: .continuous))
         } // outer VStack
         .task { await loadGroups() }
         .sheet(isPresented: $showCurrencyPicker) {
