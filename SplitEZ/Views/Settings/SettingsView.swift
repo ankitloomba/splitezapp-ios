@@ -1928,103 +1928,225 @@ struct ContactFormSheet: View {
     @Environment(\.dismiss) var dismiss
     @State private var name = ""
     @State private var email = ""
-    @State private var subject = "General Inquiry"
+    @State private var phone = ""
+    @State private var topic = "Feedback"
     @State private var message = ""
+    @State private var attachments: [UIImage] = []
+    @State private var showPhotoPicker = false
     @State private var isSending = false
     @State private var showSuccess = false
+    @State private var errorMessage: String?
+    private let api = APIClient.shared
 
-    let subjects = ["General Inquiry", "Billing & Payments", "Bug Report", "Feature Request", "Account Issue", "Other"]
+    let topics = ["Feedback", "Complaints", "Suggestions", "General"]
 
     var isValid: Bool { !name.isEmpty && !email.isEmpty && !message.isEmpty }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    fieldLabel("YOUR NAME")
-                    TextField("Full name", text: $name)
-                        .font(.system(size: 16))
-                        .padding(14)
-                        .background(RoundedRectangle(cornerRadius: 12).stroke(Color(.systemGray4), lineWidth: 1))
-
-                    fieldLabel("EMAIL")
-                    TextField("Email address", text: $email)
-                        .font(.system(size: 16))
-                        .keyboardType(.emailAddress)
-                        .textContentType(.emailAddress)
-                        .autocapitalization(.none)
-                        .autocorrectionDisabled()
-                        .padding(14)
-                        .background(RoundedRectangle(cornerRadius: 12).stroke(Color(.systemGray4), lineWidth: 1))
-
-                    fieldLabel("SUBJECT")
-                    Menu {
-                        ForEach(subjects, id: \.self) { s in
-                            Button(s) { subject = s }
-                        }
-                    } label: {
-                        HStack {
-                            Text(subject)
-                                .font(.system(size: 16))
-                                .foregroundColor(SplitEZTheme.textPrimary)
-                            Spacer()
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(SplitEZTheme.textTertiary)
-                        }
-                        .padding(14)
-                        .background(RoundedRectangle(cornerRadius: 12).stroke(Color(.systemGray4), lineWidth: 1))
-                    }
-
-                    fieldLabel("MESSAGE")
-                    TextEditor(text: $message)
-                        .font(.system(size: 16))
-                        .frame(minHeight: 120)
-                        .padding(10)
-                        .background(RoundedRectangle(cornerRadius: 12).stroke(Color(.systemGray4), lineWidth: 1))
-                        .overlay(
-                            Group {
-                                if message.isEmpty {
-                                    Text("Describe your issue or question...")
-                                        .font(.system(size: 16))
-                                        .foregroundColor(Color(.placeholderText))
-                                        .padding(16)
-                                        .allowsHitTesting(false)
-                                }
-                            }, alignment: .topLeading
-                        )
-
-                    Button {
-                        Task {
-                            isSending = true
-                            try? await Task.sleep(nanoseconds: 800_000_000)
-                            // In production: POST to /support/contact
-                            isSending = false
-                            showSuccess = true
-                        }
-                    } label: {
-                        Group {
-                            if isSending { ProgressView().tint(.white) }
-                            else { Text("Send Message").font(.subheadline.weight(.bold)).foregroundColor(.white) }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(RoundedRectangle(cornerRadius: 28).fill(isValid ? SplitEZTheme.primary : SplitEZTheme.primary.opacity(0.4)))
-                    }
-                    .disabled(!isValid || isSending)
+            ZStack(alignment: .top) {
+                // Dark header background
+                VStack(spacing: 0) {
+                    SplitEZTheme.darkBg.frame(height: 120)
+                    Color(.systemGroupedBackground)
                 }
-                .padding(20)
+                .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Sub-header
+                        Text("We usually reply within 24 hours")
+                            .font(.subheadline)
+                            .foregroundColor(Color.white.opacity(0.7))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+
+                        // Form card
+                        VStack(alignment: .leading, spacing: 0) {
+                            formField(label: "NAME") {
+                                TextField("Full name", text: $name)
+                                    .formFieldStyle()
+                            }
+                            Divider()
+                            formField(label: "EMAIL") {
+                                TextField("Email address", text: $email)
+                                    .keyboardType(.emailAddress)
+                                    .textContentType(.emailAddress)
+                                    .autocapitalization(.none)
+                                    .autocorrectionDisabled()
+                                    .formFieldStyle()
+                            }
+                            Divider()
+                            formField(label: "PHONE") {
+                                TextField("+91 XXXXX XXXXX", text: $phone)
+                                    .keyboardType(.phonePad)
+                                    .formFieldStyle()
+                            }
+                            Divider()
+                            formField(label: "TOPIC") {
+                                Menu {
+                                    ForEach(topics, id: \.self) { t in
+                                        Button(t) { topic = t }
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(topic)
+                                            .font(.system(size: 16))
+                                            .foregroundColor(SplitEZTheme.textPrimary)
+                                        Spacer()
+                                        Image(systemName: "chevron.down")
+                                            .font(.system(size: 12, weight: .semibold))
+                                            .foregroundColor(SplitEZTheme.primary)
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 14)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(SplitEZTheme.primary, lineWidth: 1.5)
+                                    )
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 10)
+                                }
+                            }
+                            Divider()
+                            formField(label: "MESSAGE") {
+                                ZStack(alignment: .topLeading) {
+                                    TextEditor(text: $message)
+                                        .font(.system(size: 16))
+                                        .frame(minHeight: 110)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 8)
+                                    if message.isEmpty {
+                                        Text("Tell us what's on your mind...")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(Color(.placeholderText))
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 16)
+                                            .allowsHitTesting(false)
+                                    }
+                                }
+                            }
+                            Divider()
+
+                            // Attachments
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("ATTACHMENTS")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                                    .tracking(0.5)
+                                    .padding(.horizontal, 16)
+                                    .padding(.top, 12)
+
+                                if !attachments.isEmpty {
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: 8) {
+                                            ForEach(attachments.indices, id: \.self) { i in
+                                                ZStack(alignment: .topTrailing) {
+                                                    Image(uiImage: attachments[i])
+                                                        .resizable().scaledToFill()
+                                                        .frame(width: 64, height: 64)
+                                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                                    Button {
+                                                        attachments.remove(at: i)
+                                                    } label: {
+                                                        Image(systemName: "xmark.circle.fill")
+                                                            .font(.system(size: 18))
+                                                            .foregroundColor(.white)
+                                                            .background(Circle().fill(Color.black.opacity(0.5)))
+                                                    }
+                                                    .offset(x: 4, y: -4)
+                                                }
+                                            }
+                                        }
+                                        .padding(.horizontal, 16)
+                                    }
+                                }
+
+                                Button { showPhotoPicker = true } label: {
+                                    HStack(spacing: 12) {
+                                        Image(systemName: "paperclip")
+                                            .font(.system(size: 18))
+                                            .foregroundColor(SplitEZTheme.primary)
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Browse files")
+                                                .font(.subheadline.weight(.semibold))
+                                                .foregroundColor(SplitEZTheme.primary)
+                                            Text("JPG, PNG or PDF · up to 10 MB")
+                                                .font(.caption)
+                                                .foregroundColor(SplitEZTheme.textTertiary)
+                                        }
+                                        Spacer()
+                                    }
+                                    .padding(16)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [6, 4]))
+                                            .foregroundColor(SplitEZTheme.primary.opacity(0.4))
+                                    )
+                                    .padding(.horizontal, 16)
+                                    .padding(.bottom, 16)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .background(Color(.systemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        .padding(.horizontal, 0)
+
+                        if let err = errorMessage {
+                            Text(err)
+                                .font(.caption)
+                                .foregroundColor(SplitEZTheme.negative)
+                                .padding(.horizontal, 20)
+                                .padding(.top, 8)
+                        }
+
+                        // Submit
+                        Button {
+                            submitForm()
+                        } label: {
+                            Group {
+                                if isSending { ProgressView().tint(.white) }
+                                else { Text("Submit").font(.subheadline.weight(.bold)).foregroundColor(.white) }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(RoundedRectangle(cornerRadius: 32).fill(isValid ? SplitEZTheme.primary : SplitEZTheme.primary.opacity(0.4)))
+                        }
+                        .disabled(!isValid || isSending)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 24)
+                        .padding(.bottom, 40)
+                    }
+                }
             }
-            .navigationTitle("Contact Us")
+            .navigationTitle("Contact us")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
                 }
             }
             .onAppear {
-                name = auth.currentUser?.displayName ?? ""
-                email = auth.currentUser?.email ?? ""
+                let user = auth.currentUser
+                name = user?.displayName ?? ""
+                email = user?.email ?? ""
+                phone = user?.phone ?? ""
+            }
+            .sheet(isPresented: $showPhotoPicker) {
+                ImagePickerView(sourceType: .photoLibrary, selectedImage: Binding(
+                    get: { nil },
+                    set: { if let img = $0 { attachments.append(img) } }
+                ))
             }
             .alert("Message Sent", isPresented: $showSuccess) {
                 Button("Done") { dismiss() }
@@ -2034,11 +2156,55 @@ struct ContactFormSheet: View {
         }
     }
 
-    private func fieldLabel(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundColor(SplitEZTheme.primary)
-            .tracking(0.5)
+    private func submitForm() {
+        isSending = true
+        errorMessage = nil
+        Task {
+            do {
+                struct EnquiryBody: Encodable {
+                    let name: String
+                    let email: String
+                    let phone: String?
+                    let topic: String
+                    let message: String
+                    let attachments: [String]
+                }
+                let body = EnquiryBody(
+                    name: name,
+                    email: email,
+                    phone: phone.isEmpty ? nil : phone,
+                    topic: topic,
+                    message: message,
+                    attachments: []
+                )
+                let _: AnyCodable? = try? await api.post("/support/enquiries", body: body)
+                await MainActor.run {
+                    isSending = false
+                    showSuccess = true
+                }
+            }
+        }
+    }
+
+    private func formField<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(SplitEZTheme.textTertiary)
+                .tracking(0.5)
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+            content()
+        }
+    }
+}
+
+private extension TextField {
+    func formFieldStyle() -> some View {
+        self
+            .font(.system(size: 16))
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
     }
 }
 
