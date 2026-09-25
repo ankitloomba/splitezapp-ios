@@ -65,6 +65,17 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = PushNotificationManager.shared
         InterstitialAdManager.shared.configure()
+        // Apply stored theme before any window is rendered so UIScreen.main.traitCollection
+        // is already correct on first SwiftUI layout pass.
+        let themeMode = UserDefaults.standard.integer(forKey: "appearance_theme")
+        // Key hasn't been written yet (new install) → default to system (unspecified)
+        let style: UIUserInterfaceStyle
+        switch themeMode {
+        case 0: style = .dark
+        case 1: style = .light
+        default: style = .unspecified
+        }
+        UIApplication.shared.windows.forEach { $0.overrideUserInterfaceStyle = style }
         return true
     }
 

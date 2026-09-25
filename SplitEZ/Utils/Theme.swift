@@ -13,60 +13,29 @@ enum SplitEZTheme {
     static let muted        = Color(hex: "5A6B82")
     static let balanceGreen = Color(hex: "2EC770")
 
-    // Adaptive surfaces — white in light mode, dark navy in dark mode
-    static let cardBg = Color(UIColor { t in
-        t.userInterfaceStyle == .dark
-            ? UIColor(hex: "1A1E3A")   // dark card
-            : .white
-    })
-    static let pageBg = Color(UIColor { t in
-        t.userInterfaceStyle == .dark
-            ? UIColor(hex: "10142A")   // dark page
-            : UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1)
-    })
-    static let rowAltBg = Color(UIColor { t in
-        t.userInterfaceStyle == .dark
-            ? UIColor(hex: "1E2448")
-            : UIColor(red: 0.98, green: 0.98, blue: 0.99, alpha: 1)
-    })
-    static let divider = Color(UIColor { t in
-        t.userInterfaceStyle == .dark
-            ? UIColor(hex: "2A2E50")
-            : UIColor(red: 0.85, green: 0.87, blue: 0.90, alpha: 1)
-    })
-    static let pillInactive = Color(UIColor { t in
-        t.userInterfaceStyle == .dark
-            ? UIColor(hex: "262B4A")
-            : UIColor(red: 0.91, green: 0.93, blue: 0.96, alpha: 1)
-    })
-    static let pillActive   = Color(hex: "4F46E5")
-    static let surfaceAlt   = Color(UIColor { t in
-        t.userInterfaceStyle == .dark
-            ? UIColor(hex: "1E2448")
-            : UIColor(hex: "EDF1F7")
-    })
-
-    // Adaptive text
-    static let textPrimary = Color(UIColor { t in
-        t.userInterfaceStyle == .dark
-            ? .white
-            : UIColor(hex: "1A2233")
-    })
-    static let textSecondary = Color(UIColor { t in
-        t.userInterfaceStyle == .dark
-            ? UIColor(hex: "8892B4")
-            : UIColor(hex: "5A6B82")
-    })
-    static let textTertiary = Color(UIColor { t in
-        t.userInterfaceStyle == .dark
-            ? UIColor(hex: "555E80")
-            : UIColor(hex: "8D9BB0")
-    })
+    static let pillActive = Color(hex: "4F46E5")
     static let textOnDark = Color.white
 
-    // Legacy aliases kept for compatibility
-    static let cardBackground    = cardBg
-    static let secondaryBackground = pageBg
+    // Adaptive surfaces — resolved at render time via UIScreen trait collection
+    static var isDark: Bool {
+        UIScreen.main.traitCollection.userInterfaceStyle == .dark
+    }
+
+    static var cardBg: Color        { isDark ? Color(hex: "1A1E3A") : .white }
+    static var pageBg: Color        { isDark ? Color(hex: "10142A") : Color(red: 0.95, green: 0.95, blue: 0.97) }
+    static var rowAltBg: Color      { isDark ? Color(hex: "1E2448") : Color(red: 0.98, green: 0.98, blue: 0.99) }
+    static var divider: Color       { isDark ? Color(hex: "2A2E50") : Color(red: 0.85, green: 0.87, blue: 0.90) }
+    static var pillInactive: Color  { isDark ? Color(hex: "262B4A") : Color(red: 0.91, green: 0.93, blue: 0.96) }
+    static var surfaceAlt: Color    { isDark ? Color(hex: "1E2448") : Color(hex: "EDF1F7") }
+
+    // Adaptive text
+    static var textPrimary: Color   { isDark ? .white : Color(hex: "1A2233") }
+    static var textSecondary: Color { isDark ? Color(hex: "8892B4") : Color(hex: "5A6B82") }
+    static var textTertiary: Color  { isDark ? Color(hex: "555E80") : Color(hex: "8D9BB0") }
+
+    // Legacy aliases
+    static var cardBackground: Color    { cardBg }
+    static var secondaryBackground: Color { pageBg }
 }
 
 struct AvatarView: View {
