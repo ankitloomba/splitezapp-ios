@@ -1965,7 +1965,9 @@ struct ContactFormSheet: View {
                         VStack(alignment: .leading, spacing: 0) {
                             formField(label: "NAME") {
                                 TextField("Full name", text: $name)
-                                    .formFieldStyle()
+                                    .font(.system(size: 16))
+                                    .padding(.horizontal, 16)
+                                    .padding(.bottom, 12)
                             }
                             Divider()
                             formField(label: "EMAIL") {
@@ -1974,13 +1976,17 @@ struct ContactFormSheet: View {
                                     .textContentType(.emailAddress)
                                     .autocapitalization(.none)
                                     .autocorrectionDisabled()
-                                    .formFieldStyle()
+                                    .font(.system(size: 16))
+                                    .padding(.horizontal, 16)
+                                    .padding(.bottom, 12)
                             }
                             Divider()
                             formField(label: "PHONE") {
                                 TextField("+91 XXXXX XXXXX", text: $phone)
                                     .keyboardType(.phonePad)
-                                    .formFieldStyle()
+                                    .font(.system(size: 16))
+                                    .padding(.horizontal, 16)
+                                    .padding(.bottom, 12)
                             }
                             Divider()
                             formField(label: "TOPIC") {
@@ -2199,14 +2205,6 @@ struct ContactFormSheet: View {
     }
 }
 
-private extension TextField {
-    func formFieldStyle() -> some View {
-        self
-            .font(.system(size: 16))
-            .padding(.horizontal, 16)
-            .padding(.bottom, 12)
-    }
-}
 
 struct PeopleListView: View {
     @State private var people: [UserSummary] = []
