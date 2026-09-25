@@ -975,8 +975,8 @@ struct AddExpenseSheet: View {
 
     private let api = APIClient.shared
 
-    private let currencies = ["INR", "USD", "EUR", "GBP"]
-    private let currencySymbols: [String: String] = ["INR": "₹", "USD": "$", "EUR": "€", "GBP": "£"]
+    private let currencySymbols: [String: String] = ["INR": "₹", "USD": "$", "EUR": "€", "GBP": "£", "JPY": "¥", "CNY": "¥", "AUD": "A$", "CAD": "CA$", "CHF": "Fr", "SGD": "S$", "AED": "د.إ", "THB": "฿"]
+    private let recentCurrencyCodes = ["INR", "USD", "EUR", "GBP"]
     private let splitMethods = ["EQUAL", "EXACT", "PERCENTAGE"]
 
     private var selectedGroup: ExpenseGroup? {
@@ -1086,7 +1086,11 @@ struct AddExpenseSheet: View {
                     Button {
                         showCurrencyPicker = true
                     } label: {
-                        HStack(spacing: 4) {
+                        HStack(spacing: 6) {
+                            Text(currSymbol)
+                                .font(.system(size: 13, weight: .semibold))
+                                .frame(width: 26, height: 26)
+                                .background(Circle().fill(Color.white.opacity(0.2)))
                             Text(selectedCurrency)
                                 .font(.caption.weight(.semibold))
                             Image(systemName: "chevron.down")
@@ -1440,12 +1444,8 @@ struct AddExpenseSheet: View {
             } // ZStack for scroll + save
         } // outer VStack
         .task { await loadGroups() }
-        .confirmationDialog("Select Currency", isPresented: $showCurrencyPicker) {
-            ForEach(currencies, id: \.self) { currency in
-                Button("\(currencySymbols[currency] ?? "") \(currency)") {
-                    selectedCurrency = currency
-                }
-            }
+        .sheet(isPresented: $showCurrencyPicker) {
+            ExpenseCurrencySheet(selectedCode: $selectedCurrency)
         }
         .confirmationDialog("Select Category", isPresented: $showCategoryPicker) {
             ForEach(ExpenseCategory.allCases, id: \.self) { cat in
@@ -1970,6 +1970,197 @@ struct AddExpenseSheet: View {
 private extension Collection {
     subscript(safe index: Index) -> Element? {
         indices.contains(index) ? self[index] : nil
+    }
+}
+
+// MARK: - Expense Currency Sheet
+
+struct ExpenseCurrencySheet: View {
+    @Binding var selectedCode: String
+    @Environment(\.dismiss) var dismiss
+    @State private var search = ""
+    @State private var pendingCode: String = ""
+
+    private let recentCodes = ["INR", "USD", "EUR", "GBP", "THB"]
+
+    private var allCurrencies: [CurrencyItem] { CurrencyPickerView.allCurrencies }
+
+    private var filtered: [CurrencyItem] {
+        guard !search.isEmpty else { return allCurrencies }
+        let q = search.lowercased()
+        return allCurrencies.filter {
+            $0.name.lowercased().contains(q) || $0.code.lowercased().contains(q) || $0.symbol.lowercased().contains(q)
+        }
+    }
+
+    private var recentItems: [CurrencyItem] {
+        recentCodes.compactMap { code in allCurrencies.first { $0.code == code } }
+    }
+
+    private var pendingItem: CurrencyItem? {
+        allCurrencies.first { $0.code == pendingCode }
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Handle
+            Capsule()
+                .fill(Color(.systemGray4))
+                .frame(width: 36, height: 4)
+                .padding(.top, 12)
+                .padding(.bottom, 16)
+
+            // Title + close
+            HStack {
+                Text("Expense currency")
+                    .font(.title3.weight(.bold))
+                Spacer()
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(SplitEZTheme.textSecondary)
+                        .frame(width: 30, height: 30)
+                        .background(Circle().fill(Color(.systemGray5)))
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 16)
+
+            // Search
+            HStack(spacing: 10) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 15))
+                    .foregroundColor(SplitEZTheme.textTertiary)
+                TextField("Search currency, code or symbol", text: $search)
+                    .font(.system(size: 15))
+                    .autocorrectionDisabled()
+                    .autocapitalization(.none)
+                if !search.isEmpty {
+                    Button { search = "" } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(SplitEZTheme.textTertiary)
+                    }
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
+            .padding(.horizontal, 20)
+            .padding(.bottom, 8)
+
+            // List
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 0) {
+                    if search.isEmpty {
+                        sectionHeader("RECENT")
+                        ForEach(recentItems.indices, id: \.self) { idx in
+                            currencyRow(recentItems[idx])
+                            if idx < recentItems.count - 1 {
+                                Divider().padding(.leading, 60)
+                            }
+                        }
+                        sectionHeader("ALL CURRENCIES · A–Z")
+                        ForEach(allCurrencies.indices, id: \.self) { idx in
+                            currencyRow(allCurrencies[idx])
+                            if idx < allCurrencies.count - 1 {
+                                Divider().padding(.leading, 60)
+                            }
+                        }
+                    } else if !filtered.isEmpty {
+                        sectionHeader("RESULTS")
+                        ForEach(filtered.indices, id: \.self) { idx in
+                            currencyRow(filtered[idx])
+                            if idx < filtered.count - 1 {
+                                Divider().padding(.leading, 60)
+                            }
+                        }
+                    } else {
+                        Text("No results for \"\(search)\"")
+                            .font(.subheadline)
+                            .foregroundColor(SplitEZTheme.textTertiary)
+                            .padding(32)
+                            .frame(maxWidth: .infinity)
+                    }
+                    Spacer().frame(height: 100)
+                }
+            }
+        }
+        // Sticky bottom button
+        .overlay(alignment: .bottom) {
+            if !pendingCode.isEmpty {
+                VStack(spacing: 0) {
+                    Divider()
+                    HStack(spacing: 16) {
+                        Text("Balances convert to \(selectedCode) at the day's rate")
+                            .font(.caption)
+                            .foregroundColor(SplitEZTheme.textTertiary)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+                    Button {
+                        selectedCode = pendingCode
+                        dismiss()
+                    } label: {
+                        Text("Use \(pendingCode)")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(RoundedRectangle(cornerRadius: 32).fill(SplitEZTheme.primary))
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+                    .padding(.bottom, 8)
+                }
+                .background(Color(.systemBackground))
+            }
+        }
+        .onAppear { pendingCode = selectedCode }
+    }
+
+    @ViewBuilder
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundColor(SplitEZTheme.textTertiary)
+            .tracking(0.5)
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 6)
+    }
+
+    @ViewBuilder
+    private func currencyRow(_ item: CurrencyItem) -> some View {
+        Button {
+            pendingCode = item.code
+        } label: {
+            HStack(spacing: 14) {
+                Text(item.symbol)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(SplitEZTheme.primary)
+                    .frame(width: 36, height: 36)
+                    .background(Circle().fill(SplitEZTheme.primary.opacity(0.1)))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.name)
+                        .font(.subheadline)
+                        .foregroundColor(SplitEZTheme.textPrimary)
+                }
+                Spacer()
+                Text(item.code)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(pendingCode == item.code ? SplitEZTheme.primary : SplitEZTheme.textTertiary)
+                if pendingCode == item.code {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(SplitEZTheme.primary)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(pendingCode == item.code ? SplitEZTheme.primary.opacity(0.05) : Color.clear)
+        }
+        .buttonStyle(.plain)
     }
 }
 

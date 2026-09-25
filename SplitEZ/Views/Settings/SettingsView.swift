@@ -36,10 +36,6 @@ struct SettingsView: View {
                         settingsRow(label: "Appearance") {
                             AppearanceSettingsView()
                         }
-                        rowDivider
-                        settingsRowWithValue(label: "Currency", value: auth.currentUser?.currency ?? "INR") {
-                            CurrencyPickerView()
-                        }
 
                         sectionLabel("HELP & SUPPORT")
 
@@ -1019,7 +1015,7 @@ struct CurrencyPickerView: View {
     @State private var search = ""
     private let api = APIClient.shared
 
-    private static let allCurrencies: [CurrencyItem] = {
+    static let allCurrencies: [CurrencyItem] = {
         let rest: [CurrencyItem] = [
             CurrencyItem(name: "Afghan Afghani", symbol: "؋", code: "AFN"),
             CurrencyItem(name: "Albanian Lek", symbol: "L", code: "ALL"),
