@@ -1938,7 +1938,11 @@ struct AddExpenseSheet: View {
 
         var savedExpense: Expense?
         do {
-            savedExpense = try await api.post("/expenses", body: req)
+            if let id = editingId {
+                savedExpense = try await api.patch("/expenses/\(id)", body: req)
+            } else {
+                savedExpense = try await api.post("/expenses", body: req)
+            }
         } catch {
             // API unavailable — build local expense for demo mode
             let splits = participantList.map { p in
