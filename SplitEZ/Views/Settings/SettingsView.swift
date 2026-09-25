@@ -2239,28 +2239,18 @@ struct ContactFormSheet: View {
         isSending = true
         errorMessage = nil
         Task {
-            do {
-                struct EnquiryBody: Encodable {
-                    let name: String
-                    let email: String
-                    let phone: String?
-                    let topic: String
-                    let message: String
-                    let attachments: [String]
-                }
-                let body = EnquiryBody(
-                    name: name,
-                    email: email,
-                    phone: phone.isEmpty ? nil : phone,
-                    topic: topic,
-                    message: message,
-                    attachments: []
-                )
-                let _: AnyCodable? = try? await api.post("/support/enquiries", body: body)
-                await MainActor.run {
-                    isSending = false
-                    showSuccess = true
-                }
+            let body = EnquiryBody(
+                name: name,
+                email: email,
+                phone: phone.isEmpty ? nil : phone,
+                topic: topic,
+                message: message,
+                attachments: []
+            )
+            let _: AnyCodable? = try? await api.post("/support/enquiries", body: body)
+            await MainActor.run {
+                isSending = false
+                showSuccess = true
             }
         }
     }
@@ -2278,6 +2268,15 @@ struct ContactFormSheet: View {
     }
 }
 
+
+private struct EnquiryBody: Encodable {
+    let name: String
+    let email: String
+    let phone: String?
+    let topic: String
+    let message: String
+    let attachments: [String]
+}
 
 struct PeopleListView: View {
     @State private var people: [UserSummary] = []
