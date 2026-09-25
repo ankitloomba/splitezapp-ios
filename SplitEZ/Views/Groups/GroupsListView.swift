@@ -260,7 +260,12 @@ struct GroupsListView: View {
                     )
                 )
             }
-            .background(SplitEZTheme.darkBg)
+            .background(
+                VStack(spacing: 0) {
+                    SplitEZTheme.darkBg.frame(height: 24)
+                    Color(.systemBackground)
+                }
+            )
         }
         .navigationBarHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)

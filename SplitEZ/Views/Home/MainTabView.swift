@@ -83,7 +83,7 @@ struct MainTabView: View {
         .padding(.bottom, 6)
         .background(
             Rectangle()
-                .fill(.ultraThinMaterial)
+                .fill(Color(.systemBackground))
                 .shadow(color: .black.opacity(0.08), radius: 10, y: -2)
                 .ignoresSafeArea(edges: .bottom)
         )
