@@ -1356,6 +1356,36 @@ struct EditProfileView: View {
     private let api = APIClient.shared
 
     var body: some View {
+        ZStack(alignment: .top) {
+            // Background split: dark navy top, page-bg bottom
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg
+                SplitEZTheme.pageBg
+            }
+            .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Dark nav header
+                HStack {
+                    Button { dismiss() } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    Spacer()
+                    Text("Edit Profile")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    Spacer()
+                    Color.clear.frame(width: 44, height: 44)
+                }
+                .padding(.horizontal, 8)
+                .padding(.top, 8)
+                .padding(.bottom, 16)
+                .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
+
         ScrollView {
             VStack(spacing: 24) {
                 // Avatar picker
@@ -1486,7 +1516,7 @@ struct EditProfileView: View {
                         let parts = fullName.split(separator: " ", maxSplits: 1)
                         let first = String(parts.first ?? "")
                         let last = parts.count > 1 ? String(parts[1]) : nil
-                        let _: UserProfile? = try? await api.put("/users/me", body: UpdateUserRequest(firstName: first, lastName: last))
+                        let _: UserProfile? = try? await api.put("/users/me", body: UpdateUserRequest(firstName: first, lastName: last, phone: phone.isEmpty ? nil : phone))
                         await auth.checkAuth()
                         isSaving = false
                         dismiss()
@@ -1505,28 +1535,13 @@ struct EditProfileView: View {
 
             }
         }
+        .background(SplitEZTheme.pageBg)
+
+            } // end inner VStack
+        } // end ZStack
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBack()
-        .safeAreaInset(edge: .top) {
-            HStack {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
-                }
-                Spacer()
-                Text("Edit Profile")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                Spacer()
-                Color.clear.frame(width: 44, height: 44)
-            }
-            .padding(.horizontal, 8)
-            .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
-        }
         .task {
             // Refresh from API so we get the latest phone/email
             if let fresh: UserProfile = try? await APIClient.shared.get("/users/me") {

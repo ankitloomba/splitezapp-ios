@@ -113,6 +113,7 @@ struct UserProfile: Codable, Identifiable {
 struct UpdateUserRequest: Codable {
     var firstName: String?
     var lastName: String?
+    var phone: String?
     var currency: String?
     var profilePicture: String?
 }
