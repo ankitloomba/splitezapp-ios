@@ -1229,15 +1229,13 @@ struct CurrencyPickerView: View {
                     // Card
                     VStack(spacing: 0) {
                         if showPinned {
-                            sectionHeader("DEFAULT")
+                            sectionHeader("SUGGESTED")
                             currencyRow(pinnedINR)
                             Divider().padding(.leading, 68)
                         }
 
                         if !filtered.isEmpty {
-                            if showPinned {
-                                sectionHeader("ALL CURRENCIES")
-                            }
+                            sectionHeader(showPinned ? "ALL CURRENCIES · A–Z" : "RESULTS")
                             ForEach(Array(filtered.enumerated()), id: \.element.id) { idx, currency in
                                 if idx > 0 { Divider().padding(.leading, 68) }
                                 currencyRow(currency)
@@ -1282,7 +1280,8 @@ struct CurrencyPickerView: View {
     }
 
     private func currencyRow(_ currency: CurrencyItem) -> some View {
-        Button {
+        let isSelected = selectedCode == currency.code
+        return Button {
             selectedCode = currency.code
             Task {
                 let _: AnyCodable? = try? await api.put("/users/me", body: ["currency": currency.code])
@@ -1293,19 +1292,19 @@ struct CurrencyPickerView: View {
                 // Symbol badge
                 ZStack {
                     Circle()
-                        .fill(SplitEZTheme.primary.opacity(0.12))
+                        .fill(SplitEZTheme.primary.opacity(isSelected ? 0.18 : 0.1))
                         .frame(width: 40, height: 40)
                     Text(currency.symbol)
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
                         .foregroundColor(SplitEZTheme.primary)
-                        .minimumScaleFactor(0.5)
+                        .minimumScaleFactor(0.4)
                         .lineLimit(1)
-                        .frame(width: 36)
+                        .frame(width: 34)
                 }
 
                 // Name
                 Text(currency.name)
-                    .font(.subheadline.weight(.medium))
+                    .font(.subheadline.weight(isSelected ? .semibold : .medium))
                     .foregroundColor(SplitEZTheme.textPrimary)
 
                 Spacer()
@@ -1313,23 +1312,11 @@ struct CurrencyPickerView: View {
                 // Code
                 Text(currency.code)
                     .font(.system(size: 13, weight: .medium, design: .monospaced))
-                    .foregroundColor(SplitEZTheme.textTertiary)
-                    .padding(.trailing, 6)
-
-                // Radio
-                ZStack {
-                    Circle()
-                        .stroke(selectedCode == currency.code ? SplitEZTheme.primary : Color(.systemGray3), lineWidth: 1.5)
-                        .frame(width: 20, height: 20)
-                    if selectedCode == currency.code {
-                        Circle()
-                            .fill(SplitEZTheme.primary)
-                            .frame(width: 12, height: 12)
-                    }
-                }
+                    .foregroundColor(isSelected ? SplitEZTheme.primary : SplitEZTheme.textTertiary)
             }
             .padding(.horizontal, 20)
-            .padding(.vertical, 14)
+            .padding(.vertical, 15)
+            .background(isSelected ? SplitEZTheme.primary.opacity(0.07) : Color.clear)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
