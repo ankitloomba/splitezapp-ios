@@ -1266,6 +1266,7 @@ struct CurrencyPickerView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBack()
         .onAppear {
             selectedCode = auth.currentUser?.currency ?? "INR"
         }
@@ -1506,6 +1507,7 @@ struct EditProfileView: View {
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBack()
         .safeAreaInset(edge: .top) {
             HStack {
                 Button { dismiss() } label: {
@@ -2221,6 +2223,7 @@ struct ContactFormSheet: View {
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBack()
         .onAppear {
             let user = auth.currentUser
             name = user?.displayName ?? ""

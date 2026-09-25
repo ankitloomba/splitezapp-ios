@@ -29,6 +29,7 @@ struct FriendSettingsView: View {
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBack()
         .alert("Remove \(friend.firstName)?", isPresented: $showRemoveConfirm) {
             Button("Remove", role: .destructive) { dismiss() }
             Button("Cancel", role: .cancel) {}

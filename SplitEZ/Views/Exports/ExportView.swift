@@ -185,6 +185,7 @@ struct ExportView: View {
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+        .enableSwipeBack()
         .sheet(isPresented: $showShareSheet) {
             if let url = shareURL {
                 ShareSheet(url: url)

@@ -78,16 +78,52 @@ extension Color {
 }
 
 // MARK: - Swipe-back gesture fix
-// When .navigationBarBackButtonHidden(true) is used with a custom back button,
-// UIKit disables interactivePopGestureRecognizer. Setting its delegate to nil
-// re-enables the swipe-back gesture on all navigation controllers in the app.
-extension UINavigationController: @retroactive UIGestureRecognizerDelegate {
-    override open func viewDidLoad() {
-        super.viewDidLoad()
-        interactivePopGestureRecognizer?.delegate = self
+
+/// Embed as .background(SwipeBackEnabler()) on any view that uses
+/// .navigationBarBackButtonHidden(true). It walks the responder chain
+/// after layout to find the UINavigationController and re-enables
+/// interactivePopGestureRecognizer, which SwiftUI disables when the
+/// back button is hidden.
+struct SwipeBackEnabler: UIViewRepresentable {
+    func makeUIView(context: Context) -> UIView {
+        let v = UIView()
+        v.backgroundColor = .clear
+        v.isUserInteractionEnabled = false
+        return v
     }
 
-    public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        return viewControllers.count > 1
+    func updateUIView(_ uiView: UIView, context: Context) {
+        DispatchQueue.main.async {
+            guard let nav = uiView.parentNavigationController else { return }
+            nav.interactivePopGestureRecognizer?.isEnabled = true
+            nav.interactivePopGestureRecognizer?.delegate = context.coordinator
+        }
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            guard let nav = gestureRecognizer.view?.parentNavigationController else { return true }
+            return nav.viewControllers.count > 1
+        }
+    }
+}
+
+extension UIView {
+    var parentNavigationController: UINavigationController? {
+        var responder: UIResponder? = self
+        while let r = responder {
+            if let nav = r as? UINavigationController { return nav }
+            responder = r.next
+        }
+        return nil
+    }
+}
+
+extension View {
+    /// Re-enables swipe-back on screens with a custom nav bar.
+    func enableSwipeBack() -> some View {
+        self.background(SwipeBackEnabler())
     }
 }
