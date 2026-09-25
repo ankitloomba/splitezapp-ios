@@ -50,6 +50,7 @@ struct MainTabView: View {
                 SponsoredBannerView()
                 customTabBar
             }
+            .ignoresSafeArea(.keyboard)
         }
         .onAppear {
             UITabBar.appearance().isHidden = true

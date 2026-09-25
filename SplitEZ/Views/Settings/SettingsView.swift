@@ -1502,11 +1502,25 @@ struct EditProfileView: View {
 
             }
         }
-        .navigationTitle("Edit Profile")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
+        .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top) {
+            HStack {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.white)
+                    .onTapGesture { dismiss() }
+                    .frame(width: 44, height: 44)
+                Spacer()
+                Text("Edit Profile")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                Spacer()
+                Color.clear.frame(width: 44, height: 44)
+            }
+            .padding(.horizontal, 8)
+            .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
+        }
         .onAppear {
             let user = auth.currentUser
             fullName = user?.displayName ?? ""
