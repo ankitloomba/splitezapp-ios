@@ -56,10 +56,9 @@ struct MainTabView: View {
         .fullScreenCover(isPresented: $showAddSheet) {
             AddExpenseSheet()
         }
-        .onChange(of: selectedTab) { oldTab, tab in
+        .onChange(of: selectedTab) { tab in
             let screens = ["friends", "groups", "activity", "account"]
             if tab < screens.count {
-                previousTab = oldTab
                 Task { await AnalyticsTracker.shared.trackScreen(screens[tab]) }
             }
         }
@@ -1125,7 +1124,7 @@ struct AddExpenseSheet: View {
                             TextField("Dinner at Olive Garden", text: $description)
                                 .font(.subheadline)
                                 .foregroundColor(SplitEZTheme.textPrimary)
-                                .onChange(of: description) { _, newValue in
+                                .onChange(of: description) { newValue in
                                     let detected = ExpenseCategory.detect(from: newValue)
                                     if detected != .other || selectedCategory == .other {
                                         selectedCategory = detected

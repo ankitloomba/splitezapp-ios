@@ -27,7 +27,7 @@ struct SplitEZApp: App {
                     PushNotificationManager.shared.requestPermission()
                 }
             }
-            .onChange(of: scenePhase) { _, newPhase in
+            .onChange(of: scenePhase) { newPhase in
                 if newPhase == .active {
                     interstitialAd.showIfReady()
                 }

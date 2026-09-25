@@ -447,7 +447,7 @@ struct NotificationSettingsView: View {
             Toggle("", isOn: isOn)
                 .labelsHidden()
                 .tint(SplitEZTheme.primary)
-                .onChange(of: isOn.wrappedValue) { _, _ in
+                .onChange(of: isOn.wrappedValue) { _ in
                     onChange()
                 }
         }
@@ -1685,7 +1685,7 @@ struct OTPVerificationSheet: View {
                     .font(.system(size: 1))
                     .foregroundColor(.clear)
                     .accentColor(.clear)
-                    .onChange(of: code) { _, v in
+                    .onChange(of: code) { v in
                         code = String(v.filter(\.isNumber).prefix(6))
                         if code.count == 6 { verifyCode() }
                     }
