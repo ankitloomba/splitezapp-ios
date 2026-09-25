@@ -464,8 +464,9 @@ struct TripDetailView: View {
     }
 
     private func tripExpenseRow(_ expense: Expense) -> some View {
-        HStack(spacing: 12) {
-            let icon = iconForCategory(expense.category)
+        let icon = iconForCategory(expense.category)
+        let share = expenseUserShare(expense)
+        return HStack(spacing: 12) {
             Image(systemName: icon.name)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(icon.color)
@@ -484,7 +485,6 @@ struct TripDetailView: View {
 
             Spacer()
 
-            let share = expenseUserShare(expense)
             VStack(alignment: .trailing, spacing: 2) {
                 Text(share >= 0 ? "owed to you" : "you owe")
                     .font(.caption)

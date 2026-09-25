@@ -1615,8 +1615,7 @@ struct AddExpenseSheet: View {
                 // People list
                 List {
                     // Inline email-invite when search looks like an email
-                    let showEmailInvite = participantSearchText.contains("@") && searchFilteredPeople.isEmpty
-                    if showEmailInvite {
+                    if participantSearchText.contains("@") && searchFilteredPeople.isEmpty {
                         Button {
                             participantSearchText = ""
                             showParticipantPicker = false

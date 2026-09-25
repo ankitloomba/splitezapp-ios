@@ -208,32 +208,40 @@ struct FriendSettingsView: View {
     ]
 
     private func groupRow(_ group: ExpenseGroup) -> some View {
-        let styleIndex = abs(group.name.hashValue) % Self.groupStyles.count
-        let style = Self.groupStyles[styleIndex]
-        return HStack(spacing: 14) {
-            Image(systemName: style.icon)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(style.color)
-                .frame(width: 40, height: 40)
-                .background(style.color.opacity(0.12))
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(group.name)
-                    .font(.subheadline.weight(.medium))
-                if let count = group.memberCount {
-                    Text("\(count) member\(count == 1 ? "" : "s")")
-                        .font(.caption)
-                        .foregroundColor(SplitEZTheme.textSecondary)
+        GroupRowView(group: group, styles: Self.groupStyles)
+    }
+
+    private struct GroupRowView: View {
+        let group: ExpenseGroup
+        let styles: [(icon: String, color: Color)]
+        var body: some View {
+            let styleIndex = abs(group.name.hashValue) % styles.count
+            let style = styles[styleIndex]
+            HStack(spacing: 14) {
+                Image(systemName: style.icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(style.color)
+                    .frame(width: 40, height: 40)
+                    .background(style.color.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(group.name)
+                        .font(.subheadline.weight(.medium))
+                    if let count = group.memberCount {
+                        Text("\(count) member\(count == 1 ? "" : "s")")
+                            .font(.caption)
+                            .foregroundColor(SplitEZTheme.textSecondary)
+                    }
                 }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14))
+                    .foregroundColor(SplitEZTheme.textTertiary)
             }
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.system(size: 14))
-                .foregroundColor(SplitEZTheme.textTertiary)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 10)
-        .contentShape(Rectangle())
     }
 
     private func sectionLabel(_ text: String) -> some View {

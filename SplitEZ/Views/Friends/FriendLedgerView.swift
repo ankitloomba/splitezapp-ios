@@ -403,8 +403,9 @@ struct FriendLedgerView: View {
     // MARK: - Expense Row
 
     private func expenseRow(_ expense: Expense) -> some View {
-        HStack(spacing: 12) {
-            let icon = iconForCategory(expense.category)
+        let icon = iconForCategory(expense.category)
+        let myShare = expenseShareAmount(expense)
+        return HStack(spacing: 12) {
             Image(systemName: icon.name)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(icon.color)
@@ -423,7 +424,6 @@ struct FriendLedgerView: View {
 
             Spacer()
 
-            let myShare = expenseShareAmount(expense)
             VStack(alignment: .trailing, spacing: 2) {
                 Text(myShare > 0 ? "owes you" : "you owe")
                     .font(.caption)

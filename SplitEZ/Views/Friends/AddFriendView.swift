@@ -153,9 +153,8 @@ private struct EmailTabView: View {
             if showGroupPicker {
                 VStack(spacing: 0) {
                     ForEach(groups, id: \.id) { group in
-                        let isSelected = selectedGroupIds.contains(group.id)
                         Button {
-                            if isSelected { selectedGroupIds.remove(group.id) }
+                            if selectedGroupIds.contains(group.id) { selectedGroupIds.remove(group.id) }
                             else { selectedGroupIds.insert(group.id) }
                         } label: {
                             HStack(spacing: 12) {
@@ -165,14 +164,14 @@ private struct EmailTabView: View {
                                     .font(.subheadline)
                                     .foregroundColor(SplitEZTheme.textPrimary)
                                 Spacer()
-                                if isSelected {
+                                if selectedGroupIds.contains(group.id) {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundColor(SplitEZTheme.primary)
                                 }
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 10)
-                            .background(isSelected ? SplitEZTheme.primary.opacity(0.06) : Color.clear)
+                            .background(selectedGroupIds.contains(group.id) ? SplitEZTheme.primary.opacity(0.06) : Color.clear)
                         }
                         Divider().padding(.leading, 44)
                     }
@@ -525,9 +524,8 @@ private struct EnterCodeTabView: View {
             if showGroupPicker {
                 VStack(spacing: 0) {
                     ForEach(groups, id: \.id) { group in
-                        let isSelected = selectedGroupIds.contains(group.id)
                         Button {
-                            if isSelected { selectedGroupIds.remove(group.id) }
+                            if selectedGroupIds.contains(group.id) { selectedGroupIds.remove(group.id) }
                             else { selectedGroupIds.insert(group.id) }
                         } label: {
                             HStack(spacing: 12) {
@@ -537,14 +535,14 @@ private struct EnterCodeTabView: View {
                                     .font(.subheadline)
                                     .foregroundColor(SplitEZTheme.textPrimary)
                                 Spacer()
-                                if isSelected {
+                                if selectedGroupIds.contains(group.id) {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundColor(SplitEZTheme.primary)
                                 }
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 10)
-                            .background(isSelected ? SplitEZTheme.primary.opacity(0.06) : Color.clear)
+                            .background(selectedGroupIds.contains(group.id) ? SplitEZTheme.primary.opacity(0.06) : Color.clear)
                         }
                         Divider().padding(.leading, 44)
                     }
