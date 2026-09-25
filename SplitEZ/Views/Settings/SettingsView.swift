@@ -1184,15 +1184,18 @@ struct CurrencyPickerView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            VStack(spacing: 0) {
-                SplitEZTheme.darkBg.frame(height: 160)
-                Color(.systemGroupedBackground)
-            }
-            .ignoresSafeArea()
+            // Short dark strip behind the card's top rounded corners
+            SplitEZTheme.darkBg
+                .ignoresSafeArea()
+                .frame(maxHeight: .infinity, alignment: .top)
 
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea(edges: .bottom)
+
+            // Single white card: search bar + list
             ScrollView {
                 VStack(spacing: 0) {
-                    // Search bar
+                    // Search bar inside the card
                     HStack(spacing: 10) {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 15))
@@ -1211,46 +1214,40 @@ struct CurrencyPickerView: View {
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 11)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(Color(.systemGray5))
-                    )
+                    .background(Capsule().fill(Color(.systemGray6)))
                     .padding(.horizontal, 16)
-                    .padding(.top, 12)
-                    .padding(.bottom, 8)
+                    .padding(.top, 16)
+                    .padding(.bottom, 12)
 
-                    // Card
-                    VStack(spacing: 0) {
-                        if showPinned {
-                            sectionHeader("SUGGESTED")
-                            currencyRow(pinnedINR)
-                            Divider().padding(.leading, 68)
-                        }
-
-                        if !filtered.isEmpty {
-                            sectionHeader(showPinned ? "ALL CURRENCIES · A–Z" : "RESULTS")
-                            ForEach(filtered.indices, id: \.self) { idx in
-                                if idx > 0 { Divider().padding(.leading, 68) }
-                                currencyRow(filtered[idx])
-                            }
-                        } else {
-                            Text("No results for \"\(search)\"")
-                                .font(.subheadline)
-                                .foregroundColor(SplitEZTheme.textTertiary)
-                                .padding(32)
-                                .frame(maxWidth: .infinity)
-                        }
+                    // Currency list
+                    if showPinned {
+                        sectionHeader("SUGGESTED")
+                        currencyRow(pinnedINR)
+                        Divider().padding(.leading, 68)
                     }
-                    .background(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color(.systemBackground))
-                    )
-                    .padding(.top, 4)
+
+                    if !filtered.isEmpty {
+                        sectionHeader(showPinned ? "ALL CURRENCIES · A–Z" : "RESULTS")
+                        ForEach(filtered.indices, id: \.self) { idx in
+                            if idx > 0 { Divider().padding(.leading, 68) }
+                            currencyRow(filtered[idx])
+                        }
+                    } else {
+                        Text("No results for \"\(search)\"")
+                            .font(.subheadline)
+                            .foregroundColor(SplitEZTheme.textTertiary)
+                            .padding(32)
+                            .frame(maxWidth: .infinity)
+                    }
 
                     Spacer().frame(height: 40)
                 }
+                .background(Color(.systemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .padding(.top, 12)
             }
         }
+        .tint(.white)
         .navigationTitle("Currency")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
@@ -2168,6 +2165,7 @@ struct ContactFormSheet: View {
                     }
                 }
         }
+        .tint(.white)
         .navigationTitle("Contact us")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
