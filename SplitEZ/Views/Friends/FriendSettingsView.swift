@@ -47,11 +47,13 @@ struct FriendSettingsView: View {
         VStack(spacing: 20) {
             // Custom nav bar
             HStack {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.white)
-                    .onTapGesture { dismiss() }
-                    .frame(width: 44, height: 44)
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
                 Spacer()
                 Text("Friend settings")
                     .font(.headline)

@@ -1191,11 +1191,13 @@ struct CurrencyPickerView: View {
             VStack(spacing: 0) {
                 // Custom nav bar — no system bar, no circle on back button
                 HStack {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.white)
-                        .onTapGesture { dismiss() }
-                        .frame(width: 44, height: 44)
+                    Button { dismiss() } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
                     Spacer()
                     Text("Currency")
                         .font(.headline)
@@ -1506,11 +1508,13 @@ struct EditProfileView: View {
         .toolbar(.hidden, for: .navigationBar)
         .safeAreaInset(edge: .top) {
             HStack {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.white)
-                    .onTapGesture { dismiss() }
-                    .frame(width: 44, height: 44)
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
                 Spacer()
                 Text("Edit Profile")
                     .font(.headline)
@@ -2045,11 +2049,13 @@ struct ContactFormSheet: View {
             VStack(spacing: 0) {
                 // Custom nav header — no system bar, no circle on back button
                 HStack {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(.white)
-                        .onTapGesture { dismiss() }
-                        .frame(width: 44, height: 44)
+                    Button { dismiss() } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
                     Spacer()
                     Text("Contact us")
                         .font(.headline)

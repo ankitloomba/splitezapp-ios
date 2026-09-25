@@ -76,3 +76,18 @@ extension Color {
         self.init(red: r, green: g, blue: b)
     }
 }
+
+// MARK: - Swipe-back gesture fix
+// When .navigationBarBackButtonHidden(true) is used with a custom back button,
+// UIKit disables interactivePopGestureRecognizer. Setting its delegate to nil
+// re-enables the swipe-back gesture on all navigation controllers in the app.
+extension UINavigationController: @retroactive UIGestureRecognizerDelegate {
+    override open func viewDidLoad() {
+        super.viewDidLoad()
+        interactivePopGestureRecognizer?.delegate = self
+    }
+
+    public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return viewControllers.count > 1
+    }
+}
