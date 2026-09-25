@@ -1236,9 +1236,9 @@ struct CurrencyPickerView: View {
 
                         if !filtered.isEmpty {
                             sectionHeader(showPinned ? "ALL CURRENCIES · A–Z" : "RESULTS")
-                            ForEach(Array(filtered.enumerated()), id: \.element.id) { idx, currency in
+                            ForEach(filtered.indices, id: \.self) { idx in
                                 if idx > 0 { Divider().padding(.leading, 68) }
-                                currencyRow(currency)
+                                currencyRow(filtered[idx])
                             }
                         } else {
                             Text("No results for "\(search)"")
