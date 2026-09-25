@@ -931,6 +931,7 @@ struct AddExpenseSheet: View {
     @State private var selectedParticipantIds: Set<String>
     @State private var showParticipantPicker = false
     @State private var participantSearchText = ""
+    @State private var showAddFriend = false
 
     init(prefillFriend: Friend? = nil, expense: Expense? = nil) {
         self.prefillFriend = prefillFriend
@@ -1476,6 +1477,9 @@ struct AddExpenseSheet: View {
         }
         .sheet(isPresented: $showParticipantPicker) {
             participantPickerSheet
+        }
+        .sheet(isPresented: $showAddFriend) {
+            AddFriendView(isPresented: $showAddFriend)
         }
     }
 
