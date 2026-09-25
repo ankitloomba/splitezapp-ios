@@ -79,7 +79,7 @@ struct MainTabView: View {
         }
         .padding(.horizontal, 8)
         .padding(.top, 10)
-        .padding(.bottom, 0)
+        .padding(.bottom, 8)
         .background(
             Rectangle()
                 .fill(Color(.systemBackground))
