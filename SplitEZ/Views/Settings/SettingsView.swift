@@ -14,7 +14,7 @@ struct SettingsView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 280)
-                Color.white
+                SplitEZTheme.pageBg
             }
             .ignoresSafeArea()
 
@@ -366,7 +366,7 @@ struct NotificationSettingsView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 160)
-                Color.white
+                SplitEZTheme.pageBg
             }
             .ignoresSafeArea()
 
@@ -476,7 +476,7 @@ struct SecuritySettingsView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 160)
-                Color.white
+                SplitEZTheme.pageBg
             }
             .ignoresSafeArea()
 
@@ -753,7 +753,7 @@ struct ChangePasswordView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 100)
-                Color.white
+                SplitEZTheme.pageBg
             }
             .ignoresSafeArea()
 
@@ -876,7 +876,7 @@ struct AppearanceSettingsView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 100)
-                Color.white
+                SplitEZTheme.pageBg
             }
             .ignoresSafeArea()
 
@@ -1184,7 +1184,7 @@ struct CurrencyPickerView: View {
             // Dark header + white below (so sparse results don't show dark beneath card)
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg
-                Color.white
+                SplitEZTheme.pageBg
             }
             .ignoresSafeArea()
 

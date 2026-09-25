@@ -19,21 +19,41 @@ struct SplitEZApp: App {
             }
             .environmentObject(auth)
             .environmentObject(appSettings)
+            .preferredColorScheme(appSettings.preferredColorScheme)
             .tint(appSettings.accentColor)
             .task { await auth.checkAuth() }
             .onAppear {
+                applyUIKitColorScheme()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     PushNotificationManager.shared.requestPermission()
                 }
             }
+            .onChange(of: appSettings.themeMode) {
+                applyUIKitColorScheme()
+            }
             .onChange(of: scenePhase) {
                 if scenePhase == .active {
                     interstitialAd.showIfReady()
+                    applyUIKitColorScheme()
                 }
             }
         }
     }
 
+    /// Mirrors themeMode to UIKit so native components (tab bar, status bar)
+    /// also respect the user's choice. 0=dark, 1=light, 2=system.
+    private func applyUIKitColorScheme() {
+        let style: UIUserInterfaceStyle
+        switch appSettings.themeMode {
+        case 0: style = .dark
+        case 1: style = .light
+        default: style = .unspecified
+        }
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .forEach { $0.overrideUserInterfaceStyle = style }
+    }
 }
 
 // MARK: - AppDelegate
