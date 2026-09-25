@@ -1185,8 +1185,12 @@ struct CurrencyPickerView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            // Dark background fills everything — shows through card's rounded corners
-            SplitEZTheme.darkBg.ignoresSafeArea()
+            // Dark only at the top (behind card's rounded corners), white below
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 80)
+                Color(.systemBackground)
+            }
+            .ignoresSafeArea()
 
             // Single white card: search bar + list
             ScrollView {
