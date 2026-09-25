@@ -2063,29 +2063,7 @@ struct ContactFormSheet: View {
                             }
                             Divider()
                             formField(label: "TOPIC") {
-                                Menu {
-                                    ForEach(topics, id: \.self) { t in
-                                        Button(t) { topic = t }
-                                    }
-                                } label: {
-                                    HStack {
-                                        Text(topic)
-                                            .font(.system(size: 16))
-                                            .foregroundColor(SplitEZTheme.textPrimary)
-                                        Spacer()
-                                        Image(systemName: "chevron.down")
-                                            .font(.system(size: 12, weight: .semibold))
-                                            .foregroundColor(SplitEZTheme.primary)
-                                    }
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 14)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(SplitEZTheme.primary, lineWidth: 1.5)
-                                    )
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 10)
-                                }
+                                TopicMenuView(topic: $topic, topics: topics)
                             }
                             Divider()
                             formField(label: "MESSAGE") {
@@ -2268,6 +2246,40 @@ struct ContactFormSheet: View {
     }
 }
 
+
+private struct TopicMenuView: View {
+    @Binding var topic: String
+    let topics: [String]
+
+    var body: some View {
+        Menu(
+            content: {
+                ForEach(topics, id: \.self) { t in
+                    Button(t) { topic = t }
+                }
+            },
+            label: {
+                HStack {
+                    Text(topic)
+                        .font(.system(size: 16))
+                        .foregroundColor(SplitEZTheme.textPrimary)
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(SplitEZTheme.primary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(SplitEZTheme.primary, lineWidth: 1.5)
+                )
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+            }
+        )
+    }
+}
 
 private struct EnquiryBody: Encodable {
     let name: String
