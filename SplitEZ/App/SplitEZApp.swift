@@ -19,13 +19,9 @@ struct SplitEZApp: App {
             }
             .environmentObject(auth)
             .environmentObject(appSettings)
-            .preferredColorScheme(.light)
             .tint(appSettings.accentColor)
             .task { await auth.checkAuth() }
             .onAppear {
-                // Force light mode at UIKit level so UIKit components (tab bar,
-                // nav bar, system backgrounds) also stay light regardless of device setting.
-                forceLight()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     PushNotificationManager.shared.requestPermission()
                 }
@@ -33,18 +29,11 @@ struct SplitEZApp: App {
             .onChange(of: scenePhase) {
                 if scenePhase == .active {
                     interstitialAd.showIfReady()
-                    forceLight()
                 }
             }
         }
     }
 
-    private func forceLight() {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .forEach { $0.overrideUserInterfaceStyle = .light }
-    }
 }
 
 // MARK: - AppDelegate

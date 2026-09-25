@@ -1,31 +1,72 @@
 import SwiftUI
 
 enum SplitEZTheme {
-    // Core palette — matches brand guidelines
-    static let primary = Color(hex: "4338CA")        // Deep indigo
-    static let primaryLight = Color(hex: "818CF8")   // Light indigo
-    static let accent = Color(hex: "818CF8")         // Light indigo (logo left)
-    static let darkBg = Color(hex: "10142A")         // Deep navy (header/splash bg)
-    static let darkBgLighter = Color(hex: "1A1E3A")  // Slightly lighter navy
-    static let destructive = Color(hex: "EB5757")    // Red
-    static let positive = Color(hex: "2EC770")       // Green
-    static let negative = Color(hex: "EB5757")       // Red
-    static let muted = Color(hex: "5A6B82")          // Inactive/secondary
-
-    // Surfaces
-    static let cardBackground = Color.white
-    static let secondaryBackground = Color(hex: "F5F7FA")
-    static let surfaceAlt = Color(hex: "EDF1F7")
-    static let pillActive = Color(hex: "4F46E5")
-    static let pillInactive = Color(hex: "E8EDF4")
-    static let divider = Color(hex: "D8E0EB")
-
-    // Text
-    static let textPrimary = Color(hex: "1A2233")
-    static let textSecondary = Color(hex: "5A6B82")
-    static let textTertiary = Color(hex: "8D9BB0")
-    static let textOnDark = Color.white
+    // Core palette
+    static let primary      = Color(hex: "4338CA")
+    static let primaryLight = Color(hex: "818CF8")
+    static let accent       = Color(hex: "818CF8")
+    static let darkBg       = Color(hex: "10142A")   // deep navy header
+    static let darkBgLighter = Color(hex: "1A1E3A")  // slightly lighter navy
+    static let destructive  = Color(hex: "EB5757")
+    static let positive     = Color(hex: "2EC770")
+    static let negative     = Color(hex: "EB5757")
+    static let muted        = Color(hex: "5A6B82")
     static let balanceGreen = Color(hex: "2EC770")
+
+    // Adaptive surfaces — white in light mode, dark navy in dark mode
+    static let cardBg = Color(UIColor { t in
+        t.userInterfaceStyle == .dark
+            ? UIColor(hex: "1A1E3A")   // dark card
+            : .white
+    })
+    static let pageBg = Color(UIColor { t in
+        t.userInterfaceStyle == .dark
+            ? UIColor(hex: "10142A")   // dark page
+            : UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1)
+    })
+    static let rowAltBg = Color(UIColor { t in
+        t.userInterfaceStyle == .dark
+            ? UIColor(hex: "1E2448")
+            : UIColor(red: 0.98, green: 0.98, blue: 0.99, alpha: 1)
+    })
+    static let divider = Color(UIColor { t in
+        t.userInterfaceStyle == .dark
+            ? UIColor(hex: "2A2E50")
+            : UIColor(red: 0.85, green: 0.87, blue: 0.90, alpha: 1)
+    })
+    static let pillInactive = Color(UIColor { t in
+        t.userInterfaceStyle == .dark
+            ? UIColor(hex: "262B4A")
+            : UIColor(red: 0.91, green: 0.93, blue: 0.96, alpha: 1)
+    })
+    static let pillActive   = Color(hex: "4F46E5")
+    static let surfaceAlt   = Color(UIColor { t in
+        t.userInterfaceStyle == .dark
+            ? UIColor(hex: "1E2448")
+            : UIColor(hex: "EDF1F7")
+    })
+
+    // Adaptive text
+    static let textPrimary = Color(UIColor { t in
+        t.userInterfaceStyle == .dark
+            ? .white
+            : UIColor(hex: "1A2233")
+    })
+    static let textSecondary = Color(UIColor { t in
+        t.userInterfaceStyle == .dark
+            ? UIColor(hex: "8892B4")
+            : UIColor(hex: "5A6B82")
+    })
+    static let textTertiary = Color(UIColor { t in
+        t.userInterfaceStyle == .dark
+            ? UIColor(hex: "555E80")
+            : UIColor(hex: "8D9BB0")
+    })
+    static let textOnDark = Color.white
+
+    // Legacy aliases kept for compatibility
+    static let cardBackground    = cardBg
+    static let secondaryBackground = pageBg
 }
 
 struct AvatarView: View {
@@ -74,6 +115,18 @@ extension Color {
         let g = Double((int >> 8) & 0xFF) / 255.0
         let b = Double(int & 0xFF) / 255.0
         self.init(red: r, green: g, blue: b)
+    }
+}
+
+extension UIColor {
+    convenience init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let r = CGFloat((int >> 16) & 0xFF) / 255.0
+        let g = CGFloat((int >> 8) & 0xFF) / 255.0
+        let b = CGFloat(int & 0xFF) / 255.0
+        self.init(red: r, green: g, blue: b, alpha: 1)
     }
 }
 

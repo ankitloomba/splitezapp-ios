@@ -180,7 +180,7 @@ struct FriendLedgerView: View {
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .stroke(SplitEZTheme.primary.opacity(0.25), lineWidth: 1.5)
-                    .background(RoundedRectangle(cornerRadius: 16).fill(Color.white))
+                    .background(RoundedRectangle(cornerRadius: 16).fill(SplitEZTheme.cardBg))
             )
             .padding(.horizontal, 24)
             .padding(.top, 20)
@@ -338,7 +338,7 @@ struct FriendLedgerView: View {
                         .padding(.vertical, 14)
                         .background(
                             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .fill(Color.white)
+                                .fill(SplitEZTheme.cardBg)
                         )
                 }
             }
@@ -405,7 +405,7 @@ struct FriendLedgerView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color.white)
+                .fill(SplitEZTheme.cardBg)
         )
         .offset(y: -16)
     }

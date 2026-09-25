@@ -163,7 +163,7 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color.white)
+                .fill(SplitEZTheme.cardBg)
                 .ignoresSafeArea(edges: .bottom)
         )
         .offset(y: -16)

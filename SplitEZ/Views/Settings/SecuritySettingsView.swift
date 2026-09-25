@@ -96,7 +96,7 @@ struct SecuritySettingsView: View {
                     .contentShape(Rectangle())
                     .onTapGesture {}
                 }
-                .background(Color.white)
+                .background(SplitEZTheme.cardBg)
                 .clipShape(RoundedRectangle(cornerRadius: 24))
                 .padding(.top, 0)
             }

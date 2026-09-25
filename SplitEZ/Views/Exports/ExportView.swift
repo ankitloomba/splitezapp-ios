@@ -167,7 +167,7 @@ struct ExportView: View {
                                     .padding(.vertical, 10)
                                 }
                             }
-                            .background(Color.white)
+                            .background(SplitEZTheme.cardBg)
                             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -179,7 +179,7 @@ struct ExportView: View {
                         Spacer().frame(height: 40)
                     }
                 }
-                .background(Color.white)
+                .background(SplitEZTheme.cardBg)
                 .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 24, style: .continuous))
             }
         }
@@ -210,7 +210,7 @@ struct ExportView: View {
         .foregroundColor(SplitEZTheme.textSecondary)
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
-        .background(Color(red: 0.96, green: 0.96, blue: 0.98))
+        .background(SplitEZTheme.pageBg)
     }
 
     private func tableRow(expense: Expense, isEven: Bool) -> some View {
@@ -231,7 +231,7 @@ struct ExportView: View {
         .foregroundColor(SplitEZTheme.textSecondary)
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
-        .background(isEven ? Color.white : Color(red: 0.98, green: 0.98, blue: 0.99))
+        .background(isEven ? Color.white : SplitEZTheme.rowAltBg)
     }
 
     // MARK: - Export
@@ -305,7 +305,7 @@ private struct FormatCard: View {
         .padding(.vertical, 14)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(isSelected ? fmt.color.opacity(0.08) : Color(red: 0.96, green: 0.96, blue: 0.98))
+                .fill(isSelected ? fmt.color.opacity(0.08) : SplitEZTheme.pageBg)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)

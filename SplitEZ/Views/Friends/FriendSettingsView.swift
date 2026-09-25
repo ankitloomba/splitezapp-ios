@@ -174,7 +174,7 @@ struct FriendSettingsView: View {
 
             Spacer().frame(height: 40)
         }
-        .background(Color.white)
+        .background(SplitEZTheme.cardBg)
         .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 24, style: .continuous))
     }
 

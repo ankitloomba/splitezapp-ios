@@ -250,7 +250,7 @@ struct GroupsListView: View {
                     Spacer().frame(height: 80)
                 }
                 .frame(maxWidth: .infinity)
-                .background(Color.white)
+                .background(SplitEZTheme.cardBg)
                 .clipShape(
                     UnevenRoundedRectangle(
                         topLeadingRadius: 20,
@@ -424,7 +424,7 @@ struct GroupDetailView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color.white)
+                            .fill(SplitEZTheme.cardBg)
                     )
                     .offset(y: -16)
                 }
@@ -555,7 +555,7 @@ struct GroupDetailView: View {
                         .padding(.vertical, 12)
                         .background(
                             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .fill(Color.white)
+                                .fill(SplitEZTheme.cardBg)
                         )
                 }
             }

@@ -71,7 +71,7 @@ struct ImportView: View {
                     FormatRow(title: "Excel", detail: "XLS/XLSX with the same column layout")
                 }
                 .padding()
-                .background(Color(red: 0.95, green: 0.95, blue: 0.97))
+                .background(SplitEZTheme.pageBg)
                 .cornerRadius(10)
 
                 // Import button

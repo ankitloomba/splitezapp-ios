@@ -120,7 +120,7 @@ struct SettingsView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color.white)
+                            .fill(SplitEZTheme.cardBg)
                     )
                     .offset(y: -16)
                 }
@@ -404,7 +404,7 @@ struct NotificationSettingsView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color.white)
+                            .fill(SplitEZTheme.cardBg)
                     )
                 }
             }
@@ -663,7 +663,7 @@ struct SecuritySettingsView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color.white)
+                            .fill(SplitEZTheme.cardBg)
                     )
                 }
             }
@@ -827,7 +827,7 @@ struct ChangePasswordView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color.white)
+                            .fill(SplitEZTheme.cardBg)
                     )
                 }
             }
@@ -961,7 +961,7 @@ struct AppearanceSettingsView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color.white)
+                            .fill(SplitEZTheme.cardBg)
                     )
                 }
             }
@@ -1258,11 +1258,11 @@ struct CurrencyPickerView: View {
 
                         Spacer().frame(height: 40)
                     }
-                    .background(Color.white)
+                    .background(SplitEZTheme.cardBg)
                     .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                     .padding(.top, 12)
                 }
-                .background(Color.white)
+                .background(SplitEZTheme.cardBg)
             }
         }
         .toolbar(.hidden, for: .navigationBar)
@@ -1385,7 +1385,7 @@ struct EditProfileView: View {
                                 }
                             }
                             ZStack {
-                                Circle().fill(Color.white).frame(width: 32, height: 32)
+                                Circle().fill(SplitEZTheme.cardBg).frame(width: 32, height: 32)
                                 Circle().fill(SplitEZTheme.primary).frame(width: 28, height: 28)
                                 Image(systemName: "camera.fill").font(.system(size: 12)).foregroundColor(.white)
                             }
@@ -1888,7 +1888,7 @@ struct UserQRSheet: View {
                     .padding(16)
                     .background(
                         RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .fill(Color.white)
+                            .fill(SplitEZTheme.cardBg)
                     )
             }
 
@@ -1949,7 +1949,7 @@ struct ManageSubscriptionSheet: View {
                 Divider().padding(.leading, 20)
                 infoRow(label: "Status", value: "Active")
             }
-            .background(RoundedRectangle(cornerRadius: 16).fill(Color(red: 0.95, green: 0.95, blue: 0.97)))
+            .background(RoundedRectangle(cornerRadius: 16).fill(SplitEZTheme.pageBg))
             .padding(.horizontal, 24)
 
             VStack(alignment: .leading, spacing: 10) {
@@ -2189,7 +2189,7 @@ struct ContactFormSheet: View {
                                 .buttonStyle(.plain)
                             }
                         }
-                        .background(Color.white)
+                        .background(SplitEZTheme.cardBg)
                         .clipShape(RoundedRectangle(cornerRadius: 24))
                         .padding(.horizontal, 0)
 

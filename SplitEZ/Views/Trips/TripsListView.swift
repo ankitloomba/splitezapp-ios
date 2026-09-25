@@ -97,7 +97,7 @@ struct TripsListView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color.white)
+                            .fill(SplitEZTheme.cardBg)
                     )
                     .offset(y: -16)
                 }
@@ -374,7 +374,7 @@ struct TripDetailView: View {
                         .padding(.vertical, 14)
                         .background(
                             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .fill(Color.white)
+                                .fill(SplitEZTheme.cardBg)
                         )
                 }
             }
@@ -458,7 +458,7 @@ struct TripDetailView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color.white)
+                .fill(SplitEZTheme.cardBg)
         )
         .offset(y: -16)
     }
