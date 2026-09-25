@@ -5,6 +5,8 @@ struct SplitEZApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var auth = AuthService.shared
     @StateObject private var appSettings = AppSettingsManager.shared
+    @Environment(\.scenePhase) private var scenePhase
+    private let interstitialAd = InterstitialAdManager.shared
 
     var body: some Scene {
         WindowGroup {
@@ -25,6 +27,11 @@ struct SplitEZApp: App {
                     PushNotificationManager.shared.requestPermission()
                 }
             }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    interstitialAd.showIfReady()
+                }
+            }
         }
     }
 }
@@ -37,6 +44,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = PushNotificationManager.shared
+        InterstitialAdManager.shared.configure()
         return true
     }
 
