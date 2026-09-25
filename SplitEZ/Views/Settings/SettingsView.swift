@@ -1241,7 +1241,7 @@ struct CurrencyPickerView: View {
                                 currencyRow(filtered[idx])
                             }
                         } else {
-                            Text("No results for "\(search)"")
+                            Text("No results for \"\(search)\"")
                                 .font(.subheadline)
                                 .foregroundColor(SplitEZTheme.textTertiary)
                                 .padding(32)
