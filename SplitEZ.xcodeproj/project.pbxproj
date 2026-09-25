@@ -18,6 +18,7 @@
 		A100000006 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000006; };
 		A100000007 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000007; };
 		A100000008 /* PushNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000008; };
+		A100000025 /* InterstitialAdManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000025; };
 		A100000009 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000009; };
 		A100000010 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000010; };
 		A100000011 /* ExpenseViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000011; };
@@ -48,6 +49,7 @@
 		B100000006 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		B100000007 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		B100000008 /* PushNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
+		B100000025 /* InterstitialAdManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterstitialAdManager.swift; sourceTree = "<group>"; };
 		B100000009 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		B100000010 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		B100000011 /* ExpenseViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseViews.swift; sourceTree = "<group>"; };
@@ -124,6 +126,7 @@
 				B100000006 /* AuthService.swift */,
 				B100000007 /* KeychainHelper.swift */,
 				B100000008 /* PushNotificationManager.swift */,
+				B100000025 /* InterstitialAdManager.swift */,
 				B100000022 /* AppSettingsManager.swift */,
 				B100000024 /* ExpenseStore.swift */,
 			);
@@ -333,6 +336,7 @@
 				A100000006 /* AuthService.swift in Sources */,
 				A100000007 /* KeychainHelper.swift in Sources */,
 				A100000008 /* PushNotificationManager.swift in Sources */,
+				A100000025 /* InterstitialAdManager.swift in Sources */,
 				A100000022 /* AppSettingsManager.swift in Sources */,
 				A100000024 /* ExpenseStore.swift in Sources */,
 				A100000009 /* Theme.swift in Sources */,
