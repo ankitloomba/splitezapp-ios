@@ -16,22 +16,33 @@ enum SplitEZTheme {
     static let pillActive = Color(hex: "4F46E5")
     static let textOnDark = Color.white
 
-    // Adaptive colors — use UIColor(dynamicProvider:) so the closure receives the
-    // VIEW's trait collection, which correctly reflects overrideUserInterfaceStyle
-    // and preferredColorScheme. Never read UIScreen.main.traitCollection here.
-    static let textPrimary   = Color(UIColor { t in t.userInterfaceStyle == .dark ? .white                    : UIColor(hex: "1A2233") })
-    static let textSecondary = Color(UIColor { t in t.userInterfaceStyle == .dark ? UIColor(hex: "7D8EAE")   : UIColor(hex: "5A6B82") })
-    static let textTertiary  = Color(UIColor { t in t.userInterfaceStyle == .dark ? UIColor(hex: "4A5573")   : UIColor(hex: "8D9BB0") })
-    static let cardBg        = Color(UIColor { t in t.userInterfaceStyle == .dark ? UIColor(hex: "141929")   : .white })
-    static let pageBg        = Color(UIColor { t in t.userInterfaceStyle == .dark ? UIColor(hex: "0E1222")   : UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1) })
-    static let rowAltBg      = Color(UIColor { t in t.userInterfaceStyle == .dark ? UIColor(hex: "1A1F3A")   : UIColor(red: 0.98, green: 0.98, blue: 0.99, alpha: 1) })
-    static let divider       = Color(UIColor { t in t.userInterfaceStyle == .dark ? UIColor(hex: "1E2544")   : UIColor(red: 0.85, green: 0.87, blue: 0.90, alpha: 1) })
-    static let pillInactive  = Color(UIColor { t in t.userInterfaceStyle == .dark ? UIColor(hex: "1C2340")   : UIColor(red: 0.91, green: 0.93, blue: 0.96, alpha: 1) })
-    static let surfaceAlt    = Color(UIColor { t in t.userInterfaceStyle == .dark ? UIColor(hex: "1A1F3A")   : UIColor(hex: "EDF1F7") })
+    // Set synchronously at the top of SplitEZApp.body before any child views render.
+    // SplitEZApp reads @Environment(\.colorScheme) and appSettings.themeMode
+    // then calls SplitEZTheme.updateIsDark(_:) before the Group that holds MainTabView.
+    static var _isDark: Bool = false
+
+    static func updateIsDark(colorScheme: ColorScheme, themeMode: Int) {
+        switch themeMode {
+        case 0: _isDark = true
+        case 1: _isDark = false
+        default: _isDark = (colorScheme == .dark)
+        }
+    }
+
+    // Adaptive colors — read _isDark which is set before every render pass
+    static var textPrimary:   Color { _isDark ? .white                            : Color(hex: "1A2233") }
+    static var textSecondary: Color { _isDark ? Color(hex: "7D8EAE")              : Color(hex: "5A6B82") }
+    static var textTertiary:  Color { _isDark ? Color(hex: "4A5573")              : Color(hex: "8D9BB0") }
+    static var cardBg:        Color { _isDark ? Color(hex: "141929")              : .white }
+    static var pageBg:        Color { _isDark ? Color(hex: "0E1222")              : Color(red: 0.95, green: 0.95, blue: 0.97) }
+    static var rowAltBg:      Color { _isDark ? Color(hex: "1A1F3A")             : Color(red: 0.98, green: 0.98, blue: 0.99) }
+    static var divider:       Color { _isDark ? Color(hex: "1E2544")              : Color(red: 0.85, green: 0.87, blue: 0.90) }
+    static var pillInactive:  Color { _isDark ? Color(hex: "1C2340")              : Color(red: 0.91, green: 0.93, blue: 0.96) }
+    static var surfaceAlt:    Color { _isDark ? Color(hex: "1A1F3A")             : Color(hex: "EDF1F7") }
 
     // Legacy aliases
-    static let cardBackground: Color       = cardBg
-    static let secondaryBackground: Color  = pageBg
+    static var cardBackground:       Color { cardBg }
+    static var secondaryBackground:  Color { pageBg }
 }
 
 struct AvatarView: View {

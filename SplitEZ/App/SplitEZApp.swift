@@ -6,10 +6,14 @@ struct SplitEZApp: App {
     @StateObject private var auth = AuthService.shared
     @StateObject private var appSettings = AppSettingsManager.shared
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.colorScheme) private var colorScheme
     private let interstitialAd = InterstitialAdManager.shared
 
     var body: some Scene {
         WindowGroup {
+            // Update theme BEFORE child views render so SplitEZTheme._isDark is
+            // correct on every render pass (parent body runs before children).
+            let _ = SplitEZTheme.updateIsDark(colorScheme: colorScheme, themeMode: appSettings.themeMode)
             Group {
                 if auth.isLoggedIn {
                     MainTabView()
@@ -65,12 +69,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = PushNotificationManager.shared
         InterstitialAdManager.shared.configure()
-        // Apply stored theme before any window is rendered so UIScreen.main.traitCollection
-        // is already correct on first SwiftUI layout pass.
-        let themeMode = UserDefaults.standard.integer(forKey: "appearance_theme")
-        // Key hasn't been written yet (new install) → default to system (unspecified)
+        // Apply stored theme before any window is rendered.
+        // Use object(forKey:) so we can distinguish "not set" (nil → system) from 0 (dark).
+        let rawTheme = UserDefaults.standard.object(forKey: "appearance_theme") as? Int ?? 2
         let style: UIUserInterfaceStyle
-        switch themeMode {
+        switch rawTheme {
         case 0: style = .dark
         case 1: style = .light
         default: style = .unspecified
