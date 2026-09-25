@@ -63,6 +63,10 @@ struct FriendSettingsView: View {
             HStack(spacing: 14) {
                 ZStack {
                     Circle()
+                        .stroke(style: StrokeStyle(lineWidth: 2, dash: [6, 4]))
+                        .foregroundColor(SplitEZTheme.primary.opacity(0.6))
+                        .frame(width: 68, height: 68)
+                    Circle()
                         .fill(avatarColor(for: friend.firstName))
                         .frame(width: 56, height: 56)
                     Text(initials(for: friend))
@@ -194,15 +198,25 @@ struct FriendSettingsView: View {
         }
     }
 
+    private static let groupStyles: [(icon: String, color: Color)] = [
+        ("house", Color(hex: "6366F1")),
+        ("clock", Color(hex: "F59E0B")),
+        ("person.3", Color(hex: "16A34A")),
+        ("fork.knife", Color(hex: "F87171")),
+        ("suitcase", Color(hex: "8B5CF6")),
+        ("cart", Color(hex: "0EA5E9")),
+    ]
+
     private func groupRow(_ group: ExpenseGroup) -> some View {
-        HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(SplitEZTheme.primary.opacity(0.12))
-                    .frame(width: 40, height: 40)
-                Text(groupEmoji(for: group.name))
-                    .font(.system(size: 18))
-            }
+        let styleIndex = abs(group.name.hashValue) % Self.groupStyles.count
+        let style = Self.groupStyles[styleIndex]
+        return HStack(spacing: 14) {
+            Image(systemName: style.icon)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(style.color)
+                .frame(width: 40, height: 40)
+                .background(style.color.opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             VStack(alignment: .leading, spacing: 2) {
                 Text(group.name)
                     .font(.subheadline.weight(.medium))
@@ -249,9 +263,4 @@ struct FriendSettingsView: View {
         return colors[index]
     }
 
-    private func groupEmoji(for name: String) -> String {
-        let emojis = ["🏠", "🍽️", "✈️", "🎮", "🏢", "🎓", "⚽️", "🎵"]
-        let index = abs(name.hashValue) % emojis.count
-        return emojis[index]
-    }
 }
