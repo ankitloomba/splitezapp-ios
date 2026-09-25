@@ -514,7 +514,8 @@ struct RegisterView: View {
                 email: email,
                 password: password,
                 firstName: firstName,
-                lastName: lastName
+                lastName: lastName,
+                phone: phone.isEmpty ? nil : phone
             )
             if needsVerification {
                 showVerifyAlert = true

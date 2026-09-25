@@ -23,8 +23,8 @@ class AuthService: ObservableObject {
 
     /// Returns `true` if email verification is needed (user should check inbox)
     @discardableResult
-    func register(email: String, password: String, firstName: String, lastName: String?) async throws -> Bool {
-        let req = RegisterRequest(email: email, password: password, firstName: firstName, lastName: lastName, phone: nil)
+    func register(email: String, password: String, firstName: String, lastName: String?, phone: String? = nil) async throws -> Bool {
+        let req = RegisterRequest(email: email, password: password, firstName: firstName, lastName: lastName, phone: phone?.isEmpty == true ? nil : phone)
         let resp: RegisterResponse = try await api.post("/auth/register", body: req, auth: false)
 
         if let access = resp.accessToken, let refresh = resp.refreshToken {

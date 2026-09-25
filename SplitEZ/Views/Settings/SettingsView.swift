@@ -1521,7 +1521,11 @@ struct EditProfileView: View {
             .padding(.horizontal, 8)
             .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
         }
-        .onAppear {
+        .task {
+            // Refresh from API so we get the latest phone/email
+            if let fresh: UserProfile = try? await APIClient.shared.get("/users/me") {
+                auth.currentUser = fresh
+            }
             let user = auth.currentUser
             fullName = user?.displayName ?? ""
             email = user?.email ?? ""
