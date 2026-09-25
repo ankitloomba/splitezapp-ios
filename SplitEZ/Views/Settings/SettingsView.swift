@@ -1185,82 +1185,89 @@ struct CurrencyPickerView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            // Dark only at the top (behind card's rounded corners), white below
+            // Dark header + white below (so sparse results don't show dark beneath card)
             VStack(spacing: 0) {
-                SplitEZTheme.darkBg.frame(height: 80)
+                SplitEZTheme.darkBg
                 Color(.systemBackground)
             }
             .ignoresSafeArea()
 
-            // Single white card: search bar + list
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Search bar inside the card
-                    HStack(spacing: 10) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 15))
-                            .foregroundColor(SplitEZTheme.textTertiary)
-                        TextField("Search currency, code or symbol", text: $search)
-                            .font(.system(size: 15))
-                            .foregroundColor(SplitEZTheme.textPrimary)
-                            .autocorrectionDisabled()
-                            .autocapitalization(.none)
-                        if !search.isEmpty {
-                            Button { search = "" } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(SplitEZTheme.textTertiary)
+            VStack(spacing: 0) {
+                // Custom nav bar — no system bar, no circle on back button
+                HStack {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.white)
+                        .onTapGesture { dismiss() }
+                        .frame(width: 44, height: 44)
+                    Spacer()
+                    Text("Currency")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    Spacer()
+                    Color.clear.frame(width: 44, height: 44)
+                }
+                .padding(.horizontal, 8)
+                .background(SplitEZTheme.darkBg)
+
+                // White card: search bar + list
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // Search bar
+                        HStack(spacing: 10) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 15))
+                                .foregroundColor(SplitEZTheme.textTertiary)
+                            TextField("Search currency, code or symbol", text: $search)
+                                .font(.system(size: 15))
+                                .foregroundColor(SplitEZTheme.textPrimary)
+                                .autocorrectionDisabled()
+                                .autocapitalization(.none)
+                            if !search.isEmpty {
+                                Button { search = "" } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(SplitEZTheme.textTertiary)
+                                }
                             }
                         }
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 11)
-                    .background(Capsule().fill(Color(.systemGray6)))
-                    .padding(.horizontal, 16)
-                    .padding(.top, 16)
-                    .padding(.bottom, 12)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 11)
+                        .background(Capsule().fill(Color(.systemGray6)))
+                        .padding(.horizontal, 16)
+                        .padding(.top, 16)
+                        .padding(.bottom, 12)
 
-                    // Currency list
-                    if showPinned {
-                        sectionHeader("SUGGESTED")
-                        currencyRow(pinnedINR)
-                        Divider().padding(.leading, 68)
-                    }
-
-                    if !filtered.isEmpty {
-                        sectionHeader(showPinned ? "ALL CURRENCIES · A–Z" : "RESULTS")
-                        ForEach(filtered.indices, id: \.self) { idx in
-                            if idx > 0 { Divider().padding(.leading, 68) }
-                            currencyRow(filtered[idx])
+                        // Currency list
+                        if showPinned {
+                            sectionHeader("SUGGESTED")
+                            currencyRow(pinnedINR)
+                            Divider().padding(.leading, 68)
                         }
-                    } else {
-                        Text("No results for \"\(search)\"")
-                            .font(.subheadline)
-                            .foregroundColor(SplitEZTheme.textTertiary)
-                            .padding(32)
-                            .frame(maxWidth: .infinity)
-                    }
 
-                    Spacer().frame(height: 40)
+                        if !filtered.isEmpty {
+                            sectionHeader(showPinned ? "ALL CURRENCIES · A–Z" : "RESULTS")
+                            ForEach(filtered.indices, id: \.self) { idx in
+                                if idx > 0 { Divider().padding(.leading, 68) }
+                                currencyRow(filtered[idx])
+                            }
+                        } else {
+                            Text("No results for \"\(search)\"")
+                                .font(.subheadline)
+                                .foregroundColor(SplitEZTheme.textTertiary)
+                                .padding(32)
+                                .frame(maxWidth: .infinity)
+                        }
+
+                        Spacer().frame(height: 40)
+                    }
+                    .background(Color(.systemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .padding(.top, 12)
                 }
                 .background(Color(.systemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .padding(.top, 12)
             }
         }
-        .navigationTitle("Currency")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.white)
-                    .onTapGesture { dismiss() }
-            }
-        }
+        .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             selectedCode = auth.currentUser?.currency ?? "INR"
         }
@@ -2014,12 +2021,30 @@ struct ContactFormSheet: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            // Dark header background
+            // Full dark top, white below
             VStack(spacing: 0) {
-                SplitEZTheme.darkBg.frame(height: 120)
+                SplitEZTheme.darkBg
                 Color(.systemGroupedBackground)
             }
             .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Custom nav header — no system bar, no circle on back button
+                HStack {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.white)
+                        .onTapGesture { dismiss() }
+                        .frame(width: 44, height: 44)
+                    Spacer()
+                    Text("Contact us")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    Spacer()
+                    Color.clear.frame(width: 44, height: 44)
+                }
+                .padding(.horizontal, 8)
+                .background(SplitEZTheme.darkBg)
 
             ScrollView {
                     VStack(spacing: 0) {
@@ -2172,21 +2197,10 @@ struct ContactFormSheet: View {
                         .padding(.bottom, 40)
                     }
                 }
+            } // ScrollView
+            } // VStack
         }
-        .navigationTitle("Contact us")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(.white)
-                    .onTapGesture { dismiss() }
-            }
-        }
+        .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             let user = auth.currentUser
             name = user?.displayName ?? ""
