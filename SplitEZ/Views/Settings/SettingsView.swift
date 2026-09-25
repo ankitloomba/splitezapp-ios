@@ -1,10 +1,12 @@
 import SwiftUI
 import LocalAuthentication
+import CoreImage.CIFilterBuiltins
 
 struct SettingsView: View {
     @EnvironmentObject var auth: AuthService
     @State private var isPlusUser = false
-    @State private var showContactShare = false
+    @State private var showQR = false
+    @State private var showPurchaseConfirm = false
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -40,7 +42,11 @@ struct SettingsView: View {
 
                         sectionLabel("HELP & SUPPORT")
 
-                        Button { showContactShare = true } label: {
+                        Button {
+                            if let url = URL(string: "mailto:support@splitez.app") {
+                                UIApplication.shared.open(url)
+                            }
+                        } label: {
                             HStack(spacing: 12) {
                                 Image(systemName: "envelope")
                                     .font(.system(size: 16))
@@ -60,7 +66,8 @@ struct SettingsView: View {
                         rowDivider
 
                         Button {
-                            if let url = URL(string: "itms-apps://itunes.apple.com/app/id0000000000?action=write-review") {
+                            // Replace with your real App Store ID
+                            if let url = URL(string: "itms-apps://itunes.apple.com/app/id6745397980?action=write-review") {
                                 UIApplication.shared.open(url)
                             }
                         } label: {
@@ -128,8 +135,18 @@ struct SettingsView: View {
         }
         .navigationBarHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
-        .sheet(isPresented: $showContactShare) {
-            ShareSheetView(items: ["mailto:support@splitez.app"])
+        .sheet(isPresented: $showQR) {
+            UserQRSheet(isPresented: $showQR)
+                .environmentObject(auth)
+        }
+        .alert("Go Ad Free", isPresented: $showPurchaseConfirm) {
+            Button("Cancel", role: .cancel) {}
+            Button("Subscribe ₹99/mo") {
+                // In production: trigger StoreKit purchase here
+                isPlusUser = true
+            }
+        } message: {
+            Text("Remove all ads, get priority support and data exports for ₹99/month. Cancel any time.")
         }
     }
 
@@ -161,26 +178,41 @@ struct SettingsView: View {
                             )
                             .frame(width: 68, height: 68)
                             .overlay(
-                                Circle()
-                                    .fill(SplitEZTheme.primary)
-                                    .frame(width: 56, height: 56)
-                                    .overlay(
-                                        Text(user.firstName.prefix(1).uppercased())
-                                            .font(.title2.bold())
-                                            .foregroundColor(.white)
-                                    )
+                                Group {
+                                    if let pic = user.profilePicture, let url = URL(string: pic) {
+                                        AsyncImage(url: url) { image in
+                                            image.resizable().scaledToFill()
+                                        } placeholder: {
+                                            Circle().fill(SplitEZTheme.primary)
+                                                .overlay(Text(user.firstName.prefix(1).uppercased()).font(.title2.bold()).foregroundColor(.white))
+                                        }
+                                        .frame(width: 56, height: 56)
+                                        .clipShape(Circle())
+                                    } else {
+                                        Circle()
+                                            .fill(SplitEZTheme.primary)
+                                            .frame(width: 56, height: 56)
+                                            .overlay(
+                                                Text(user.firstName.prefix(1).uppercased())
+                                                    .font(.title2.bold())
+                                                    .foregroundColor(.white)
+                                            )
+                                    }
+                                }
                             )
 
-                        Image(systemName: "qrcode")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(5)
-                            .background(
-                                Circle()
-                                    .fill(SplitEZTheme.primary)
-                                    .overlay(Circle().stroke(SplitEZTheme.darkBg, lineWidth: 2))
-                            )
-                            .offset(x: 2, y: 2)
+                        Button { showQR = true } label: {
+                            Image(systemName: "qrcode")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(5)
+                                .background(
+                                    Circle()
+                                        .fill(SplitEZTheme.primary)
+                                        .overlay(Circle().stroke(SplitEZTheme.darkBg, lineWidth: 2))
+                                )
+                        }
+                        .offset(x: 2, y: 2)
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
@@ -229,14 +261,18 @@ struct SettingsView: View {
                         .foregroundColor(Color.white.opacity(0.7))
                 }
                 Spacer()
-                Button("Manage") {}
-                    .font(.caption.weight(.semibold))
-                    .foregroundColor(SplitEZTheme.textPrimary)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(
-                        Capsule().fill(Color.white.opacity(0.3))
-                    )
+                Button("Manage") {
+                    if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundColor(SplitEZTheme.textPrimary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule().fill(Color.white.opacity(0.3))
+                )
             } else {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Get SplitEZ Ad Free")
@@ -247,7 +283,7 @@ struct SettingsView: View {
                         .foregroundColor(Color.white.opacity(0.7))
                 }
                 Spacer()
-                Button("₹99/mo") {}
+                Button("₹99/mo") { showPurchaseConfirm = true }
                     .font(.caption.weight(.bold))
                     .foregroundColor(SplitEZTheme.textPrimary)
                     .padding(.horizontal, 16)
@@ -1338,6 +1374,98 @@ struct EditProfileView: View {
             email = user?.email ?? ""
             phone = user?.phone ?? ""
         }
+    }
+}
+
+// MARK: - User QR Sheet
+
+struct UserQRSheet: View {
+    @Binding var isPresented: Bool
+    @EnvironmentObject var auth: AuthService
+
+    private var qrContent: String {
+        let id = auth.currentUser?.id ?? "unknown"
+        return "splitez://add-friend?id=\(id)"
+    }
+
+    private var qrImage: UIImage? {
+        let context = CIContext()
+        let filter = CIFilter.qrCodeGenerator()
+        filter.message = Data(qrContent.utf8)
+        filter.correctionLevel = "M"
+        guard let ciImage = filter.outputImage else { return nil }
+        let scaled = ciImage.transformed(by: CGAffineTransform(scaleX: 10, y: 10))
+        guard let cgImage = context.createCGImage(scaled, from: scaled.extent) else { return nil }
+        return UIImage(cgImage: cgImage)
+    }
+
+    var body: some View {
+        VStack(spacing: 24) {
+            Capsule()
+                .fill(Color(.systemGray4))
+                .frame(width: 36, height: 4)
+                .padding(.top, 12)
+
+            Text("My QR Code")
+                .font(.title3.weight(.bold))
+                .foregroundColor(SplitEZTheme.textPrimary)
+
+            if let user = auth.currentUser {
+                VStack(spacing: 8) {
+                    if let pic = user.profilePicture, let url = URL(string: pic) {
+                        AsyncImage(url: url) { image in
+                            image.resizable().scaledToFill()
+                        } placeholder: {
+                            Circle().fill(SplitEZTheme.primary)
+                                .overlay(Text(user.firstName.prefix(1).uppercased()).font(.title.bold()).foregroundColor(.white))
+                        }
+                        .frame(width: 64, height: 64)
+                        .clipShape(Circle())
+                    } else {
+                        Circle()
+                            .fill(SplitEZTheme.primary)
+                            .frame(width: 64, height: 64)
+                            .overlay(Text(user.firstName.prefix(1).uppercased()).font(.title.bold()).foregroundColor(.white))
+                    }
+                    Text(user.displayName)
+                        .font(.headline)
+                        .foregroundColor(SplitEZTheme.textPrimary)
+                    Text(user.email ?? "")
+                        .font(.caption)
+                        .foregroundColor(SplitEZTheme.textSecondary)
+                }
+            }
+
+            if let img = qrImage {
+                Image(uiImage: img)
+                    .resizable()
+                    .interpolation(.none)
+                    .scaledToFit()
+                    .frame(width: 220, height: 220)
+                    .padding(16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .fill(Color.white)
+                    )
+            }
+
+            Text("Ask a friend to scan this to add you on SplitEZ")
+                .font(.caption)
+                .foregroundColor(SplitEZTheme.textSecondary)
+                .multilineTextAlignment(.center)
+
+            Button("Done") { isPresented = false }
+                .font(.subheadline.weight(.semibold))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(RoundedRectangle(cornerRadius: 24, style: .continuous).fill(SplitEZTheme.primary))
+                .padding(.horizontal, 32)
+
+            Spacer()
+        }
+        .padding(.horizontal, 24)
+        .presentationDetents([.medium, .large])
     }
 }
 
