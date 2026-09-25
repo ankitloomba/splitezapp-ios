@@ -7,6 +7,8 @@ struct SettingsView: View {
     @State private var isPlusUser = false
     @State private var showQR = false
     @State private var showPurchaseConfirm = false
+    @State private var showManageSubscription = false
+    @State private var showContactForm = false
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -43,9 +45,7 @@ struct SettingsView: View {
                         sectionLabel("HELP & SUPPORT")
 
                         Button {
-                            if let url = URL(string: "mailto:support@splitez.app") {
-                                UIApplication.shared.open(url)
-                            }
+                            showContactForm = true
                         } label: {
                             HStack(spacing: 12) {
                                 Image(systemName: "envelope")
@@ -137,6 +137,13 @@ struct SettingsView: View {
         .toolbarBackground(.hidden, for: .navigationBar)
         .sheet(isPresented: $showQR) {
             UserQRSheet(isPresented: $showQR)
+                .environmentObject(auth)
+        }
+        .sheet(isPresented: $showManageSubscription) {
+            ManageSubscriptionSheet(isPlusUser: $isPlusUser)
+        }
+        .sheet(isPresented: $showContactForm) {
+            ContactFormSheet()
                 .environmentObject(auth)
         }
         .alert("Go Ad Free", isPresented: $showPurchaseConfirm) {
@@ -262,9 +269,7 @@ struct SettingsView: View {
                 }
                 Spacer()
                 Button("Manage") {
-                    if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
-                        UIApplication.shared.open(url)
-                    }
+                    showManageSubscription = true
                 }
                 .font(.caption.weight(.semibold))
                 .foregroundColor(SplitEZTheme.textPrimary)
@@ -1155,22 +1160,15 @@ struct EditProfileView: View {
     @State private var selectedCountry = CountryCode.india
     @State private var profileImage: UIImage?
     @State private var isSaving = false
-    @State private var showDeleteConfirm = false
     @State private var showPhotoOptions = false
     @State private var showCamera = false
     @State private var showPhotoPicker = false
     @State private var showCountryPicker = false
-    // OTP verification
-    @State private var otpTarget: OTPTarget? = nil
     @State private var pendingEmail = ""
-    @State private var pendingPhone = ""
     @State private var showOTPSheet = false
     @State private var emailVerified = false
-    @State private var phoneVerified = false
     @Environment(\.dismiss) var dismiss
     private let api = APIClient.shared
-
-    enum OTPTarget { case email, phone }
 
     var body: some View {
         ScrollView {
@@ -1243,7 +1241,6 @@ struct EditProfileView: View {
                                 } else if email != (auth.currentUser?.email ?? "") && !email.isEmpty {
                                     Button("Send code") {
                                         pendingEmail = email
-                                        otpTarget = .email
                                         showOTPSheet = true
                                     }
                                     .font(.caption.weight(.semibold))
@@ -1289,34 +1286,9 @@ struct EditProfileView: View {
                                 TextField("Phone number", text: $phone)
                                     .font(.system(size: 16))
                                     .keyboardType(.phonePad)
-                                if phoneVerified {
-                                    Label("Verified", systemImage: "checkmark.seal.fill")
-                                        .font(.caption.weight(.semibold))
-                                        .foregroundColor(SplitEZTheme.positive)
-                                        .labelStyle(.iconOnly)
-                                        .padding(.trailing, 14)
-                                } else if phone != (auth.currentUser?.phone ?? "") && !phone.isEmpty {
-                                    Button("Send OTP") {
-                                        pendingPhone = "\(selectedCountry.dialCode)\(phone)"
-                                        otpTarget = .phone
-                                        showOTPSheet = true
-                                    }
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 5)
-                                    .background(Capsule().fill(SplitEZTheme.primary))
-                                    .padding(.trailing, 8)
-                                }
                             }
                             .padding(.vertical, 14)
-                            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(phoneVerified ? SplitEZTheme.positive : Color(.systemGray4), lineWidth: 1))
-
-                            if phone != (auth.currentUser?.phone ?? "") && !phone.isEmpty && !phoneVerified {
-                                Label("Verify your new number via OTP", systemImage: "exclamationmark.circle")
-                                    .font(.caption)
-                                    .foregroundColor(.orange)
-                            }
+                            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color(.systemGray4), lineWidth: 1))
                         }
                     }
                 }
@@ -1346,12 +1318,6 @@ struct EditProfileView: View {
                 .disabled(fullName.isEmpty || isSaving)
                 .padding(.horizontal, 20)
 
-                Button { showDeleteConfirm = true } label: {
-                    Text("Delete account")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundColor(SplitEZTheme.negative)
-                }
-                .padding(.bottom, 32)
             }
         }
         .navigationTitle("Edit Profile")
@@ -1365,7 +1331,6 @@ struct EditProfileView: View {
             email = user?.email ?? ""
             phone = user?.phone ?? ""
             emailVerified = user?.email != nil
-            phoneVerified = user?.phone != nil
         }
         .confirmationDialog("Change Profile Photo", isPresented: $showPhotoOptions) {
             Button("Take Photo") { showCamera = true }
@@ -1382,28 +1347,14 @@ struct EditProfileView: View {
             CountryPickerSheet(selected: $selectedCountry)
         }
         .sheet(isPresented: $showOTPSheet) {
-            if let target = otpTarget {
-                OTPVerificationSheet(
-                    target: target,
-                    destination: target == .email ? pendingEmail : pendingPhone,
-                    onVerified: {
-                        if target == .email { emailVerified = true; email = pendingEmail }
-                        else { phoneVerified = true; phone = pendingPhone }
-                        showOTPSheet = false
-                    }
-                )
-            }
-        }
-        .alert("Delete Account", isPresented: $showDeleteConfirm) {
-            Button("Cancel", role: .cancel) {}
-            Button("Delete", role: .destructive) {
-                Task {
-                    let _: AnyCodable? = try? await api.post("/users/me/delete")
-                    await auth.logout()
+            OTPVerificationSheet(
+                destination: pendingEmail,
+                onVerified: {
+                    emailVerified = true
+                    email = pendingEmail
+                    showOTPSheet = false
                 }
-            }
-        } message: {
-            Text("This action cannot be undone. All your data will be permanently deleted.")
+            )
         }
     }
 
@@ -1499,7 +1450,6 @@ struct CountryPickerSheet: View {
 // MARK: - OTP Verification Sheet
 
 struct OTPVerificationSheet: View {
-    let target: EditProfileView.OTPTarget
     let destination: String
     let onVerified: () -> Void
 
@@ -1518,7 +1468,7 @@ struct OTPVerificationSheet: View {
                 .frame(width: 36, height: 4)
                 .padding(.top, 12)
 
-            Image(systemName: target == .email ? "envelope.badge" : "iphone.badge.play")
+            Image(systemName: "envelope.badge")
                 .font(.system(size: 44))
                 .foregroundColor(SplitEZTheme.primary)
 
@@ -1608,9 +1558,7 @@ struct OTPVerificationSheet: View {
     }
 
     private func sendCode() {
-        let body: [String: String] = target == .email
-            ? ["email": destination]
-            : ["phone": destination]
+        let body: [String: String] = ["email": destination]
         Task { let _: AnyCodable? = try? await api.post("/auth/send-otp", body: body) }
     }
 
@@ -1756,6 +1704,233 @@ struct UserQRSheet: View {
         }
         .padding(.horizontal, 24)
         .presentationDetents([.medium, .large])
+    }
+}
+
+// MARK: - Manage Subscription Sheet
+
+struct ManageSubscriptionSheet: View {
+    @Binding var isPlusUser: Bool
+    @Environment(\.dismiss) var dismiss
+    @State private var showCancelConfirm = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Capsule()
+                .fill(Color(.systemGray4))
+                .frame(width: 36, height: 4)
+                .padding(.top, 12)
+                .padding(.bottom, 24)
+
+            VStack(spacing: 6) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 44))
+                    .foregroundColor(SplitEZTheme.primary)
+                Text("SplitEZ Ad Free")
+                    .font(.title3.weight(.bold))
+                    .foregroundColor(SplitEZTheme.textPrimary)
+                Text("Active subscription")
+                    .font(.caption)
+                    .foregroundColor(SplitEZTheme.positive)
+            }
+            .padding(.bottom, 24)
+
+            VStack(spacing: 0) {
+                infoRow(label: "Plan", value: "Ad Free Monthly")
+                Divider().padding(.leading, 20)
+                infoRow(label: "Price", value: "₹99 / month")
+                Divider().padding(.leading, 20)
+                infoRow(label: "Renews on", value: "15 Oct 2026")
+                Divider().padding(.leading, 20)
+                infoRow(label: "Status", value: "Active")
+            }
+            .background(RoundedRectangle(cornerRadius: 16).fill(Color(.secondarySystemBackground)))
+            .padding(.horizontal, 24)
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("INCLUDED IN YOUR PLAN")
+                    .font(.caption.weight(.semibold))
+                    .foregroundColor(SplitEZTheme.textTertiary)
+                    .tracking(0.5)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 20)
+
+                ForEach(["No ads, ever", "Priority support", "Data exports (CSV)", "Early access to new features"], id: \.self) { feature in
+                    HStack(spacing: 10) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(SplitEZTheme.positive)
+                        Text(feature)
+                            .font(.subheadline)
+                            .foregroundColor(SplitEZTheme.textPrimary)
+                    }
+                    .padding(.horizontal, 24)
+                }
+            }
+
+            Spacer()
+
+            Button {
+                showCancelConfirm = true
+            } label: {
+                Text("Cancel subscription")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(SplitEZTheme.negative)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 24)
+                            .stroke(SplitEZTheme.negative, lineWidth: 1)
+                    )
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 32)
+        }
+        .presentationDetents([.medium, .large])
+        .alert("Cancel Subscription?", isPresented: $showCancelConfirm) {
+            Button("Keep Plan", role: .cancel) {}
+            Button("Cancel Subscription", role: .destructive) {
+                isPlusUser = false
+                dismiss()
+            }
+        } message: {
+            Text("Your plan stays active until 15 Oct 2026. After that, ads will resume.")
+        }
+    }
+
+    private func infoRow(label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.subheadline)
+                .foregroundColor(SplitEZTheme.textSecondary)
+            Spacer()
+            Text(value)
+                .font(.subheadline.weight(.medium))
+                .foregroundColor(SplitEZTheme.textPrimary)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+    }
+}
+
+// MARK: - Contact Form Sheet
+
+struct ContactFormSheet: View {
+    @EnvironmentObject var auth: AuthService
+    @Environment(\.dismiss) var dismiss
+    @State private var name = ""
+    @State private var email = ""
+    @State private var subject = "General Inquiry"
+    @State private var message = ""
+    @State private var isSending = false
+    @State private var showSuccess = false
+
+    let subjects = ["General Inquiry", "Billing & Payments", "Bug Report", "Feature Request", "Account Issue", "Other"]
+
+    var isValid: Bool { !name.isEmpty && !email.isEmpty && !message.isEmpty }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    fieldLabel("YOUR NAME")
+                    TextField("Full name", text: $name)
+                        .font(.system(size: 16))
+                        .padding(14)
+                        .background(RoundedRectangle(cornerRadius: 12).stroke(Color(.systemGray4), lineWidth: 1))
+
+                    fieldLabel("EMAIL")
+                    TextField("Email address", text: $email)
+                        .font(.system(size: 16))
+                        .keyboardType(.emailAddress)
+                        .textContentType(.emailAddress)
+                        .autocapitalization(.none)
+                        .autocorrectionDisabled()
+                        .padding(14)
+                        .background(RoundedRectangle(cornerRadius: 12).stroke(Color(.systemGray4), lineWidth: 1))
+
+                    fieldLabel("SUBJECT")
+                    Menu {
+                        ForEach(subjects, id: \.self) { s in
+                            Button(s) { subject = s }
+                        }
+                    } label: {
+                        HStack {
+                            Text(subject)
+                                .font(.system(size: 16))
+                                .foregroundColor(SplitEZTheme.textPrimary)
+                            Spacer()
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(SplitEZTheme.textTertiary)
+                        }
+                        .padding(14)
+                        .background(RoundedRectangle(cornerRadius: 12).stroke(Color(.systemGray4), lineWidth: 1))
+                    }
+
+                    fieldLabel("MESSAGE")
+                    TextEditor(text: $message)
+                        .font(.system(size: 16))
+                        .frame(minHeight: 120)
+                        .padding(10)
+                        .background(RoundedRectangle(cornerRadius: 12).stroke(Color(.systemGray4), lineWidth: 1))
+                        .overlay(
+                            Group {
+                                if message.isEmpty {
+                                    Text("Describe your issue or question...")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(Color(.placeholderText))
+                                        .padding(16)
+                                        .allowsHitTesting(false)
+                                }
+                            }, alignment: .topLeading
+                        )
+
+                    Button {
+                        Task {
+                            isSending = true
+                            try? await Task.sleep(nanoseconds: 800_000_000)
+                            // In production: POST to /support/contact
+                            isSending = false
+                            showSuccess = true
+                        }
+                    } label: {
+                        Group {
+                            if isSending { ProgressView().tint(.white) }
+                            else { Text("Send Message").font(.subheadline.weight(.bold)).foregroundColor(.white) }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(RoundedRectangle(cornerRadius: 28).fill(isValid ? SplitEZTheme.primary : SplitEZTheme.primary.opacity(0.4)))
+                    }
+                    .disabled(!isValid || isSending)
+                }
+                .padding(20)
+            }
+            .navigationTitle("Contact Us")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+            .onAppear {
+                name = auth.currentUser?.displayName ?? ""
+                email = auth.currentUser?.email ?? ""
+            }
+            .alert("Message Sent", isPresented: $showSuccess) {
+                Button("Done") { dismiss() }
+            } message: {
+                Text("We've received your message and will get back to you within 24 hours.")
+            }
+        }
+    }
+
+    private func fieldLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundColor(SplitEZTheme.primary)
+            .tracking(0.5)
     }
 }
 
