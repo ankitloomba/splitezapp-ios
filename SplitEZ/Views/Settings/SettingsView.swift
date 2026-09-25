@@ -2193,8 +2193,7 @@ struct ContactFormSheet: View {
                         .padding(.bottom, 40)
                     }
                 }
-            } // ScrollView
-            } // VStack
+            } // VStack (custom header + scroll)
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
