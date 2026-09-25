@@ -1450,6 +1450,8 @@ struct AddExpenseSheet: View {
             .background(Color(.systemBackground))
             .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 24, style: .continuous))
         } // outer VStack
+        .background(SplitEZTheme.darkBg.ignoresSafeArea())
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task { await loadGroups() }
         .sheet(isPresented: $showCurrencyPicker) {
             ExpenseCurrencySheet(selectedCode: $selectedCurrency)
