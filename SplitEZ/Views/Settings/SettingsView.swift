@@ -8,7 +8,6 @@ struct SettingsView: View {
     @State private var showQR = false
     @State private var showPurchaseConfirm = false
     @State private var showManageSubscription = false
-    @State private var showContactForm = false
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -44,9 +43,7 @@ struct SettingsView: View {
 
                         sectionLabel("HELP & SUPPORT")
 
-                        Button {
-                            showContactForm = true
-                        } label: {
+                        NavigationLink(destination: ContactFormSheet().environmentObject(auth)) {
                             HStack(spacing: 12) {
                                 Image(systemName: "envelope")
                                     .font(.system(size: 16))
@@ -141,10 +138,6 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showManageSubscription) {
             ManageSubscriptionSheet(isPlusUser: $isPlusUser)
-        }
-        .sheet(isPresented: $showContactForm) {
-            ContactFormSheet()
-                .environmentObject(auth)
         }
         .alert("Go Ad Free", isPresented: $showPurchaseConfirm) {
             Button("Cancel", role: .cancel) {}
@@ -2015,16 +2008,15 @@ struct ContactFormSheet: View {
     var isValid: Bool { !name.isEmpty && !email.isEmpty && !message.isEmpty }
 
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .top) {
-                // Dark header background
-                VStack(spacing: 0) {
-                    SplitEZTheme.darkBg.frame(height: 120)
-                    Color(.systemGroupedBackground)
-                }
-                .ignoresSafeArea()
+        ZStack(alignment: .top) {
+            // Dark header background
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 120)
+                Color(.systemGroupedBackground)
+            }
+            .ignoresSafeArea()
 
-                ScrollView {
+            ScrollView {
                     VStack(spacing: 0) {
                         // Sub-header
                         Text("We usually reply within 24 hours")
@@ -2175,41 +2167,28 @@ struct ContactFormSheet: View {
                         .padding(.bottom, 40)
                     }
                 }
-            }
-            .navigationTitle("Contact us")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .onAppear {
-                let user = auth.currentUser
-                name = user?.displayName ?? ""
-                email = user?.email ?? ""
-                phone = user?.phone ?? ""
-            }
-            .sheet(isPresented: $showPhotoPicker) {
-                ImagePickerView(sourceType: .photoLibrary, selectedImage: Binding(
-                    get: { nil },
-                    set: { if let img = $0 { attachments.append(img) } }
-                ))
-            }
-            .alert("Message Sent", isPresented: $showSuccess) {
-                Button("Done") { dismiss() }
-            } message: {
-                Text("We've received your message and will get back to you within 24 hours.")
-            }
+        }
+        .navigationTitle("Contact us")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
+        .onAppear {
+            let user = auth.currentUser
+            name = user?.displayName ?? ""
+            email = user?.email ?? ""
+            phone = user?.phone ?? ""
+        }
+        .sheet(isPresented: $showPhotoPicker) {
+            ImagePickerView(sourceType: .photoLibrary, selectedImage: Binding(
+                get: { nil },
+                set: { if let img = $0 { attachments.append(img) } }
+            ))
+        }
+        .alert("Message Sent", isPresented: $showSuccess) {
+            Button("Done") { dismiss() }
+        } message: {
+            Text("We've received your message and will get back to you within 24 hours.")
         }
     }
 
