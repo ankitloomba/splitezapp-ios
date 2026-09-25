@@ -2182,7 +2182,7 @@ struct ContactFormSheet: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button {
                         dismiss()
                     } label: {
@@ -2190,6 +2190,7 @@ struct ContactFormSheet: View {
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                     }
+                    .buttonStyle(.plain)
                 }
             }
             .onAppear {
