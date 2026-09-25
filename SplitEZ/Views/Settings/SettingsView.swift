@@ -437,7 +437,7 @@ struct NotificationSettingsView: View {
                 Text(label)
                     .font(.subheadline.weight(.medium))
                     .foregroundColor(SplitEZTheme.textPrimary)
-                if let subtitle {
+                if let subtitle = subtitle {
                     Text(subtitle)
                         .font(.caption)
                         .foregroundColor(SplitEZTheme.textTertiary)
@@ -1691,7 +1691,7 @@ struct OTPVerificationSheet: View {
                     }
             )
 
-            if let error {
+            if let error = error {
                 Text(error)
                     .font(.caption)
                     .foregroundColor(SplitEZTheme.negative)

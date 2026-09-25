@@ -1388,7 +1388,7 @@ struct AddExpenseSheet: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
 
-                        if let error {
+                        if let error = error {
                             Text(error)
                                 .font(.caption)
                                 .foregroundColor(SplitEZTheme.negative)

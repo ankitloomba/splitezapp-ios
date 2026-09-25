@@ -170,7 +170,7 @@ struct LoginView: View {
                                     }
                                 }
 
-                                if let error {
+                                if let error = error {
                                     Text(error)
                                         .font(.caption)
                                         .foregroundColor(.red)
@@ -408,7 +408,7 @@ struct RegisterView: View {
                                 }
                             }
 
-                            if let error {
+                            if let error = error {
                                 Text(error)
                                     .font(.caption)
                                     .foregroundColor(.red)

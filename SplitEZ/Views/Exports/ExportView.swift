@@ -32,7 +32,7 @@ struct ExportView: View {
                     await exportFile(format: "pdf")
                 }
 
-                if let message {
+                if let message = message {
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(SplitEZTheme.positive)

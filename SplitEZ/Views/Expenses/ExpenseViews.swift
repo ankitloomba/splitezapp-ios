@@ -89,7 +89,7 @@ struct CreateExpenseView: View {
                     }
                 }
 
-                if let error {
+                if let error = error {
                     Section {
                         Text(error).foregroundColor(.red).font(.caption)
                     }

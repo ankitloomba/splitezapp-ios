@@ -48,8 +48,8 @@ final class InterstitialAdManager: NSObject, ObservableObject {
 
     private func loadAd() {
         GADInterstitialAd.load(withAdUnitID: adUnitID, request: GADRequest()) { [weak self] ad, error in
-            guard let self else { return }
-            if let error {
+            guard let self = self else { return }
+            if let error = error {
                 print("Interstitial ad failed to load: \(error.localizedDescription)")
                 return
             }

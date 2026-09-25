@@ -91,7 +91,7 @@ struct ImportView: View {
                 .disabled(selectedFileData == nil || importing)
 
                 // Result
-                if let result {
+                if let result = result {
                     HStack(alignment: .top) {
                         Image(systemName: result.success ? "checkmark.circle.fill" : "xmark.circle.fill")
                             .foregroundColor(result.success ? SplitEZTheme.positive : SplitEZTheme.destructive)

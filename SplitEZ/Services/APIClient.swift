@@ -40,7 +40,7 @@ actor APIClient {
     /// Build a full URL for opening in browser (e.g. export downloads).
     func buildURL(_ path: String, query: [String: String]? = nil) -> URL? {
         var components = URLComponents(string: "\(baseURL)\(path)")
-        if let query {
+        if let query = query {
             components?.queryItems = query.map { URLQueryItem(name: $0.key, value: $0.value) }
         }
         // Append auth token so the browser can download
@@ -109,7 +109,7 @@ actor APIClient {
             req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
-        if let body {
+        if let body = body {
             req.httpBody = try encoder.encode(AnyEncodable(body))
         }
 

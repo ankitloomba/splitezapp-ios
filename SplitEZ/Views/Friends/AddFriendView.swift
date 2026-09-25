@@ -119,7 +119,7 @@ private struct EmailTabView: View {
                         .fill(Color(.systemGray6))
                 )
 
-            if let error {
+            if let error = error {
                 Text(error)
                     .font(.caption)
                     .foregroundColor(SplitEZTheme.negative)
@@ -490,7 +490,7 @@ private struct EnterCodeTabView: View {
             )
             .foregroundColor(SplitEZTheme.primary)
 
-            if let error {
+            if let error = error {
                 Text(error)
                     .font(.caption)
                     .foregroundColor(SplitEZTheme.negative)
