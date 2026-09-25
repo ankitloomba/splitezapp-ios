@@ -7,7 +7,7 @@ class AppSettingsManager: ObservableObject {
 
     // MARK: - Appearance
 
-    @AppStorage("appearance_theme") var themeMode: Int = 2 // 0=dark, 1=light, 2=system
+    @AppStorage("appearance_theme") var themeMode: Int = 1 // 0=dark, 1=light, 2=system
     @AppStorage("appearance_accent") var accentIndex: Int = 0
     @AppStorage("appearance_compact") var compactList: Bool = false
     @AppStorage("appearance_avatars") var showAvatars: Bool = true

@@ -171,7 +171,7 @@ struct FriendSettingsView: View {
 
             Spacer().frame(height: 40)
         }
-        .background(Color(.systemBackground))
+        .background(Color.white)
         .clipShape(UnevenRoundedRectangle(topLeadingRadius: 24, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 24, style: .continuous))
     }
 
