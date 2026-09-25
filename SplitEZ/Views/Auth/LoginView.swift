@@ -250,7 +250,7 @@ struct LoginView: View {
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(
-                            Color(.systemBackground)
+                            Color.white
                                 .clipShape(RoundedCorner(radius: 28, corners: [.topLeft, .topRight]))
                         )
                     }
@@ -489,7 +489,7 @@ struct RegisterView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(
-                        Color(.systemBackground)
+                        Color.white
                             .clipShape(RoundedCorner(radius: 28, corners: [.topLeft, .topRight]))
                     )
                 }

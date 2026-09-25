@@ -71,7 +71,7 @@ struct FriendLedgerView: View {
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg
                         .frame(height: 300)
-                    Color(.systemBackground)
+                    Color.white
                 }
                 .ignoresSafeArea()
 
@@ -180,7 +180,7 @@ struct FriendLedgerView: View {
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .stroke(SplitEZTheme.primary.opacity(0.25), lineWidth: 1.5)
-                    .background(RoundedRectangle(cornerRadius: 16).fill(Color(.systemBackground)))
+                    .background(RoundedRectangle(cornerRadius: 16).fill(Color.white))
             )
             .padding(.horizontal, 24)
             .padding(.top, 20)
@@ -338,7 +338,7 @@ struct FriendLedgerView: View {
                         .padding(.vertical, 14)
                         .background(
                             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .fill(Color(.systemBackground))
+                                .fill(Color.white)
                         )
                 }
             }
@@ -405,7 +405,7 @@ struct FriendLedgerView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color(.systemBackground))
+                .fill(Color.white)
         )
         .offset(y: -16)
     }

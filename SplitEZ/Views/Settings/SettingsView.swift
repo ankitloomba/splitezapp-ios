@@ -14,7 +14,7 @@ struct SettingsView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 280)
-                Color(.systemBackground)
+                Color.white
             }
             .ignoresSafeArea()
 
@@ -120,7 +120,7 @@ struct SettingsView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color(.systemBackground))
+                            .fill(Color.white)
                     )
                     .offset(y: -16)
                 }
@@ -366,7 +366,7 @@ struct NotificationSettingsView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 160)
-                Color(.systemBackground)
+                Color.white
             }
             .ignoresSafeArea()
 
@@ -404,7 +404,7 @@ struct NotificationSettingsView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color(.systemBackground))
+                            .fill(Color.white)
                     )
                 }
             }
@@ -476,7 +476,7 @@ struct SecuritySettingsView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 160)
-                Color(.systemBackground)
+                Color.white
             }
             .ignoresSafeArea()
 
@@ -663,7 +663,7 @@ struct SecuritySettingsView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color(.systemBackground))
+                            .fill(Color.white)
                     )
                 }
             }
@@ -753,7 +753,7 @@ struct ChangePasswordView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 100)
-                Color(.systemBackground)
+                Color.white
             }
             .ignoresSafeArea()
 
@@ -827,7 +827,7 @@ struct ChangePasswordView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color(.systemBackground))
+                            .fill(Color.white)
                     )
                 }
             }
@@ -876,7 +876,7 @@ struct AppearanceSettingsView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 100)
-                Color(.systemBackground)
+                Color.white
             }
             .ignoresSafeArea()
 
@@ -961,7 +961,7 @@ struct AppearanceSettingsView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color(.systemBackground))
+                            .fill(Color.white)
                     )
                 }
             }
@@ -1184,7 +1184,7 @@ struct CurrencyPickerView: View {
             // Dark header + white below (so sparse results don't show dark beneath card)
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg
-                Color(.systemBackground)
+                Color.white
             }
             .ignoresSafeArea()
 
@@ -1256,11 +1256,11 @@ struct CurrencyPickerView: View {
 
                         Spacer().frame(height: 40)
                     }
-                    .background(Color(.systemBackground))
+                    .background(Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                     .padding(.top, 12)
                 }
-                .background(Color(.systemBackground))
+                .background(Color.white)
             }
         }
         .toolbar(.hidden, for: .navigationBar)
@@ -1382,7 +1382,7 @@ struct EditProfileView: View {
                                 }
                             }
                             ZStack {
-                                Circle().fill(Color(.systemBackground)).frame(width: 32, height: 32)
+                                Circle().fill(Color.white).frame(width: 32, height: 32)
                                 Circle().fill(SplitEZTheme.primary).frame(width: 28, height: 28)
                                 Image(systemName: "camera.fill").font(.system(size: 12)).foregroundColor(.white)
                             }
@@ -2177,7 +2177,7 @@ struct ContactFormSheet: View {
                                 .buttonStyle(.plain)
                             }
                         }
-                        .background(Color(.systemBackground))
+                        .background(Color.white)
                         .clipShape(RoundedRectangle(cornerRadius: 24))
                         .padding(.horizontal, 0)
 

@@ -250,7 +250,7 @@ struct GroupsListView: View {
                     Spacer().frame(height: 80)
                 }
                 .frame(maxWidth: .infinity)
-                .background(Color(.systemBackground))
+                .background(Color.white)
                 .clipShape(
                     UnevenRoundedRectangle(
                         topLeadingRadius: 20,
@@ -263,7 +263,7 @@ struct GroupsListView: View {
             .background(
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg.frame(height: 24)
-                    Color(.systemBackground)
+                    Color.white
                 }
             )
         }
@@ -309,7 +309,7 @@ struct GroupDetailView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            Color(.systemBackground).ignoresSafeArea()
+            Color.white.ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 0) {
@@ -424,7 +424,7 @@ struct GroupDetailView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color(.systemBackground))
+                            .fill(Color.white)
                     )
                     .offset(y: -16)
                 }
@@ -555,7 +555,7 @@ struct GroupDetailView: View {
                         .padding(.vertical, 12)
                         .background(
                             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .fill(Color(.systemBackground))
+                                .fill(Color.white)
                         )
                 }
             }

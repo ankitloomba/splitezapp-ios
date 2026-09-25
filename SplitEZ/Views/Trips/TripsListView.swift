@@ -11,7 +11,7 @@ struct TripsListView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 120)
-                Color(.systemBackground)
+                Color.white
             }
             .ignoresSafeArea()
 
@@ -97,7 +97,7 @@ struct TripsListView: View {
                     }
                     .background(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(Color(.systemBackground))
+                            .fill(Color.white)
                     )
                     .offset(y: -16)
                 }
@@ -192,7 +192,7 @@ struct TripDetailView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            Color(.systemBackground).ignoresSafeArea()
+            Color.white.ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 0) {
@@ -374,7 +374,7 @@ struct TripDetailView: View {
                         .padding(.vertical, 14)
                         .background(
                             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .fill(Color(.systemBackground))
+                                .fill(Color.white)
                         )
                 }
             }
@@ -458,7 +458,7 @@ struct TripDetailView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color(.systemBackground))
+                .fill(Color.white)
         )
         .offset(y: -16)
     }

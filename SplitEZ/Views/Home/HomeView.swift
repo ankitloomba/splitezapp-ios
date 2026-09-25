@@ -35,7 +35,7 @@ struct HomeView: View {
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg
                         .frame(height: 200)
-                    Color(.systemBackground)
+                    Color.white
                 }
                 .ignoresSafeArea()
 
@@ -163,7 +163,7 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color(.systemBackground))
+                .fill(Color.white)
                 .ignoresSafeArea(edges: .bottom)
         )
         .offset(y: -16)

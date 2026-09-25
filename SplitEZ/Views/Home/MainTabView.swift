@@ -922,7 +922,9 @@ struct AddExpenseSheet: View {
     @State private var showCurrencyPicker = false
     @State private var showValidation = false
     @State private var showSplitMethodPicker = false
-    @State private var showReceiptPicker = false
+    @State private var showReceiptOptions = false
+    @State private var showReceiptLibrary = false
+    @State private var showReceiptCamera = false
     @State private var receiptPhotoItem: PhotosPickerItem?
     @State private var receiptImage: Image?
 
@@ -1366,11 +1368,9 @@ struct AddExpenseSheet: View {
 
                             Divider().frame(height: 20).padding(.horizontal, 16)
 
-                            PhotosPicker(
-                                selection: $receiptPhotoItem,
-                                matching: .images,
-                                photoLibrary: .shared()
-                            ) {
+                            Button {
+                                showReceiptOptions = true
+                            } label: {
                                 HStack(spacing: 6) {
                                     Image(systemName: receiptImage != nil ? "checkmark.circle.fill" : "camera")
                                         .font(.system(size: 14))
@@ -1380,6 +1380,12 @@ struct AddExpenseSheet: View {
                                         .foregroundColor(receiptImage != nil ? SplitEZTheme.primary : SplitEZTheme.textSecondary)
                                 }
                             }
+                            .confirmationDialog("Add Receipt", isPresented: $showReceiptOptions) {
+                                Button("Take Photo") { showReceiptCamera = true }
+                                Button("Choose from Library") { showReceiptLibrary = true }
+                                Button("Cancel", role: .cancel) {}
+                            }
+                            .photosPicker(isPresented: $showReceiptLibrary, selection: $receiptPhotoItem, matching: .images)
                             .onChange(of: receiptPhotoItem) { _, item in
                                 Task {
                                     if let data = try? await item?.loadTransferable(type: Data.self),
@@ -1387,6 +1393,12 @@ struct AddExpenseSheet: View {
                                         receiptImage = Image(uiImage: uiImage)
                                     }
                                 }
+                            }
+                            .sheet(isPresented: $showReceiptCamera) {
+                                CameraPickerView { uiImage in
+                                    receiptImage = Image(uiImage: uiImage)
+                                }
+                                .ignoresSafeArea()
                             }
 
                             Spacer()
@@ -2693,8 +2705,42 @@ struct SponsoredBannerView: View {
         .padding(.vertical, 12)
         .background(
             Rectangle()
-                .fill(Color(.systemBackground))
+                .fill(Color.white)
                 .shadow(color: .black.opacity(0.04), radius: 4, y: -1)
         )
+    }
+}
+
+// MARK: - Camera Picker
+
+struct CameraPickerView: UIViewControllerRepresentable {
+    let onImage: (UIImage) -> Void
+    @Environment(\.dismiss) var dismiss
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: CameraPickerView
+        init(_ parent: CameraPickerView) { self.parent = parent }
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            if let img = info[.originalImage] as? UIImage {
+                parent.onImage(img)
+            }
+            parent.dismiss()
+        }
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
+        }
     }
 }

@@ -21,7 +21,7 @@ struct SecuritySettingsView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 120)
-                Color(.systemBackground)
+                Color.white
             }
             .ignoresSafeArea()
 
@@ -96,7 +96,7 @@ struct SecuritySettingsView: View {
                     .contentShape(Rectangle())
                     .onTapGesture {}
                 }
-                .background(Color(.systemBackground))
+                .background(Color.white)
                 .clipShape(RoundedRectangle(cornerRadius: 24))
                 .padding(.top, 0)
             }
