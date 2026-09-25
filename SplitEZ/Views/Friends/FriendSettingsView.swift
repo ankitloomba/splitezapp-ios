@@ -15,7 +15,7 @@ struct FriendSettingsView: View {
     var body: some View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
-                SplitEZTheme.darkBg.frame(height: 200)
+                SplitEZTheme.darkBg
                 Color(.systemBackground)
             }
             .ignoresSafeArea()
@@ -27,7 +27,8 @@ struct FriendSettingsView: View {
                 }
             }
         }
-        .navigationBarHidden(true)
+        .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
         .alert("Remove \(friend.firstName)?", isPresented: $showRemoveConfirm) {
             Button("Remove", role: .destructive) { dismiss() }
             Button("Cancel", role: .cancel) {}
@@ -43,52 +44,49 @@ struct FriendSettingsView: View {
     }
 
     private var header: some View {
-        VStack(spacing: 16) {
-            // Nav bar
+        VStack(spacing: 20) {
+            // Custom nav bar
             HStack {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                }
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.white)
+                    .onTapGesture { dismiss() }
+                    .frame(width: 44, height: 44)
                 Spacer()
                 Text("Friend Settings")
                     .font(.headline)
                     .foregroundColor(.white)
                 Spacer()
-                Color.clear.frame(width: 28)
+                Color.clear.frame(width: 44, height: 44)
             }
+            .padding(.horizontal, 8)
 
             // Friend info
             HStack(spacing: 14) {
                 ZStack {
                     Circle()
-                        .stroke(style: StrokeStyle(lineWidth: 2, dash: [6, 4]))
-                        .foregroundColor(SplitEZTheme.primary.opacity(0.6))
-                        .frame(width: 68, height: 68)
-                    Circle()
                         .fill(avatarColor(for: friend.firstName))
-                        .frame(width: 56, height: 56)
+                        .frame(width: 60, height: 60)
                     Text(initials(for: friend))
-                        .font(.system(size: 20, weight: .bold))
+                        .font(.system(size: 22, weight: .bold))
                         .foregroundColor(.white)
                 }
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(friend.displayName)
                         .font(.title3.weight(.bold))
                         .foregroundColor(.white)
                     if let phone = friend.phone {
                         Text(phone)
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.5))
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.55))
                     }
                 }
                 Spacer()
             }
+            .padding(.horizontal, 20)
         }
-        .padding(.horizontal, 20)
         .padding(.top, 8)
-        .padding(.bottom, 24)
+        .padding(.bottom, 28)
     }
 
     private var content: some View {
@@ -171,10 +169,9 @@ struct FriendSettingsView: View {
 
             Spacer().frame(height: 40)
         }
-        .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color(.systemBackground))
-        )
+        .background(Color(.systemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .padding(.top, 12)
     }
 
     private func actionRow(icon: String, title: String, color: Color, action: @escaping () -> Void) -> some View {
