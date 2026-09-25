@@ -923,6 +923,8 @@ struct AddExpenseSheet: View {
 
     // Group & member selection
     @State private var groups: [ExpenseGroup] = []
+    @State private var loadedFriends: [Friend] = []
+    @State private var guestPeople: [UserSummary] = []
     @State private var selectedGroupIndex: Int? = nil
     @State private var showGroupPicker = false
     @State private var paidByUserId: String
@@ -989,7 +991,8 @@ struct AddExpenseSheet: View {
         var result: [UserSummary] = []
         result.append(SampleData.currentUser)
         seen.insert(SampleData.currentUser.id)
-        for friend in SampleData.friends {
+        let friendSource = loadedFriends.isEmpty ? SampleData.friends : loadedFriends
+        for friend in friendSource {
             if seen.insert(friend.id).inserted {
                 result.append(UserSummary(
                     id: friend.id, firstName: friend.firstName, lastName: friend.lastName,
@@ -1002,6 +1005,11 @@ struct AddExpenseSheet: View {
                 if seen.insert(member.id).inserted {
                     result.append(member)
                 }
+            }
+        }
+        for guest in guestPeople {
+            if seen.insert(guest.id).inserted {
+                result.append(guest)
             }
         }
         return result
@@ -1614,12 +1622,20 @@ struct AddExpenseSheet: View {
 
                 // People list
                 List {
-                    // Inline email-invite when search looks like an email
-                    if participantSearchText.contains("@") && searchFilteredPeople.isEmpty {
+                    // Add new person when search text doesn't match anyone
+                    let trimmed = participantSearchText.trimmingCharacters(in: .whitespaces)
+                    if !trimmed.isEmpty && searchFilteredPeople.isEmpty {
                         Button {
+                            let parts = trimmed.split(separator: " ", maxSplits: 1)
+                            let guest = UserSummary(
+                                id: "guest-\(UUID().uuidString)",
+                                firstName: String(parts.first ?? Substring(trimmed)),
+                                lastName: parts.count > 1 ? String(parts[1]) : nil,
+                                phone: nil, profilePicture: nil, avatar: nil
+                            )
+                            guestPeople.append(guest)
+                            selectedParticipantIds.insert(guest.id)
                             participantSearchText = ""
-                            showParticipantPicker = false
-                            showAddFriend = true
                         } label: {
                             HStack(spacing: 12) {
                                 ZStack {
@@ -1631,10 +1647,10 @@ struct AddExpenseSheet: View {
                                         .font(.system(size: 16))
                                 }
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Invite \"\(participantSearchText)\"")
+                                    Text("Add \"\(trimmed)\" as new person")
                                         .font(.subheadline.weight(.medium))
                                         .foregroundColor(SplitEZTheme.textPrimary)
-                                    Text("Send friend request & add to this expense")
+                                    Text("Added for this expense only")
                                         .font(.caption)
                                         .foregroundColor(SplitEZTheme.textSecondary)
                                 }
@@ -1845,9 +1861,13 @@ struct AddExpenseSheet: View {
     // MARK: – Data loading
 
     private func loadGroups() async {
-        var loaded: [ExpenseGroup] = (try? await api.get("/groups")) ?? []
+        async let g: [ExpenseGroup] = (try? api.get("/groups")) ?? []
+        async let f: [Friend] = (try? api.get("/people")) ?? []
+        var loaded = await g
         if loaded.isEmpty { loaded = SampleData.groups }
         groups = loaded
+        let friends = await f
+        loadedFriends = friends.isEmpty ? SampleData.friends : friends
 
         if editExpense != nil {
             if let gid = editExpense?.groupId, let idx = groups.firstIndex(where: { $0.id == gid }) {
