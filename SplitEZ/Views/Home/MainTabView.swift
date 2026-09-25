@@ -285,6 +285,18 @@ struct FriendsTabView: View {
         }
     }
 
+    private var inviteCode: String {
+        let chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        let id = AuthService.shared.currentUser?.id ?? UUID().uuidString
+        var s = abs(id.hashValue)
+        var code = ""
+        for _ in 0..<6 {
+            code.append(chars[chars.index(chars.startIndex, offsetBy: s % chars.count)])
+            s /= chars.count
+        }
+        return code
+    }
+
     // MARK: – Pending Requests
 
     private var pendingRequestsSection: some View {
