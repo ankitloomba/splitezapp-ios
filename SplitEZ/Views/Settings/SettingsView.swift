@@ -1014,6 +1014,7 @@ struct CurrencyItem: Identifiable {
 
 struct CurrencyPickerView: View {
     @EnvironmentObject var auth: AuthService
+    @Environment(\.dismiss) var dismiss
     @State private var selectedCode: String = "INR"
     @State private var search = ""
     private let api = APIClient.shared
@@ -1184,13 +1185,8 @@ struct CurrencyPickerView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            // Short dark strip behind the card's top rounded corners
-            SplitEZTheme.darkBg
-                .ignoresSafeArea()
-                .frame(maxHeight: .infinity, alignment: .top)
-
-            Color(.systemGroupedBackground)
-                .ignoresSafeArea(edges: .bottom)
+            // Dark background fills everything — shows through card's rounded corners
+            SplitEZTheme.darkBg.ignoresSafeArea()
 
             // Single white card: search bar + list
             ScrollView {
@@ -1247,12 +1243,22 @@ struct CurrencyPickerView: View {
                 .padding(.top, 12)
             }
         }
-        .tint(.white)
         .navigationTitle("Currency")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                .buttonStyle(.plain)
+            }
+        }
         .onAppear {
             selectedCode = auth.currentUser?.currency ?? "INR"
         }
@@ -2165,12 +2171,22 @@ struct ContactFormSheet: View {
                     }
                 }
         }
-        .tint(.white)
         .navigationTitle("Contact us")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                .buttonStyle(.plain)
+            }
+        }
         .onAppear {
             let user = auth.currentUser
             name = user?.displayName ?? ""
