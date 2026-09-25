@@ -11,5 +11,9 @@
 			<string>cstr6suwn9.skadnetwork</string>
 		</dict>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>SplitEZ uses the camera to scan QR codes to add friends.</string>
+	<key>NFCReaderUsageDescription</key>
+	<string>SplitEZ uses NFC to let you add friends by tapping phones together.</string>
 </dict>
 </plist>

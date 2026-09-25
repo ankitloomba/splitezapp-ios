@@ -144,9 +144,6 @@ struct FriendsTabView: View {
     @State private var sortOption = "name"
     @State private var showAddFriend = false
     @State private var showShareInvite = false
-    @State private var addFriendEmail = ""
-    @State private var addFriendError: String?
-    @State private var isAddingFriend = false
     @State private var activeFilter = "All"
     @State private var showOverflowMenu = false
     @State private var isSearchExpanded = false
@@ -267,7 +264,7 @@ struct FriendsTabView: View {
                 Button("Recently active") { sortOption = "recent" }
             }
             .sheet(isPresented: $showAddFriend) {
-                addFriendSheet
+                AddFriendView(isPresented: $showAddFriend)
             }
             .sheet(isPresented: $showShareInvite) {
                 let message = "Join me on SplitEZ! Use my invite code: \(inviteCode)\n\nDownload SplitEZ and enter this code to connect."
@@ -286,144 +283,6 @@ struct FriendsTabView: View {
                 ImportView()
             }
         }
-    }
-
-    // MARK: – Add Friend Sheet
-
-    private var inviteCode: String {
-        let chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-        let id = AuthService.shared.currentUser?.id ?? UUID().uuidString
-        let seed = id.hashValue
-        var code = ""
-        var s = abs(seed)
-        for _ in 0..<6 {
-            code.append(chars[chars.index(chars.startIndex, offsetBy: s % chars.count)])
-            s /= chars.count
-        }
-        return code
-    }
-
-    private var addFriendSheet: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Text("Add a friend by email")
-                    .font(.subheadline)
-                    .foregroundColor(SplitEZTheme.textSecondary)
-
-                TextField("friend@example.com", text: $addFriendEmail)
-                    .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
-                    .autocorrectionDisabled()
-                    .font(.title3)
-                    .multilineTextAlignment(.center)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(Color(.systemGray6))
-                    )
-
-                if let error = addFriendError {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(SplitEZTheme.negative)
-                }
-
-                Button {
-                    Task { await sendFriendRequest() }
-                } label: {
-                    if isAddingFriend {
-                        ProgressView().tint(.white)
-                            .frame(maxWidth: .infinity).padding(.vertical, 14)
-                    } else {
-                        Text("Send friend request")
-                            .font(.subheadline.weight(.bold))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                    }
-                }
-                .background(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .fill(addFriendEmail.isEmpty ? SplitEZTheme.primary.opacity(0.4) : SplitEZTheme.primary)
-                )
-                .disabled(addFriendEmail.isEmpty || isAddingFriend)
-
-                HStack {
-                    Rectangle()
-                        .fill(Color(.systemGray4))
-                        .frame(height: 1)
-                    Text("or")
-                        .font(.caption)
-                        .foregroundColor(SplitEZTheme.textTertiary)
-                    Rectangle()
-                        .fill(Color(.systemGray4))
-                        .frame(height: 1)
-                }
-
-                // Invite code section
-                VStack(spacing: 12) {
-                    Text("Share your invite code")
-                        .font(.subheadline.weight(.medium))
-
-                    Text(inviteCode)
-                        .font(.system(size: 28, weight: .bold, design: .monospaced))
-                        .foregroundColor(SplitEZTheme.primary)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(SplitEZTheme.primary.opacity(0.08))
-                        )
-
-                    Button {
-                        showAddFriend = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            showShareInvite = true
-                        }
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "square.and.arrow.up")
-                                .font(.system(size: 16))
-                            Text("Share invite link")
-                                .font(.subheadline.weight(.semibold))
-                        }
-                        .foregroundColor(SplitEZTheme.primary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .stroke(SplitEZTheme.primary, lineWidth: 1.5)
-                        )
-                    }
-                }
-
-                Spacer()
-            }
-            .padding(20)
-            .navigationTitle("Add Friend")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { showAddFriend = false }
-                }
-            }
-        }
-        .presentationDetents([.medium, .large])
-    }
-
-    private func sendFriendRequest() async {
-        isAddingFriend = true
-        addFriendError = nil
-        struct AddFriendReq: Codable { let email: String }
-        do {
-            let _: AnyCodable = try await api.post("/friend-requests", body: AddFriendReq(email: addFriendEmail))
-            showAddFriend = false
-            addFriendEmail = ""
-            await loadData()
-        } catch {
-            addFriendError = "Could not send request. Check the email address."
-        }
-        isAddingFriend = false
     }
 
     // MARK: – Pending Requests
@@ -1739,6 +1598,37 @@ struct AddExpenseSheet: View {
 
                 // People list
                 List {
+                    // Inline email-invite when search looks like an email
+                    let showEmailInvite = participantSearchText.contains("@") && searchFilteredPeople.isEmpty
+                    if showEmailInvite {
+                        Button {
+                            participantSearchText = ""
+                            showParticipantPicker = false
+                            showAddFriend = true
+                        } label: {
+                            HStack(spacing: 12) {
+                                ZStack {
+                                    Circle()
+                                        .fill(SplitEZTheme.primary.opacity(0.1))
+                                        .frame(width: 36, height: 36)
+                                    Image(systemName: "person.badge.plus")
+                                        .foregroundColor(SplitEZTheme.primary)
+                                        .font(.system(size: 16))
+                                }
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Invite \"\(participantSearchText)\"")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundColor(SplitEZTheme.textPrimary)
+                                    Text("Send friend request & add to this expense")
+                                        .font(.caption)
+                                        .foregroundColor(SplitEZTheme.textSecondary)
+                                }
+                                Spacer()
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundColor(SplitEZTheme.primary)
+                            }
+                        }
+                    }
                     ForEach(searchFilteredPeople, id: \.id) { user in
                         Button {
                             if selectedParticipantIds.contains(user.id) {
