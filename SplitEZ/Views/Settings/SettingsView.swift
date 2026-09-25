@@ -2200,6 +2200,7 @@ struct ContactFormSheet: View {
             } // ScrollView
             } // VStack
         }
+        .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             let user = auth.currentUser
