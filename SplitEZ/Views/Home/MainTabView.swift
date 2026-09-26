@@ -197,7 +197,150 @@ struct FriendsTabView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            friendsHeader
+            // Dark header — pinned, not in scroll
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("Friends")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(.white)
+                    Spacer()
+                    Button(action: {}) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.trailing, 4)
+                    Button { showAddFriend = true } label: {
+                        Image(systemName: "person.badge.plus")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.trailing, 4)
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            isSearchExpanded.toggle()
+                            if !isSearchExpanded { searchText = "" }
+                        }
+                    } label: {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.trailing, 4)
+                    Menu {
+                        Button { navToSecurity = true } label: {
+                            Label("Security", systemImage: "lock.shield")
+                        }
+                        Divider()
+                        Button { navToExport = true } label: {
+                            Label("Export data", systemImage: "square.and.arrow.up")
+                        }
+                        Button { navToImport = true } label: {
+                            Label("Import data", systemImage: "square.and.arrow.down")
+                        }
+                        Divider()
+                        Button(role: .destructive) {
+                            Task { await AuthService.shared.logout() }
+                        } label: {
+                            Label("Log out", systemImage: "rectangle.portrait.and.arrow.right")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.white)
+                            .rotationEffect(.degrees(90))
+                    }
+                }
+
+                if isSearchExpanded {
+                    HStack(spacing: 8) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 14))
+                            .foregroundColor(SplitEZTheme.textTertiary)
+                        TextField("Search friends", text: $searchText)
+                            .font(.subheadline)
+                            .foregroundColor(.white)
+                        if !searchText.isEmpty {
+                            Button { searchText = "" } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(SplitEZTheme.textTertiary)
+                            }
+                        }
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.25)) {
+                                isSearchExpanded = false
+                                searchText = ""
+                            }
+                        } label: {
+                            Text("Cancel")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color.white.opacity(0.1))
+                    )
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(filterOptions, id: \.self) { option in
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    activeFilter = option
+                                }
+                            } label: {
+                                Text(option)
+                                    .font(.subheadline.weight(activeFilter == option ? .semibold : .regular))
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        Capsule()
+                                            .fill(
+                                                activeFilter == option
+                                                    ? LinearGradient(
+                                                        colors: [
+                                                            Color(red: 0.2, green: 0.4, blue: 0.9).opacity(0.85),
+                                                            Color(red: 0.3, green: 0.5, blue: 1.0).opacity(0.7)
+                                                        ],
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
+                                                    : LinearGradient(
+                                                        colors: [
+                                                            Color.white.opacity(0.15),
+                                                            Color.white.opacity(0.08)
+                                                        ],
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    )
+                                            )
+                                    )
+                                    .background(
+                                        Capsule()
+                                            .stroke(
+                                                activeFilter == option
+                                                    ? Color.white.opacity(0.35)
+                                                    : Color.white.opacity(0.15),
+                                                lineWidth: 0.5
+                                            )
+                                    )
+                                    .foregroundColor(activeFilter == option ? .white : .white.opacity(0.65))
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
 
             ScrollView {
                 VStack(spacing: 0) {
