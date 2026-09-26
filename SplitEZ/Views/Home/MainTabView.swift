@@ -2849,7 +2849,11 @@ struct FAQView: View {
 // MARK: - Sponsored Banner (persistent above tab bar on all screens)
 
 struct SponsoredBannerView: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @ObservedObject private var settings = AppSettingsManager.shared
+
     var body: some View {
+        let _ = SplitEZTheme.updateIsDark(colorScheme: colorScheme, themeMode: settings.themeMode)
         HStack(spacing: 10) {
             Text("AD")
                 .font(.system(size: 10, weight: .bold))
