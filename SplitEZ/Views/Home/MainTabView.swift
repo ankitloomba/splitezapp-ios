@@ -271,7 +271,7 @@ struct FriendsTabView: View {
                 }
                 .background(
                     VStack(spacing: 0) {
-                        SplitEZTheme.darkBg.frame(height: 24)
+                        SplitEZTheme.darkBg.frame(height: 20)
                         Color.white
                     }
                 )
@@ -506,7 +506,7 @@ struct FriendsTabView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
-        .padding(.bottom, 20)
+        .padding(.bottom, 14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
     }
