@@ -233,15 +233,15 @@ struct GroupsListView: View {
                                     VStack(alignment: .leading, spacing: 3) {
                                         Text(group.name)
                                             .font(.subheadline.weight(.semibold))
-                                            .foregroundColor(SplitEZTheme.textPrimary)
+                                            .foregroundColor(.white)
                                         Text("\(group.memberCount ?? 0) members · unsettled")
                                             .font(.caption)
-                                            .foregroundColor(SplitEZTheme.textSecondary)
+                                            .foregroundColor(.white.opacity(0.55))
                                     }
                                     Spacer()
                                     Image(systemName: "chevron.right")
                                         .font(.system(size: 12, weight: .semibold))
-                                        .foregroundColor(SplitEZTheme.textTertiary)
+                                        .foregroundColor(.white.opacity(0.35))
                                 }
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 12)

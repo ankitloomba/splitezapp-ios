@@ -767,10 +767,10 @@ struct FriendListRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(friend.displayName)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundColor(SplitEZTheme.textPrimary)
+                    .foregroundColor(.white)
                 Text(subtitleText)
                     .font(.caption)
-                    .foregroundColor(SplitEZTheme.textSecondary)
+                    .foregroundColor(.white.opacity(0.55))
             }
 
             Spacer()
@@ -779,7 +779,7 @@ struct FriendListRow: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("settled up")
                         .font(.caption)
-                        .foregroundColor(SplitEZTheme.textSecondary)
+                        .foregroundColor(.white.opacity(0.55))
                     Text("₹0")
                         .font(.subheadline.weight(.bold))
                         .foregroundColor(SplitEZTheme.positive)
@@ -788,7 +788,7 @@ struct FriendListRow: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(balance > 0 ? "owes you" : "you owe")
                         .font(.caption)
-                        .foregroundColor(SplitEZTheme.textSecondary)
+                        .foregroundColor(.white.opacity(0.55))
                     Text(formatAmount(abs(balance)))
                         .font(.subheadline.weight(.bold))
                         .foregroundColor(balance > 0 ? SplitEZTheme.positive : SplitEZTheme.negative)

@@ -336,7 +336,7 @@ struct FriendLedgerView: View {
                 Button { showSettleUp = true } label: {
                     Text("Settle up")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundColor(SplitEZTheme.textPrimary)
+                        .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(
@@ -360,7 +360,7 @@ struct FriendLedgerView: View {
             HStack {
                 Text("Shared expenses")
                     .font(.headline)
-                    .foregroundColor(SplitEZTheme.textPrimary)
+                    .foregroundColor(.white)
                 Spacer()
                 Button { showSortPicker = true } label: {
                     HStack(spacing: 4) {
@@ -379,7 +379,7 @@ struct FriendLedgerView: View {
             if allEntries.isEmpty && !isLoading {
                 Text("No shared expenses yet")
                     .font(.subheadline)
-                    .foregroundColor(SplitEZTheme.textTertiary)
+                    .foregroundColor(.white.opacity(0.4))
                     .padding(.horizontal, 20)
                     .padding(.vertical, 40)
             } else {
@@ -429,10 +429,10 @@ struct FriendLedgerView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(expense.description)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundColor(SplitEZTheme.textPrimary)
+                    .foregroundColor(.white)
                 Text(expenseSubtitle(expense))
                     .font(.caption)
-                    .foregroundColor(SplitEZTheme.textSecondary)
+                    .foregroundColor(.white.opacity(0.55))
             }
 
             Spacer()
@@ -440,7 +440,7 @@ struct FriendLedgerView: View {
             VStack(alignment: .trailing, spacing: 2) {
                 Text(myShare > 0 ? "owes you" : "you owe")
                     .font(.caption)
-                    .foregroundColor(SplitEZTheme.textSecondary)
+                    .foregroundColor(.white.opacity(0.55))
                 Text(formatAmount(abs(myShare)))
                     .font(.subheadline.weight(.bold))
                     .foregroundColor(myShare > 0 ? SplitEZTheme.positive : SplitEZTheme.negative)
@@ -477,10 +477,10 @@ struct FriendLedgerView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(friend.displayName) paid you back")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundColor(SplitEZTheme.textPrimary)
+                    .foregroundColor(.white)
                 Text(settlementSubtitle(settlement))
                     .font(.caption)
-                    .foregroundColor(SplitEZTheme.textSecondary)
+                    .foregroundColor(.white.opacity(0.55))
             }
 
             Spacer()
@@ -488,10 +488,10 @@ struct FriendLedgerView: View {
             VStack(alignment: .trailing, spacing: 2) {
                 Text("received")
                     .font(.caption)
-                    .foregroundColor(SplitEZTheme.textSecondary)
+                    .foregroundColor(.white.opacity(0.55))
                 Text("– \(settlement.amountFormatted)")
                     .font(.subheadline.weight(.bold))
-                    .foregroundColor(SplitEZTheme.textSecondary)
+                    .foregroundColor(.white.opacity(0.55))
             }
         }
         .padding(.horizontal, 20)
