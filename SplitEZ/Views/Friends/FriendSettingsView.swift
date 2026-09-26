@@ -50,10 +50,10 @@ struct FriendSettingsView: View {
             HStack {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
+                        .frame(width: 36, height: 36)
+                        .background(Circle().fill(Color.white.opacity(0.15)))
                 }
                 Spacer()
                 Text("Friend settings")

@@ -23,6 +23,8 @@ struct TripsListView: View {
                             Image(systemName: "chevron.left")
                                 .font(.system(size: 16, weight: .semibold))
                                 .foregroundColor(.white)
+                                .frame(width: 36, height: 36)
+                                .background(Circle().fill(Color.white.opacity(0.15)))
                         }
                         Text("Trips")
                             .font(.system(size: 28, weight: .bold))
@@ -271,6 +273,8 @@ struct TripDetailView: View {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
+                        .frame(width: 36, height: 36)
+                        .background(Circle().fill(Color.white.opacity(0.15)))
                 }
                 Spacer()
                 Button { showExportShare = true } label: {
