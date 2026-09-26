@@ -9,8 +9,10 @@ struct MainTabView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
-                FriendsTabView()
-                    .tag(0)
+                NavigationStack {
+                    FriendsTabView()
+                }
+                .tag(0)
 
                 NavigationStack {
                     GroupsListView()
@@ -194,11 +196,10 @@ struct FriendsTabView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                friendsHeader
+        VStack(spacing: 0) {
+            friendsHeader
 
-                ScrollView {
+            ScrollView {
                     VStack(spacing: 0) {
                         // Pending requests
                         if !pendingRequests.isEmpty {
@@ -271,7 +272,7 @@ struct FriendsTabView: View {
                 }
                 .background(
                     VStack(spacing: 0) {
-                        SplitEZTheme.darkBg.frame(height: 20)
+                        SplitEZTheme.darkBg.frame(height: 24)
                         Color.white
                     }
                 )
@@ -506,7 +507,7 @@ struct FriendsTabView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
-        .padding(.bottom, 14)
+        .padding(.bottom, 20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
     }
