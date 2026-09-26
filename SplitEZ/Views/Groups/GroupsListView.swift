@@ -267,6 +267,7 @@ struct GroupsListView: View {
                     )
                 )
             }
+            .contentMargins(.top, 0, for: .scrollContent)
             .background(
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg.frame(height: 24)
@@ -276,6 +277,7 @@ struct GroupsListView: View {
         }
         .navigationBarHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showCreate) {
             CreateGroupView { await loadGroups() }
         }
