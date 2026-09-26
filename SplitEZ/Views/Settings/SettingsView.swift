@@ -17,7 +17,7 @@ struct SettingsView: View {
         return ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 280)
-                SplitEZTheme.pageBg
+                SplitEZTheme.cardBg
             }
             .ignoresSafeArea()
 
@@ -363,7 +363,7 @@ struct NotificationSettingsView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 160)
-                SplitEZTheme.pageBg
+                SplitEZTheme.cardBg
             }
             .ignoresSafeArea()
 
@@ -473,7 +473,7 @@ struct SecuritySettingsView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 160)
-                SplitEZTheme.pageBg
+                SplitEZTheme.cardBg
             }
             .ignoresSafeArea()
 
