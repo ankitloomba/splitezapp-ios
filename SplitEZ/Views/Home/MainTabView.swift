@@ -200,110 +200,107 @@ struct FriendsTabView: View {
             friendsHeader
 
             ScrollView {
-                    VStack(spacing: 0) {
-                        // Pending requests
-                        if !pendingRequests.isEmpty {
-                            pendingRequestsSection
-                        }
-
-                        // All friends header
-                        HStack {
-                            Text("All friends")
-                                .font(.headline)
-                            Text("· \(friends.count)")
-                                .font(.headline)
-                                .foregroundColor(SplitEZTheme.textSecondary)
-                            Spacer()
-                            Button { showSortPicker = true } label: {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "line.3.horizontal.decrease")
-                                        .font(.caption)
-                                    Text("Sort")
-                                        .font(.subheadline.weight(.medium))
-                                }
-                                .foregroundColor(SplitEZTheme.primary)
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, pendingRequests.isEmpty ? 14 : 8)
-                        .padding(.bottom, 12)
-
-                        if filteredFriends.isEmpty {
-                            Text(searchText.isEmpty ? "No friends added yet" : "No results")
-                                .font(.subheadline)
-                                .foregroundColor(SplitEZTheme.textTertiary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 20)
-                        } else {
-                            ForEach(Array(filteredFriends.enumerated()), id: \.element.id) { index, friend in
-                                if index > 0 {
-                                    Divider().padding(.leading, 76)
-                                }
-                                NavigationLink(destination: FriendLedgerView(friend: friend)) {
-                                    FriendListRow(
-                                        friend: friend,
-                                        balance: balanceFor(friend.id)
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button(role: .destructive) {
-                                        Task { await removeFriend(friend.id) }
-                                    } label: {
-                                        Label("Remove", systemImage: "person.badge.minus")
-                                    }
-                                }
-                            }
-                        }
-
-                        Spacer().frame(height: 80)
+                VStack(spacing: 0) {
+                    if !pendingRequests.isEmpty {
+                        pendingRequestsSection
                     }
-                    .frame(maxWidth: .infinity)
-                    .background(SplitEZTheme.cardBg)
-                    .clipShape(
-                        UnevenRoundedRectangle(
-                            topLeadingRadius: 20,
-                            bottomLeadingRadius: 0,
-                            bottomTrailingRadius: 0,
-                            topTrailingRadius: 20
-                        )
-                    )
+
+                    HStack {
+                        Text("All friends")
+                            .font(.headline)
+                        Text("· \(friends.count)")
+                            .font(.headline)
+                            .foregroundColor(SplitEZTheme.textSecondary)
+                        Spacer()
+                        Button { showSortPicker = true } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "line.3.horizontal.decrease")
+                                    .font(.caption)
+                                Text("Sort")
+                                    .font(.subheadline.weight(.medium))
+                            }
+                            .foregroundColor(SplitEZTheme.primary)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, pendingRequests.isEmpty ? 14 : 8)
+                    .padding(.bottom, 12)
+
+                    if filteredFriends.isEmpty {
+                        Text(searchText.isEmpty ? "No friends added yet" : "No results")
+                            .font(.subheadline)
+                            .foregroundColor(SplitEZTheme.textTertiary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 20)
+                    } else {
+                        ForEach(Array(filteredFriends.enumerated()), id: \.element.id) { index, friend in
+                            if index > 0 {
+                                Divider().padding(.leading, 76)
+                            }
+                            NavigationLink(destination: FriendLedgerView(friend: friend)) {
+                                FriendListRow(
+                                    friend: friend,
+                                    balance: balanceFor(friend.id)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button(role: .destructive) {
+                                    Task { await removeFriend(friend.id) }
+                                } label: {
+                                    Label("Remove", systemImage: "person.badge.minus")
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer().frame(height: 80)
                 }
-                .background(
-                    VStack(spacing: 0) {
-                        SplitEZTheme.darkBg.frame(height: 24)
-                        Color.white
-                    }
+                .frame(maxWidth: .infinity)
+                .background(SplitEZTheme.cardBg)
+                .clipShape(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 20,
+                        bottomLeadingRadius: 0,
+                        bottomTrailingRadius: 0,
+                        topTrailingRadius: 20
+                    )
                 )
             }
-            .navigationBarHidden(true)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .task { await loadData() }
-            .confirmationDialog("Sort friends", isPresented: $showSortPicker) {
-                Button("Name (A–Z)") { sortOption = "name" }
-                Button("Highest balance") { sortOption = "balance" }
-                Button("Recently active") { sortOption = "recent" }
-            }
-            .sheet(isPresented: $showAddFriend) {
-                AddFriendView(isPresented: $showAddFriend)
-            }
-            .sheet(isPresented: $showShareInvite) {
-                let message = "Join me on SplitEZ! Use my invite code: \(inviteCode)\n\nDownload SplitEZ and enter this code to connect."
-                ShareSheetView(items: [message])
-            }
-            .navigationDestination(isPresented: $navToAccount) {
-                SettingsView()
-            }
-            .navigationDestination(isPresented: $navToSecurity) {
-                SecuritySettingsView()
-            }
-            .navigationDestination(isPresented: $navToExport) {
-                ExportView()
-            }
-            .navigationDestination(isPresented: $navToImport) {
-                ImportView()
-            }
+            .background(
+                VStack(spacing: 0) {
+                    SplitEZTheme.darkBg.frame(height: 24)
+                    Color.white
+                }
+            )
+        }
+        .navigationBarHidden(true)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .task { await loadData() }
+        .confirmationDialog("Sort friends", isPresented: $showSortPicker) {
+            Button("Name (A–Z)") { sortOption = "name" }
+            Button("Highest balance") { sortOption = "balance" }
+            Button("Recently active") { sortOption = "recent" }
+        }
+        .sheet(isPresented: $showAddFriend) {
+            AddFriendView(isPresented: $showAddFriend)
+        }
+        .sheet(isPresented: $showShareInvite) {
+            let message = "Join me on SplitEZ! Use my invite code: \(inviteCode)\n\nDownload SplitEZ and enter this code to connect."
+            ShareSheetView(items: [message])
+        }
+        .navigationDestination(isPresented: $navToAccount) {
+            SettingsView()
+        }
+        .navigationDestination(isPresented: $navToSecurity) {
+            SecuritySettingsView()
+        }
+        .navigationDestination(isPresented: $navToExport) {
+            ExportView()
+        }
+        .navigationDestination(isPresented: $navToImport) {
+            ImportView()
         }
     }
 
