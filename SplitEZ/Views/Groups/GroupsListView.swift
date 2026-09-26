@@ -274,7 +274,7 @@ struct GroupsListView: View {
             .background(
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg.frame(height: 24)
-                    Color.white
+                    SplitEZTheme.pageBg
                 }
             )
         }
