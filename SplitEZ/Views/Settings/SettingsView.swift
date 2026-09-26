@@ -979,6 +979,7 @@ struct AppearanceSettingsView: View {
             .background(SplitEZTheme.pageBg)
         }
         .navigationBarHidden(true)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBack()
     }
