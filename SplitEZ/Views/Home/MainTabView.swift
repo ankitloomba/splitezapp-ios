@@ -2,12 +2,15 @@ import SwiftUI
 import PhotosUI
 
 struct MainTabView: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @ObservedObject private var settings = AppSettingsManager.shared
     @State private var selectedTab = 0
     @State private var previousTab = 0
     @State private var showAddSheet = false
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        let _ = SplitEZTheme.updateIsDark(colorScheme: colorScheme, themeMode: settings.themeMode)
+        return ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
                 NavigationStack {
                     FriendsTabView()
