@@ -326,7 +326,7 @@ struct GroupDetailView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            Color.white.ignoresSafeArea()
+            SplitEZTheme.pageBg.ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 0) {

@@ -907,7 +907,7 @@ struct ActivityTabView: View {
             ZStack(alignment: .top) {
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg.frame(height: 160)
-                    Color.white
+                    SplitEZTheme.pageBg
                 }
                 .ignoresSafeArea()
 
@@ -2711,7 +2711,7 @@ struct HelpView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 120)
-                Color.white
+                SplitEZTheme.pageBg
             }
             .ignoresSafeArea()
 
@@ -2790,7 +2790,7 @@ struct FAQView: View {
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 120)
-                Color.white
+                SplitEZTheme.pageBg
             }
             .ignoresSafeArea()
 

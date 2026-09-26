@@ -74,7 +74,7 @@ struct FriendLedgerView: View {
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg
                         .frame(height: 300)
-                    Color.white
+                    SplitEZTheme.pageBg
                 }
                 .ignoresSafeArea()
 
