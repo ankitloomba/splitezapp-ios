@@ -49,7 +49,7 @@ struct ExportView: View {
 
     // Sample preview rows from SampleData
     private var previewExpenses: [Expense] {
-        Array(SampleData.expenses.prefix(6))
+        Array(SampleData.recentExpenses.prefix(6))
     }
 
     var body: some View {
@@ -154,12 +154,12 @@ struct ExportView: View {
                                         Divider().padding(.leading, 20)
                                     }
                                 }
-                                if SampleData.expenses.count > 6 {
+                                if SampleData.recentExpenses.count > 6 {
                                     HStack {
                                         Image(systemName: "ellipsis")
                                             .font(.caption)
                                             .foregroundColor(SplitEZTheme.textTertiary)
-                                        Text("+ \(SampleData.expenses.count - 6) more rows in export")
+                                        Text("+ \(SampleData.recentExpenses.count - 6) more rows in export")
                                             .font(.caption)
                                             .foregroundColor(SplitEZTheme.textTertiary)
                                     }
@@ -268,16 +268,19 @@ struct ExportView: View {
 
     // MARK: - Helpers
 
-    private func shortDate(_ date: Date?) -> String {
-        guard let d = date else { return "—" }
-        let f = DateFormatter()
-        f.dateFormat = "d MMM"
-        return f.string(from: d)
+    private func shortDate(_ date: String) -> String {
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let d = iso.date(from: date) {
+            let f = DateFormatter()
+            f.dateFormat = "d MMM"
+            return f.string(from: d)
+        }
+        return String(date.prefix(10))
     }
 
-    private func formattedAmount(_ amount: Double?) -> String {
-        guard let a = amount else { return "—" }
-        return "₹\(Int(a))"
+    private func formattedAmount(_ amount: Int) -> String {
+        return "₹\(amount)"
     }
 }
 
