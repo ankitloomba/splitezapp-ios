@@ -887,8 +887,8 @@ struct AppearanceSettingsView: View {
                 Color.clear.frame(width: 24)
             }
             .padding(.horizontal, 20)
-            .padding(.top, 8)
             .padding(.bottom, 16)
+            .padding(.top, 8)
             .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
 
             ScrollView {
@@ -979,7 +979,7 @@ struct AppearanceSettingsView: View {
             .background(SplitEZTheme.pageBg)
         }
         .navigationBarHidden(true)
-        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar(.hidden, for: .navigationBar)
         .enableSwipeBack()
     }
 
