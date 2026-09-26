@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct GroupsListView: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @ObservedObject private var settings = AppSettingsManager.shared
     @State private var groups: [ExpenseGroup] = []
     @State private var isLoading = true
     @State private var showCreate = false
@@ -34,7 +36,8 @@ struct GroupsListView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        let _ = SplitEZTheme.updateIsDark(colorScheme: colorScheme, themeMode: settings.themeMode)
+        return VStack(spacing: 0) {
             // Dark header — pinned, not in scroll
             VStack(alignment: .leading, spacing: 10) {
                 HStack {

@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct FriendLedgerView: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @ObservedObject private var settings = AppSettingsManager.shared
     let friend: Friend
     @ObservedObject private var store = ExpenseStore.shared
     @State private var expenses: [Expense] = []
@@ -66,7 +68,8 @@ struct FriendLedgerView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
+        let _ = SplitEZTheme.updateIsDark(colorScheme: colorScheme, themeMode: settings.themeMode)
+        return ZStack(alignment: .bottomTrailing) {
             ZStack(alignment: .top) {
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg

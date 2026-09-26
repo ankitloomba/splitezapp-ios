@@ -3,6 +3,8 @@ import LocalAuthentication
 import CoreImage.CIFilterBuiltins
 
 struct SettingsView: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @ObservedObject private var settings = AppSettingsManager.shared
     @EnvironmentObject var auth: AuthService
     @State private var isPlusUser = false
     @State private var showQR = false
@@ -11,7 +13,8 @@ struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
-        ZStack(alignment: .top) {
+        let _ = SplitEZTheme.updateIsDark(colorScheme: colorScheme, themeMode: settings.themeMode)
+        return ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 280)
                 SplitEZTheme.pageBg

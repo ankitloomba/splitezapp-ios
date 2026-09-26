@@ -147,6 +147,8 @@ struct MainTabView: View {
 // MARK: - Friends Tab
 
 struct FriendsTabView: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @ObservedObject private var settings = AppSettingsManager.shared
     @ObservedObject private var store = ExpenseStore.shared
     @State private var friends: [Friend] = []
     @State private var pendingRequests: [FriendRequest] = []
@@ -196,7 +198,8 @@ struct FriendsTabView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        let _ = SplitEZTheme.updateIsDark(colorScheme: colorScheme, themeMode: settings.themeMode)
+        return VStack(spacing: 0) {
             // Dark header — pinned, not in scroll
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
@@ -740,10 +743,13 @@ struct PendingRequestRow: View {
 // MARK: - Friend List Row
 
 struct FriendListRow: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @ObservedObject private var settings = AppSettingsManager.shared
     let friend: Friend
     var balance: Int = 0
 
     var body: some View {
+        let _ = SplitEZTheme.updateIsDark(colorScheme: colorScheme, themeMode: settings.themeMode)
         HStack(spacing: 12) {
             if let user = friendAsUser {
                 AvatarView(user: user, size: 44)

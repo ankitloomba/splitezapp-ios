@@ -9,6 +9,8 @@ struct SessionInfo: Identifiable {
 }
 
 struct SecuritySettingsView: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @ObservedObject private var settings = AppSettingsManager.shared
     @State private var biometricEnabled = true
     @State private var appLockEnabled = false
 
@@ -18,7 +20,8 @@ struct SecuritySettingsView: View {
     ]
 
     var body: some View {
-        ZStack(alignment: .top) {
+        let _ = SplitEZTheme.updateIsDark(colorScheme: colorScheme, themeMode: settings.themeMode)
+        return ZStack(alignment: .top) {
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 120)
                 Color.white
