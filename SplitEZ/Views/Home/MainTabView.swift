@@ -58,6 +58,16 @@ struct MainTabView: View {
         .fullScreenCover(isPresented: $showAddSheet) {
             AddExpenseSheet()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .shortcutAction)) { n in
+            if let type = n.object as? String {
+                switch type {
+                case "addExpense": showAddSheet = true
+                case "addFriend": selectedTab = 0
+                case "activity":  selectedTab = 2
+                default: break
+                }
+            }
+        }
         .onChange(of: selectedTab) { _, tab in
             let screens = ["friends", "groups", "activity", "account"]
             if tab < screens.count {
@@ -185,76 +195,86 @@ struct FriendsTabView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .top) {
-                VStack(spacing: 0) {
-                    SplitEZTheme.darkBg.frame(height: 220)
-                    Color.white
-                }
-                .ignoresSafeArea()
+            VStack(spacing: 0) {
+                friendsHeader
 
                 ScrollView {
                     VStack(spacing: 0) {
-                        friendsHeader
-
-                        VStack(spacing: 0) {
-                            // Pending requests
-                            if !pendingRequests.isEmpty {
-                                pendingRequestsSection
-                            }
-
-                            // All friends header
-                            HStack {
-                                Text("All friends")
-                                    .font(.headline)
-                                Text("· \(friends.count)")
-                                    .font(.headline)
-                                    .foregroundColor(SplitEZTheme.textSecondary)
-                                Spacer()
-                                Button { showSortPicker = true } label: {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "line.3.horizontal.decrease")
-                                            .font(.caption)
-                                        Text("Sort")
-                                            .font(.subheadline.weight(.medium))
-                                    }
-                                    .foregroundColor(SplitEZTheme.primary)
-                                }
-                            }
-                            .padding(.horizontal, 20)
-                            .padding(.top, pendingRequests.isEmpty ? 14 : 8)
-                            .padding(.bottom, 12)
-
-                            if filteredFriends.isEmpty {
-                                Text(searchText.isEmpty ? "No friends added yet" : "No results")
-                                    .font(.subheadline)
-                                    .foregroundColor(SplitEZTheme.textTertiary)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 20)
-                            } else {
-                                ForEach(Array(filteredFriends.enumerated()), id: \.element.id) { index, friend in
-                                    if index > 0 {
-                                        Divider().padding(.leading, 76)
-                                    }
-                                    NavigationLink(destination: FriendLedgerView(friend: friend)) {
-                                        FriendListRow(
-                                            friend: friend,
-                                            balance: balanceFor(friend.id)
-                                        )
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-
-                            Spacer().frame(height: 80)
+                        // Pending requests
+                        if !pendingRequests.isEmpty {
+                            pendingRequestsSection
                         }
-                        .background(
-                            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .fill(SplitEZTheme.cardBg)
-                        )
-                        .offset(y: -16)
+
+                        // All friends header
+                        HStack {
+                            Text("All friends")
+                                .font(.headline)
+                            Text("· \(friends.count)")
+                                .font(.headline)
+                                .foregroundColor(SplitEZTheme.textSecondary)
+                            Spacer()
+                            Button { showSortPicker = true } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "line.3.horizontal.decrease")
+                                        .font(.caption)
+                                    Text("Sort")
+                                        .font(.subheadline.weight(.medium))
+                                }
+                                .foregroundColor(SplitEZTheme.primary)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, pendingRequests.isEmpty ? 14 : 8)
+                        .padding(.bottom, 12)
+
+                        if filteredFriends.isEmpty {
+                            Text(searchText.isEmpty ? "No friends added yet" : "No results")
+                                .font(.subheadline)
+                                .foregroundColor(SplitEZTheme.textTertiary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 20)
+                        } else {
+                            ForEach(Array(filteredFriends.enumerated()), id: \.element.id) { index, friend in
+                                if index > 0 {
+                                    Divider().padding(.leading, 76)
+                                }
+                                NavigationLink(destination: FriendLedgerView(friend: friend)) {
+                                    FriendListRow(
+                                        friend: friend,
+                                        balance: balanceFor(friend.id)
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    Button(role: .destructive) {
+                                        Task { await removeFriend(friend.id) }
+                                    } label: {
+                                        Label("Remove", systemImage: "person.badge.minus")
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer().frame(height: 80)
                     }
+                    .frame(maxWidth: .infinity)
+                    .background(SplitEZTheme.cardBg)
+                    .clipShape(
+                        UnevenRoundedRectangle(
+                            topLeadingRadius: 20,
+                            bottomLeadingRadius: 0,
+                            bottomTrailingRadius: 0,
+                            topTrailingRadius: 20
+                        )
+                    )
                 }
+                .background(
+                    VStack(spacing: 0) {
+                        SplitEZTheme.darkBg.frame(height: 24)
+                        Color.white
+                    }
+                )
             }
             .navigationBarHidden(true)
             .toolbarBackground(.hidden, for: .navigationBar)
@@ -486,8 +506,9 @@ struct FriendsTabView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
-        .padding(.bottom, 22)
-        .background(SplitEZTheme.darkBg)
+        .padding(.bottom, 20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
     }
 
     // MARK: – Actions
@@ -511,6 +532,11 @@ struct FriendsTabView: View {
     private func rejectRequest(_ id: String) async {
         let _: SuccessResponse? = try? await api.put("/friend-requests/\(id)/reject", body: EmptyBody())
         await loadData()
+    }
+
+    private func removeFriend(_ id: String) async {
+        let _: SuccessResponse? = try? await api.delete("/people/\(id)")
+        friends.removeAll { $0.id == id }
     }
 }
 

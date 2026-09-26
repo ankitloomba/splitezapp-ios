@@ -244,6 +244,13 @@ struct GroupsListView: View {
                                 .padding(.vertical, 12)
                             }
                             .buttonStyle(.plain)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button(role: .destructive) {
+                                    Task { await leaveGroup(group.id) }
+                                } label: {
+                                    Label("Leave", systemImage: "rectangle.portrait.and.arrow.right")
+                                }
+                            }
                         }
                     }
 
@@ -280,6 +287,11 @@ struct GroupsListView: View {
         groups = (try? await api.get("/groups")) ?? []
         if groups.isEmpty { groups = SampleData.groups }
         isLoading = false
+    }
+
+    private func leaveGroup(_ id: String) async {
+        let _: SuccessResponse? = try? await api.delete("/groups/\(id)/members/me")
+        groups.removeAll { $0.id == id }
     }
 }
 

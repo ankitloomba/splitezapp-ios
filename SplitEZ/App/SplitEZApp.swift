@@ -1,5 +1,9 @@
 import SwiftUI
 
+extension Notification.Name {
+    static let shortcutAction = Notification.Name("splitez.shortcutAction")
+}
+
 @main
 struct SplitEZApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -79,7 +83,39 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         default: style = .unspecified
         }
         UIApplication.shared.windows.forEach { $0.overrideUserInterfaceStyle = style }
+        application.shortcutItems = [
+            UIApplicationShortcutItem(
+                type: "addExpense",
+                localizedTitle: "Add Expense",
+                localizedSubtitle: nil,
+                icon: UIApplicationShortcutIcon(systemImageName: "plus.circle"),
+                userInfo: nil
+            ),
+            UIApplicationShortcutItem(
+                type: "addFriend",
+                localizedTitle: "Add Friend",
+                localizedSubtitle: nil,
+                icon: UIApplicationShortcutIcon(systemImageName: "person.badge.plus"),
+                userInfo: nil
+            ),
+            UIApplicationShortcutItem(
+                type: "activity",
+                localizedTitle: "Activity",
+                localizedSubtitle: nil,
+                icon: UIApplicationShortcutIcon(systemImageName: "clock"),
+                userInfo: nil
+            ),
+        ]
         return true
+    }
+
+    func application(
+        _ application: UIApplication,
+        performActionFor shortcutItem: UIApplicationShortcutItem,
+        completionHandler: @escaping (Bool) -> Void
+    ) {
+        NotificationCenter.default.post(name: .shortcutAction, object: shortcutItem.type)
+        completionHandler(true)
     }
 
     func application(
