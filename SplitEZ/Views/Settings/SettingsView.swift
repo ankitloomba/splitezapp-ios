@@ -871,29 +871,33 @@ struct AppearanceSettingsView: View {
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Dark header with custom back button
-            HStack {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                }
-                Spacer()
-                Text("Appearance")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundColor(.white)
-                Spacer()
-                Color.clear.frame(width: 24)
+        ZStack(alignment: .top) {
+            // Background: dark top strip, page color below
+            VStack(spacing: 0) {
+                SplitEZTheme.darkBg.frame(height: 120)
+                SplitEZTheme.pageBg
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 16)
-            .padding(.top, 8)
-            .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
+            .ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 0) {
-                    Spacer().frame(height: 8)
+                    // Custom nav bar row (scrolls with content)
+                    HStack {
+                        Button { dismiss() } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                        Spacer()
+                        Text("Appearance")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundColor(.white)
+                        Spacer()
+                        Color.clear.frame(width: 24)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 24)
 
                     VStack(spacing: 0) {
                         sectionLabel("THEME")
@@ -976,7 +980,6 @@ struct AppearanceSettingsView: View {
                     )
                 }
             }
-            .background(SplitEZTheme.pageBg)
         }
         .navigationBarHidden(true)
         .navigationBarTitleDisplayMode(.inline)
