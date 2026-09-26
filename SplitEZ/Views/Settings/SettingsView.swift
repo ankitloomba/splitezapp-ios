@@ -151,17 +151,11 @@ struct SettingsView: View {
     private var settingsHeader: some View {
         VStack(spacing: 16) {
             HStack {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                }
                 Spacer()
                 Text("Account")
                     .font(.subheadline.weight(.semibold))
                     .foregroundColor(.white)
                 Spacer()
-                Color.clear.frame(width: 24)
             }
 
             if let user = auth.currentUser {
@@ -865,20 +859,34 @@ private struct ChangePasswordRequest: Codable {
 
 struct AppearanceSettingsView: View {
     @ObservedObject private var settings = AppSettingsManager.shared
+    @Environment(\.dismiss) var dismiss
 
     private let themes: [(icon: String, label: String, iconColor: Color, bgColor: Color)] = [
         ("moon.fill", "Dark", .white, Color(hex: "10142A")),
         ("sun.min", "Light", .orange, Color(.systemGray6)),
-        ("circle.righthalf.filled", "System", Color(hex: "10142A"), Color(.systemGray6)),
+        ("circle.righthalf.filled", "System", .primary, Color(.systemGray6)),
     ]
 
     var body: some View {
-        ZStack(alignment: .top) {
-            VStack(spacing: 0) {
-                SplitEZTheme.darkBg.frame(height: 100)
-                SplitEZTheme.pageBg
+        VStack(spacing: 0) {
+            // Dark header with custom back button
+            HStack {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                }
+                Spacer()
+                Text("Appearance")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundColor(.white)
+                Spacer()
+                Color.clear.frame(width: 24)
             }
-            .ignoresSafeArea()
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 16)
+            .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
 
             ScrollView {
                 VStack(spacing: 0) {
@@ -965,12 +973,11 @@ struct AppearanceSettingsView: View {
                     )
                 }
             }
+            .background(SplitEZTheme.pageBg)
         }
-        .navigationTitle("Appearance")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(SplitEZTheme.darkBg, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarColorScheme(.dark, for: .navigationBar)
+        .navigationBarHidden(true)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .enableSwipeBack()
     }
 
     private func sectionLabel(_ title: String) -> some View {
