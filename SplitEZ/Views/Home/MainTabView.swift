@@ -350,6 +350,7 @@ struct FriendsTabView: View {
 
                     HStack {
                         Text("All friends")
+
                             .font(.headline)
                         Text("· \(friends.count)")
                             .font(.headline)
@@ -411,6 +412,7 @@ struct FriendsTabView: View {
                     )
                 )
             }
+            .contentMargins(.top, 0, for: .scrollContent)
             .background(
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg.frame(height: 24)
@@ -420,6 +422,7 @@ struct FriendsTabView: View {
         }
         .navigationBarHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
         .task { await loadData() }
         .confirmationDialog("Sort friends", isPresented: $showSortPicker) {
             Button("Name (A–Z)") { sortOption = "name" }
