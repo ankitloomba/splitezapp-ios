@@ -875,7 +875,7 @@ struct AppearanceSettingsView: View {
             // Background: dark top strip, page color below
             VStack(spacing: 0) {
                 SplitEZTheme.darkBg.frame(height: 120)
-                SplitEZTheme.pageBg
+                SplitEZTheme.cardBg
             }
             .ignoresSafeArea()
 

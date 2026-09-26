@@ -140,7 +140,7 @@ struct MainTabView: View {
                 .frame(height: 32)
                 Text(label)
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(isActive ? .white : SplitEZTheme.textTertiary)
+                    .foregroundColor(isActive ? SplitEZTheme.primary : SplitEZTheme.textTertiary)
             }
             .frame(maxWidth: .infinity)
         }
