@@ -99,13 +99,9 @@ struct LoginView: View {
                     VStack(spacing: 0) {
                         // Dark header
                         VStack(alignment: .leading, spacing: 8) {
-                            HStack(spacing: 8) {
-                                SplitEZLogoSmall()
-                                Text("SplitEZ")
-                                    .font(.subheadline.bold())
-                                    .foregroundColor(.white)
-                            }
-                            .padding(.top, 8)
+                            SplitEZLogo(size: 64)
+                                .padding(.top, 8)
+                                .padding(.bottom, 4)
 
                             Text("Welcome back")
                                 .font(.system(size: 28, weight: .bold))
@@ -310,9 +306,11 @@ struct RegisterView: View {
                                 .foregroundColor(.white)
                             }
                             Spacer()
-                            SplitEZLogoSmall()
                         }
                         .padding(.top, 8)
+
+                        SplitEZLogo(size: 64)
+                            .padding(.vertical, 4)
 
                         Text("Create account")
                             .font(.system(size: 28, weight: .bold))
