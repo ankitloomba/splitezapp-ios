@@ -32,21 +32,21 @@ struct SplitEZLogo: View {
                 .translatedBy(x: -center.x, y: -center.y)
             let rotatedGap = gapPath.applying(gapTransform)
 
-            // Left half — light indigo (full left semicircle minus the gap)
+            // Left half — light indigo (arc boundary at same 15° as gap)
             var leftPath = Path()
             leftPath.move(to: center)
             leftPath.addArc(center: center, radius: radius,
-                           startAngle: .degrees(90), endAngle: .degrees(270),
+                           startAngle: .degrees(105), endAngle: .degrees(285),
                            clockwise: false)
             leftPath.closeSubpath()
             let leftShape = leftPath.subtracting(rotatedGap)
             context.fill(leftShape, with: .color(SplitEZTheme.primaryLight))
 
-            // Right half — deep indigo (full right semicircle minus the gap)
+            // Right half — deep indigo
             var rightPath = Path()
             rightPath.move(to: center)
             rightPath.addArc(center: center, radius: radius,
-                            startAngle: .degrees(270), endAngle: .degrees(90),
+                            startAngle: .degrees(285), endAngle: .degrees(105),
                             clockwise: false)
             rightPath.closeSubpath()
             let rightShape = rightPath.subtracting(rotatedGap)
