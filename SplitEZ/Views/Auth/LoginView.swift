@@ -11,7 +11,7 @@ struct SplitEZLogo: View {
             let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
             let radius = min(canvasSize.width, canvasSize.height) / 2
             let halfGap: CGFloat = radius * 0.055 // slightly wider divider
-            let tilt: CGFloat = .pi * -0.21       // ~12° tilt matching logo
+            let tilt: CGFloat = 15.0 * .pi / 180.0 // 15° "/" tilt (top leans right, like logo)
 
             // Clip everything to circle
             var clipCircle = Path()
