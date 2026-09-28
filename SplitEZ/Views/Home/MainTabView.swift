@@ -422,10 +422,11 @@ struct FriendsTabView: View {
             .background(
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg.frame(height: 24)
-                    SplitEZTheme.pageBg
+                    SplitEZTheme.cardBg
                 }
             )
         }
+        .background(SplitEZTheme.cardBg.ignoresSafeArea(edges: .bottom))
         .navigationBarHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
         .navigationBarTitleDisplayMode(.inline)
@@ -914,7 +915,7 @@ struct ActivityTabView: View {
             ZStack(alignment: .top) {
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg.frame(height: 160)
-                    SplitEZTheme.pageBg
+                    SplitEZTheme.cardBg
                 }
                 .ignoresSafeArea()
 

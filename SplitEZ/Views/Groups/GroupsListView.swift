@@ -274,10 +274,11 @@ struct GroupsListView: View {
             .background(
                 VStack(spacing: 0) {
                     SplitEZTheme.darkBg.frame(height: 24)
-                    SplitEZTheme.pageBg
+                    SplitEZTheme.cardBg
                 }
             )
         }
+        .background(SplitEZTheme.cardBg.ignoresSafeArea(edges: .bottom))
         .navigationBarHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
         .navigationBarTitleDisplayMode(.inline)

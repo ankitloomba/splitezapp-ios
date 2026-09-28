@@ -14,16 +14,9 @@ struct SettingsView: View {
 
     var body: some View {
         let _ = SplitEZTheme.updateIsDark(colorScheme: colorScheme, themeMode: settings.themeMode)
-        return ZStack(alignment: .top) {
+        return ScrollView {
             VStack(spacing: 0) {
-                SplitEZTheme.darkBg.frame(height: 280)
-                SplitEZTheme.cardBg
-            }
-            .ignoresSafeArea()
-
-            ScrollView {
-                VStack(spacing: 0) {
-                    settingsHeader
+                settingsHeader
 
                     VStack(spacing: 0) {
                         sectionLabel("PREFERENCES")
@@ -129,6 +122,7 @@ struct SettingsView: View {
                 }
             }
         }
+        .background(SplitEZTheme.cardBg.ignoresSafeArea(edges: .bottom))
         .navigationBarHidden(true)
         .toolbarBackground(.hidden, for: .navigationBar)
         .sheet(isPresented: $showQR) {
@@ -236,7 +230,7 @@ struct SettingsView: View {
         .padding(.horizontal, 20)
         .padding(.top, 8)
         .padding(.bottom, 24)
-        .background(SplitEZTheme.darkBg)
+        .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
     }
 
     // MARK: - Upgrade Banner
