@@ -15,11 +15,13 @@ struct MainTabView: View {
                 NavigationStack {
                     FriendsTabView()
                 }
+                .background(SplitEZTheme.cardBg)
                 .tag(0)
 
                 NavigationStack {
                     GroupsListView()
                 }
+                .background(SplitEZTheme.cardBg)
                 .tag(1)
 
                 ActivityTabView()
@@ -57,6 +59,7 @@ struct MainTabView: View {
             }
             .ignoresSafeArea(.keyboard)
         }
+        .background(SplitEZTheme.cardBg.ignoresSafeArea())
         .onAppear {
             UITabBar.appearance().isHidden = true
         }
