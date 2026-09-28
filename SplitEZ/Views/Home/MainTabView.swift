@@ -840,11 +840,15 @@ struct ActivityTabView: View {
     @State private var searchText = ""
     @State private var showSearch = false
     @State private var showExportShare = false
+    @State private var filterType = "All"
     private let api = APIClient.shared
     private let sortOptions = ["Date", "Name", "Type", "Amount"]
 
     private var sortedActivities: [Activity] {
         var result = activities
+        if filterType != "All" {
+            result = result.filter { $0.type.lowercased().contains(filterType.lowercased()) }
+        }
         if !searchText.isEmpty {
             result = result.filter { activity in
                 let desc = (activity.metadata?["description"]?.value as? String) ?? ""
@@ -1010,10 +1014,25 @@ struct ActivityTabView: View {
                         .foregroundColor(.white)
                 }
                 .padding(.trailing, 12)
-                Button { showExportShare = true } label: {
-                    Image(systemName: "square.and.arrow.down")
+                Menu {
+                    Section("Filter by type") {
+                        ForEach(["All", "Expense", "Settlement", "Group", "Friend"], id: \.self) { type in
+                            Button {
+                                withAnimation { filterType = type }
+                            } label: {
+                                Label(type, systemImage: filterType == type ? "checkmark" : "line.3.horizontal.decrease")
+                            }
+                        }
+                    }
+                    Divider()
+                    Button { showExportShare = true } label: {
+                        Label("Export activity", systemImage: "square.and.arrow.up")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(.white)
+                        .rotationEffect(.degrees(90))
                 }
             }
 
@@ -1041,9 +1060,23 @@ struct ActivityTabView: View {
                 )
             }
 
-            // Sort pills
+            // Filter + Sort pills
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
+                    if filterType != "All" {
+                        Button { withAnimation { filterType = "All" } } label: {
+                            HStack(spacing: 4) {
+                                Text("Type: \(filterType)")
+                                    .font(.subheadline.weight(.medium))
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 10, weight: .bold))
+                            }
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Capsule().fill(Color(hex: "#EF4444").opacity(0.8)))
+                        }
+                    }
                     ForEach(sortOptions, id: \.self) { option in
                         Button {
                             withAnimation(.easeInOut(duration: 0.2)) { activeSort = option }
