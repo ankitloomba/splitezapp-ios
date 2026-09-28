@@ -10,47 +10,40 @@ struct SplitEZLogo: View {
         Canvas { context, canvasSize in
             let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
             let radius = min(canvasSize.width, canvasSize.height) / 2
-            let halfGap: CGFloat = radius * 0.055 // slightly wider divider
-            let tilt: CGFloat = 20.0 * .pi / 180.0 // 20° "/" tilt
+            // 21.5° from vertical — spec: split turn 21.5° anticlockwise from vertical
+            let tilt: CGFloat = 21.5 * .pi / 180.0
+            // Each half slides 2.8u on a 52u radius disc
+            let slide: CGFloat = radius * (2.8 / 52.0)
+            // Perpendicular slide direction toward right/dark half: (cos21.5°, sin21.5°) in screen coords
+            let slideDx = cos(tilt) * slide
+            let slideDy = sin(tilt) * slide
+            // Arc split angle: 90° + 21.5° = 111.5° from positive x-axis
+            let splitAngle: CGFloat = 111.5
 
-            // Clip everything to circle
-            var clipCircle = Path()
-            clipCircle.addEllipse(in: CGRect(x: 0, y: 0, width: canvasSize.width, height: canvasSize.height))
-            context.clip(to: clipCircle)
+            // Clip to overall circle
+            var clip = Path()
+            clip.addEllipse(in: CGRect(x: 0, y: 0, width: canvasSize.width, height: canvasSize.height))
+            context.clip(to: clip)
 
-            // Build a divider-shaped gap (rect rotated around center)
-            let gapRect = CGRect(
-                x: center.x - halfGap,
-                y: -2,
-                width: halfGap * 2,
-                height: canvasSize.height + 4
-            )
-            var gapPath = Path()
-            gapPath.addRect(gapRect)
-            let gapTransform = CGAffineTransform(translationX: center.x, y: center.y)
-                .rotated(by: tilt)
-                .translatedBy(x: -center.x, y: -center.y)
-            let rotatedGap = gapPath.applying(gapTransform)
-
-            // Left half — light indigo (arc boundary at same 15° as gap)
+            // Left half — light indigo: shifted (-slideDx, -slideDy)
+            let leftCenter = CGPoint(x: center.x - slideDx, y: center.y - slideDy)
             var leftPath = Path()
-            leftPath.move(to: center)
-            leftPath.addArc(center: center, radius: radius,
-                           startAngle: .degrees(110), endAngle: .degrees(290),
+            leftPath.move(to: leftCenter)
+            leftPath.addArc(center: leftCenter, radius: radius,
+                           startAngle: .degrees(splitAngle), endAngle: .degrees(splitAngle + 180),
                            clockwise: false)
             leftPath.closeSubpath()
-            let leftShape = leftPath.subtracting(rotatedGap)
-            context.fill(leftShape, with: .color(SplitEZTheme.primaryLight))
+            context.fill(leftPath, with: .color(SplitEZTheme.primaryLight))
 
-            // Right half — deep indigo
+            // Right half — deep indigo: shifted (+slideDx, +slideDy)
+            let rightCenter = CGPoint(x: center.x + slideDx, y: center.y + slideDy)
             var rightPath = Path()
-            rightPath.move(to: center)
-            rightPath.addArc(center: center, radius: radius,
-                            startAngle: .degrees(290), endAngle: .degrees(110),
+            rightPath.move(to: rightCenter)
+            rightPath.addArc(center: rightCenter, radius: radius,
+                            startAngle: .degrees(splitAngle + 180), endAngle: .degrees(splitAngle),
                             clockwise: false)
             rightPath.closeSubpath()
-            let rightShape = rightPath.subtracting(rotatedGap)
-            context.fill(rightShape, with: .color(SplitEZTheme.primary))
+            context.fill(rightPath, with: .color(SplitEZTheme.primary))
         }
         .frame(width: size, height: size)
     }
