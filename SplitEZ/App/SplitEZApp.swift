@@ -19,7 +19,9 @@ struct SplitEZApp: App {
             // correct on every render pass (parent body runs before children).
             let _ = SplitEZTheme.updateIsDark(colorScheme: colorScheme, themeMode: appSettings.themeMode)
             Group {
-                if auth.isLoggedIn {
+                if auth.isCheckingAuth {
+                    SplashView()
+                } else if auth.isLoggedIn {
                     MainTabView()
                 } else {
                     LoginView()

@@ -4,21 +4,35 @@ import Foundation
 class AuthService: ObservableObject {
     static let shared = AuthService()
 
-    @Published var isLoggedIn = false
+    // Start from Keychain so there's no flash to login on cold start
+    @Published var isLoggedIn: Bool
+    @Published var isCheckingAuth = false
     @Published var currentUser: UserProfile?
 
     private let api = APIClient.shared
 
+    init() {
+        // Synchronously read Keychain — if token exists, treat as logged in immediately
+        isLoggedIn = KeychainHelper.get("accessToken") != nil
+    }
+
     func checkAuth() async {
-        let loggedIn = await api.isLoggedIn
-        if loggedIn {
-            do {
-                currentUser = try await api.get("/users/me")
-                isLoggedIn = true
-            } catch {
-                isLoggedIn = false
-            }
+        let hasToken = await api.isLoggedIn
+        guard hasToken else {
+            isLoggedIn = false
+            return
         }
+        isCheckingAuth = true
+        do {
+            currentUser = try await api.get("/users/me")
+            isLoggedIn = true
+        } catch {
+            // Network/server error — keep logged in if token still exists (offline support).
+            // A 401 response will have cleared the token already via APIClient.
+            let stillHasToken = await api.isLoggedIn
+            if !stillHasToken { isLoggedIn = false }
+        }
+        isCheckingAuth = false
     }
 
     /// Returns `true` if email verification is needed (user should check inbox)
