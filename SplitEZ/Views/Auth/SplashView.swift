@@ -6,7 +6,7 @@ struct SplashView: View {
             Color(hex: "#10142A").ignoresSafeArea()
             VStack(spacing: 0) {
                 Spacer()
-                SplitEZLogo(size: 120)
+                SplitEZLogo(size: 60)
                 Spacer().frame(height: 20)
                 Text("SplitEZ")
                     .font(.system(size: 32, weight: .bold))
