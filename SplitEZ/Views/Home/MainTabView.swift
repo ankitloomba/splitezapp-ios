@@ -1335,7 +1335,7 @@ struct AddExpenseSheet: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.top, 8)
+            .padding(.top, 16)
             .padding(.bottom, 24)
             .frame(maxWidth: .infinity, alignment: .center)
             .background(SplitEZTheme.darkBg.ignoresSafeArea(edges: .top))
