@@ -1302,36 +1302,36 @@ struct AddExpenseSheet: View {
                     Color.clear.frame(width: 24)
                 }
 
-                HStack(alignment: .center, spacing: 4) {
-                    Text(currSymbol)
-                        .font(.system(size: 22, weight: .medium))
-                        .foregroundColor(Color.white.opacity(0.5))
-
-                    TextField("0", text: $amountText)
-                        .font(.system(size: 44, weight: .bold))
-                        .foregroundColor(.white)
-                        .keyboardType(.numberPad)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: true, vertical: false)
-
+                HStack(alignment: .center, spacing: 16) {
+                    // Currency pill — left side
                     Button {
                         showCurrencyPicker = true
                     } label: {
-                        HStack(spacing: 6) {
+                        HStack(spacing: 8) {
                             Text(currSymbol)
-                                .font(.system(size: 13, weight: .semibold))
-                                .frame(width: 26, height: 26)
-                                .background(Circle().fill(Color.white.opacity(0.2)))
+                                .font(.system(size: 15, weight: .bold))
+                                .frame(width: 32, height: 32)
+                                .background(Circle().fill(SplitEZTheme.primary))
                             Text(selectedCurrency)
-                                .font(.caption.weight(.semibold))
+                                .font(.subheadline.weight(.semibold))
                             Image(systemName: "chevron.down")
-                                .font(.system(size: 8, weight: .bold))
+                                .font(.system(size: 10, weight: .bold))
                         }
                         .foregroundColor(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(Capsule().fill(Color.white.opacity(0.15)))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(Capsule().fill(Color.white.opacity(0.12)))
                     }
+
+                    Spacer()
+
+                    // Large amount — right side
+                    TextField("0", text: $amountText)
+                        .font(.system(size: 52, weight: .bold))
+                        .foregroundColor(.white)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .fixedSize(horizontal: true, vertical: false)
                 }
             }
             .padding(.horizontal, 20)
