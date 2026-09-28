@@ -11,7 +11,7 @@ struct SplitEZLogo: View {
             let center = CGPoint(x: canvasSize.width / 2, y: canvasSize.height / 2)
             let radius = min(canvasSize.width, canvasSize.height) / 2
             let halfGap: CGFloat = radius * 0.055 // slightly wider divider
-            let tilt: CGFloat = 15.0 * .pi / 180.0 // 15° "/" tilt (top leans right, like logo)
+            let tilt: CGFloat = 20.0 * .pi / 180.0 // 20° "/" tilt
 
             // Clip everything to circle
             var clipCircle = Path()
@@ -36,7 +36,7 @@ struct SplitEZLogo: View {
             var leftPath = Path()
             leftPath.move(to: center)
             leftPath.addArc(center: center, radius: radius,
-                           startAngle: .degrees(105), endAngle: .degrees(285),
+                           startAngle: .degrees(110), endAngle: .degrees(290),
                            clockwise: false)
             leftPath.closeSubpath()
             let leftShape = leftPath.subtracting(rotatedGap)
@@ -46,7 +46,7 @@ struct SplitEZLogo: View {
             var rightPath = Path()
             rightPath.move(to: center)
             rightPath.addArc(center: center, radius: radius,
-                            startAngle: .degrees(285), endAngle: .degrees(105),
+                            startAngle: .degrees(290), endAngle: .degrees(110),
                             clockwise: false)
             rightPath.closeSubpath()
             let rightShape = rightPath.subtracting(rotatedGap)
@@ -99,9 +99,13 @@ struct LoginView: View {
                     VStack(spacing: 0) {
                         // Dark header
                         VStack(alignment: .leading, spacing: 8) {
-                            SplitEZLogo(size: 64)
-                                .padding(.top, 8)
-                                .padding(.bottom, 4)
+                            HStack(spacing: 8) {
+                                SplitEZLogoSmall()
+                                Text("SplitEZ")
+                                    .font(.subheadline.bold())
+                                    .foregroundColor(.white)
+                            }
+                            .padding(.top, 8)
 
                             Text("Welcome back")
                                 .font(.system(size: 28, weight: .bold))
@@ -306,11 +310,9 @@ struct RegisterView: View {
                                 .foregroundColor(.white)
                             }
                             Spacer()
+                            SplitEZLogoSmall()
                         }
                         .padding(.top, 8)
-
-                        SplitEZLogo(size: 64)
-                            .padding(.vertical, 4)
 
                         Text("Create account")
                             .font(.system(size: 28, weight: .bold))
