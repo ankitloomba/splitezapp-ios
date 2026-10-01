@@ -30,6 +30,7 @@ struct MainTabView: View {
                 NavigationStack {
                     SettingsView()
                 }
+                .background(SplitEZTheme.cardBg)
                 .tag(3)
             }
 
@@ -2568,12 +2569,12 @@ struct ActivityRow: View {
 
     private var iconName: String {
         switch activity.type {
-        case "SETTLEMENT_COMPLETED": return "checkmark"
-        case "EXPENSE_CREATED": return "fork.knife"
-        case "GROUP_CREATED": return "house"
-        case "TRIP_CREATED": return "paperplane"
+        case "SETTLEMENT_COMPLETED": return "checkmark.circle.fill"
+        case "EXPENSE_CREATED": return "dollarsign.circle.fill"
+        case "GROUP_CREATED": return "person.3.fill"
+        case "TRIP_CREATED": return "map.fill"
         case "GROUP_MEMBER_ADDED", "TRIP_MEMBER_ADDED": return "person.badge.plus"
-        default: return "bell"
+        default: return "bell.fill"
         }
     }
 
