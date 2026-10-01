@@ -291,7 +291,6 @@ struct GroupsListView: View {
     private func loadGroups() async {
         isLoading = true
         groups = (try? await api.get("/groups")) ?? []
-        if groups.isEmpty { groups = SampleData.groups }
         isLoading = false
     }
 
@@ -453,13 +452,6 @@ struct GroupDetailView: View {
         .task {
             expenses = (try? await api.get("/expenses", query: ["groupId": group.id])) ?? []
             balances = (try? await api.get("/balances", query: ["groupId": group.id])) ?? []
-            if expenses.isEmpty {
-                expenses = SampleData.recentExpenses.filter { $0.groupId == group.id }
-            }
-            if balances.isEmpty {
-                let memberIds = group.members?.map(\.id) ?? []
-                balances = SampleData.balances.filter { memberIds.contains($0.userId) }
-            }
         }
         .alert("Delete Group", isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) {}

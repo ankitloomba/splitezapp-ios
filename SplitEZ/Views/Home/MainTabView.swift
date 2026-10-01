@@ -674,7 +674,7 @@ struct FriendsTabView: View {
         async let r: [FriendRequest] = (try? api.get("/friend-requests", query: ["status": "pending"])) ?? []
         friends = await f
         pendingRequests = await r
-        if friends.isEmpty { friends = SampleData.friends }
+        // real data only — no SampleData fallback
         await store.reload()
         isLoading = false
     }
@@ -1145,6 +1145,15 @@ struct AddExpenseSheet: View {
     @State private var receiptPhotoItem: PhotosPickerItem?
     @State private var receiptImage: Image?
 
+    // Current logged-in user as UserSummary
+    private var meUser: UserSummary {
+        if let u = AuthService.shared.currentUser {
+            return UserSummary(id: u.id, firstName: u.firstName, lastName: u.lastName,
+                               phone: u.phone, profilePicture: u.profilePicture, avatar: u.avatar)
+        }
+        return UserSummary(id: "_me", firstName: "You", lastName: nil, phone: nil, profilePicture: nil, avatar: nil)
+    }
+
     // Group & member selection
     @State private var groups: [ExpenseGroup] = []
     @State private var loadedFriends: [Friend] = []
@@ -1173,9 +1182,10 @@ struct AddExpenseSheet: View {
             _showNotesField = State(initialValue: exp.note != nil && !exp.note!.isEmpty)
             let iso = ISO8601DateFormatter()
             _expenseDate = State(initialValue: iso.date(from: exp.createdAt) ?? Date())
-            _paidByUserId = State(initialValue: exp.paidBy?.id ?? SampleData.currentUser.id)
+            let myId = AuthService.shared.currentUser?.id ?? "_me"
+            _paidByUserId = State(initialValue: exp.paidBy?.id ?? myId)
             let splitIds = Set(exp.splits?.compactMap(\.userId) ?? [])
-            let participantIds = splitIds.isEmpty ? Set([SampleData.currentUser.id, exp.paidBy?.id ?? SampleData.currentUser.id]) : splitIds
+            let participantIds = splitIds.isEmpty ? Set([myId, exp.paidBy?.id ?? myId]) : splitIds
             _selectedParticipantIds = State(initialValue: participantIds)
         } else {
             _amountText = State(initialValue: "")
@@ -1186,11 +1196,12 @@ struct AddExpenseSheet: View {
             _note = State(initialValue: "")
             _showNotesField = State(initialValue: false)
             _expenseDate = State(initialValue: Date())
-            _paidByUserId = State(initialValue: SampleData.currentUser.id)
+            let myId = AuthService.shared.currentUser?.id ?? "_me"
+            _paidByUserId = State(initialValue: myId)
             if let friend = prefillFriend {
-                _selectedParticipantIds = State(initialValue: [SampleData.currentUser.id, friend.id])
+                _selectedParticipantIds = State(initialValue: [myId, friend.id])
             } else {
-                _selectedParticipantIds = State(initialValue: [SampleData.currentUser.id])
+                _selectedParticipantIds = State(initialValue: [myId])
             }
         }
     }
@@ -1213,9 +1224,9 @@ struct AddExpenseSheet: View {
     private var allPeople: [UserSummary] {
         var seen = Set<String>()
         var result: [UserSummary] = []
-        result.append(SampleData.currentUser)
-        seen.insert(SampleData.currentUser.id)
-        let friendSource = loadedFriends.isEmpty ? SampleData.friends : loadedFriends
+        result.append(meUser)
+        seen.insert(meUser.id)
+        let friendSource = loadedFriends
         for friend in friendSource {
             if seen.insert(friend.id).inserted {
                 result.append(UserSummary(
@@ -1282,7 +1293,7 @@ struct AddExpenseSheet: View {
     }
 
     private func displayName(for user: UserSummary) -> String {
-        user.id == SampleData.currentUser.id ? "You" : user.firstName
+        user.id == (AuthService.shared.currentUser?.id ?? "_me") ? "You" : user.firstName
     }
 
     var body: some View {
@@ -1742,8 +1753,8 @@ struct AddExpenseSheet: View {
         .confirmationDialog("Paid By", isPresented: $showPaidByPicker) {
             let paidByOptions: [UserSummary] = {
                 var options = participants
-                if !options.contains(where: { $0.id == SampleData.currentUser.id }) {
-                    options.insert(SampleData.currentUser, at: 0)
+                if !options.contains(where: { $0.id == meUser.id }) {
+                    options.insert(meUser, at: 0)
                 }
                 return options
             }()
@@ -2004,7 +2015,7 @@ struct AddExpenseSheet: View {
                     method: "EQUAL",
                     title: "You paid, split equally",
                     subtitle: splitOptionSubtitle(payer: "you", method: "EQUAL"),
-                    leftUser: SampleData.currentUser.id,
+                    leftUser: meUser.id,
                     rightUser: otherParticipantId
                 )
 
@@ -2012,7 +2023,7 @@ struct AddExpenseSheet: View {
                     method: "EXACT",
                     title: "Split by exact amounts",
                     subtitle: "Enter how much each person owes",
-                    leftUser: SampleData.currentUser.id,
+                    leftUser: meUser.id,
                     rightUser: otherParticipantId
                 )
 
@@ -2020,7 +2031,7 @@ struct AddExpenseSheet: View {
                     method: "PERCENTAGE",
                     title: "Split by percentage",
                     subtitle: "Assign each person a percentage",
-                    leftUser: SampleData.currentUser.id,
+                    leftUser: meUser.id,
                     rightUser: otherParticipantId
                 )
             }
@@ -2032,14 +2043,14 @@ struct AddExpenseSheet: View {
     }
 
     private var otherParticipantId: String? {
-        participants.first(where: { $0.id != SampleData.currentUser.id })?.id
+        participants.first(where: { $0.id != meUser.id })?.id
     }
 
     private func splitOptionSubtitle(payer: String, method: String) -> String {
         guard let amount = Double(amountText), amount > 0 else {
             return "Enter an amount first"
         }
-        let otherName = participants.first(where: { $0.id != SampleData.currentUser.id })?.firstName ?? "Other"
+        let otherName = participants.first(where: { $0.id != meUser.id })?.firstName ?? "Other"
         let share = amount / max(Double(participants.count), 1)
         return "\(otherName) owes you \(currSymbol)\(String(format: "%.0f", share))"
     }
@@ -2131,11 +2142,8 @@ struct AddExpenseSheet: View {
     private func loadGroups() async {
         async let g: [ExpenseGroup] = (try? api.get("/groups")) ?? []
         async let f: [Friend] = (try? api.get("/people")) ?? []
-        var loaded = await g
-        if loaded.isEmpty { loaded = SampleData.groups }
-        groups = loaded
-        let friends = await f
-        loadedFriends = friends.isEmpty ? SampleData.friends : friends
+        groups = await g
+        loadedFriends = await f
 
         if editExpense != nil {
             if let gid = editExpense?.groupId, let idx = groups.firstIndex(where: { $0.id == gid }) {
@@ -2151,10 +2159,10 @@ struct AddExpenseSheet: View {
         var memberIds = Set((group.members ?? []).map(\.id))
         if let friend = prefillFriend {
             memberIds.insert(friend.id)
-            memberIds.insert(SampleData.currentUser.id)
+            memberIds.insert(meUser.id)
         }
         selectedParticipantIds = memberIds
-        if let firstMember = group.members?.first(where: { $0.id == SampleData.currentUser.id }) {
+        if let firstMember = group.members?.first(where: { $0.id == meUser.id }) {
             paidByUserId = firstMember.id
         } else if let first = group.members?.first {
             paidByUserId = first.id
@@ -2231,7 +2239,7 @@ struct AddExpenseSheet: View {
                 note: note.isEmpty ? nil : note,
                 date: dateFmt.string(from: expenseDate),
                 paidBy: paidByUser,
-                createdBy: SampleData.currentUser,
+                createdBy: meUser,
                 splits: splits,
                 groupId: selectedGroup?.id,
                 tripId: nil,

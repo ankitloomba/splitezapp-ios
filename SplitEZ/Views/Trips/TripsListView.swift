@@ -116,7 +116,6 @@ struct TripsListView: View {
     private func loadTrips() async {
         isLoading = true
         trips = (try? await api.get("/trips")) ?? []
-        if trips.isEmpty { trips = SampleData.trips }
         isLoading = false
     }
 }

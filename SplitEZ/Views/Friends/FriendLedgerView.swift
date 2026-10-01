@@ -555,14 +555,6 @@ struct FriendLedgerView: View {
         let balances = await b
         loadedBalance = balances.first?.amount ?? 0
 
-        if expenses.isEmpty {
-            expenses = SampleData.recentExpenses.filter { expense in
-                expense.paidBy?.id == friend.id || expense.createdBy?.id == friend.id
-            }
-            if expenses.isEmpty {
-                expenses = Array(SampleData.recentExpenses.prefix(2))
-            }
-        }
         isLoading = false
     }
 }

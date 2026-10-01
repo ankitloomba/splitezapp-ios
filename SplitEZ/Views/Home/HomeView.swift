@@ -234,7 +234,8 @@ struct HomeView: View {
     }
 
     private func groupBalance(_ groupId: String) -> Int {
-        SampleData.groupBalances[groupId] ?? 0
+        // Group-specific balances aren't in the current Balance model; return 0 until the API provides them
+        return 0
     }
 
 
@@ -261,9 +262,6 @@ struct HomeView: View {
 
         banners = await p
         dashboardElements = await d
-
-        if groups.isEmpty { groups = SampleData.groups }
-
 
         await store.reload()
         isLoading = false
