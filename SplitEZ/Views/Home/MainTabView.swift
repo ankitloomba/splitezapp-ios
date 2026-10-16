@@ -24,14 +24,20 @@ struct MainTabView: View {
                 .background(SplitEZTheme.cardBg)
                 .tag(1)
 
+                NavigationStack {
+                    TripsListView()
+                }
+                .background(SplitEZTheme.cardBg)
+                .tag(2)
+
                 ActivityTabView()
-                    .tag(2)
+                    .tag(3)
 
                 NavigationStack {
                     SettingsView()
                 }
                 .background(SplitEZTheme.cardBg)
-                .tag(3)
+                .tag(4)
             }
 
             // Bottom bar: floating + button, ad banner, tab bar
@@ -72,13 +78,13 @@ struct MainTabView: View {
                 switch type {
                 case "addExpense": showAddSheet = true
                 case "addFriend": selectedTab = 0
-                case "activity":  selectedTab = 2
+                case "activity":  selectedTab = 3
                 default: break
                 }
             }
         }
         .onChange(of: selectedTab) { _, tab in
-            let screens = ["friends", "groups", "activity", "account"]
+            let screens = ["friends", "groups", "trips", "activity", "account"]
             if tab < screens.count {
                 Task { await AnalyticsTracker.shared.trackScreen(screens[tab]) }
             }
@@ -95,8 +101,9 @@ struct MainTabView: View {
         HStack(spacing: 0) {
             tabButton(activeIcon: "person.2.fill", inactiveIcon: "person.2", label: "Friends", tag: 0)
             tabButton(activeIcon: "person.3.fill", inactiveIcon: "person.3", label: "Groups", tag: 1)
-            tabButton(activeIcon: "arrow.triangle.branch", inactiveIcon: "arrow.triangle.branch", label: "Activity", tag: 2)
-            tabButton(activeIcon: "person.crop.circle.fill", inactiveIcon: "person.crop.circle", label: "Account", tag: 3)
+            tabButton(activeIcon: "airplane", inactiveIcon: "airplane", label: "Trips", tag: 2)
+            tabButton(activeIcon: "arrow.triangle.branch", inactiveIcon: "arrow.triangle.branch", label: "Activity", tag: 3)
+            tabButton(activeIcon: "person.crop.circle.fill", inactiveIcon: "person.crop.circle", label: "Account", tag: 4)
         }
         .padding(.horizontal, 8)
         .padding(.top, 10)

@@ -121,7 +121,7 @@ struct HomeView: View {
                 .padding(.bottom, 16)
 
             // Groups & Trips
-            sectionHeader(title: "Groups", destination: AnyView(GroupsListView()))
+            sectionHeader(title: "Groups & Trips", destination: AnyView(GroupsListView()))
                 .padding(.horizontal, 20)
 
             if groups.isEmpty {
